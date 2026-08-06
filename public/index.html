@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Entreprises Prospects Maralpines</title>
+<style>
+:root{
+  --bg:#fff; --bg2:#f5f5f7; --ink:#1d1d1f; --ink2:#6e6e73; --line:#d2d2d7;
+  --accent:#0071e3; --card:#fff; --shadow:0 4px 24px rgba(0,0,0,.07);
+  --nav:rgba(255,255,255,.72);
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#000; --bg2:#101012; --ink:#f5f5f7; --ink2:#98989d; --line:#2c2c2e;
+        --accent:#2997ff; --card:#1c1c1e; --shadow:0 4px 24px rgba(0,0,0,.5);
+        --nav:rgba(22,22,23,.72);}
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-size:17px;line-height:1.47;letter-spacing:-.01em;-webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1120px;margin:0 auto;padding:0 22px}
+
+/* ---------- nav ---------- */
+nav{position:sticky;top:0;z-index:60;height:48px;background:var(--nav);
+  backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);
+  border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;gap:26px;height:100%}
+nav b{font-size:15px;font-weight:600;letter-spacing:-.02em}
+nav a{color:var(--ink2);text-decoration:none;font-size:12px;transition:color .2s}
+nav a:hover{color:var(--ink)}
+nav .sp{margin-left:auto;font-size:12px;color:var(--ink2);font-variant-numeric:tabular-nums}
+
+/* ---------- hero ---------- */
+header{padding:110px 0 90px;text-align:center}
+h1{font-size:clamp(42px,7.5vw,88px);font-weight:600;letter-spacing:-.035em;line-height:1.04}
+h1 .g{background:linear-gradient(120deg,#0071e3,#a24bf5 55%,#ff5f6d);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+header p{margin:22px auto 0;max-width:640px;font-size:clamp(17px,2.2vw,22px);color:var(--ink2)}
+
+/* ---------- chiffres ---------- */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;padding:0 0 96px}
+.stat{background:var(--bg2);border-radius:18px;padding:30px 26px;text-align:center}
+.stat .n{font-size:clamp(34px,5vw,50px);font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.stat .l{margin-top:6px;font-size:13px;color:var(--ink2)}
+
+/* ---------- filtres ---------- */
+.tools{position:sticky;top:48px;z-index:50;background:var(--nav);
+  backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);
+  border-bottom:1px solid var(--line);padding:14px 0}
+.tools .wrap{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+input[type=search],select{
+  font:inherit;font-size:14px;color:var(--ink);background:var(--bg2);
+  border:1px solid transparent;border-radius:980px;padding:9px 16px;outline:none;transition:.2s}
+input[type=search]{flex:1;min-width:220px}
+input[type=search]:focus,select:focus{border-color:var(--accent);background:var(--bg)}
+select{cursor:pointer;-webkit-appearance:none;appearance:none;padding-right:34px;
+  background-image:linear-gradient(45deg,transparent 50%,var(--ink2) 50%),linear-gradient(135deg,var(--ink2) 50%,transparent 50%);
+  background-position:calc(100% - 18px) 52%,calc(100% - 13px) 52%;
+  background-size:5px 5px,5px 5px;background-repeat:no-repeat}
+.count{font-size:13px;color:var(--ink2);margin-left:auto;font-variant-numeric:tabular-nums}
+
+/* ---------- grille ---------- */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:16px;padding:36px 0 20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;
+  cursor:pointer;transition:transform .25s cubic-bezier(.25,.1,.25,1),box-shadow .25s;
+  opacity:0;transform:translateY(16px)}
+.card.in{opacity:1;transform:none}
+.card:hover{transform:translateY(-4px);box-shadow:var(--shadow)}
+.card h3{font-size:17px;font-weight:600;letter-spacing:-.02em;line-height:1.3}
+.card .meta{margin-top:5px;font-size:13px;color:var(--ink2)}
+.card .kpi{display:flex;gap:18px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.card .kpi div{font-size:12px;color:var(--ink2)}
+.card .kpi b{display:block;font-size:16px;color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+.tag{display:inline-block;margin-top:12px;padding:3px 10px;border-radius:980px;
+  font-size:11px;font-weight:500;background:var(--bg2);color:var(--ink2)}
+.tag.t06{color:#0071e3}.tag.tMC{color:#bf5af2}.tag.tPACA{color:#30a14e}
+.more{display:block;margin:26px auto 90px;padding:11px 24px;border:0;border-radius:980px;
+  background:var(--accent);color:#fff;font:inherit;font-size:15px;cursor:pointer}
+.more[disabled]{opacity:.35;cursor:default}
+
+/* ---------- fiche ---------- */
+.ov{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.45);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  display:none;align-items:flex-start;justify-content:center;overflow-y:auto;padding:44px 18px}
+.ov.on{display:flex}
+.sheet{background:var(--bg);border-radius:22px;max-width:760px;width:100%;padding:38px;
+  box-shadow:0 24px 70px rgba(0,0,0,.35);animation:up .3s cubic-bezier(.25,.1,.25,1)}
+@keyframes up{from{opacity:0;transform:translateY(22px)}}
+.sheet h2{font-size:clamp(26px,4vw,40px);font-weight:600;letter-spacing:-.03em;line-height:1.1}
+.sheet .sub{margin-top:8px;color:var(--ink2);font-size:15px}
+.close{float:right;border:0;background:var(--bg2);color:var(--ink);width:30px;height:30px;
+  border-radius:50%;font-size:17px;cursor:pointer;line-height:1}
+.dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;margin-top:26px}
+.dl div{font-size:13px;color:var(--ink2)}
+.dl b{display:block;font-size:16px;color:var(--ink);font-weight:600;margin-top:2px;
+  font-variant-numeric:tabular-nums;word-break:break-word}
+h4{margin:34px 0 12px;font-size:20px;font-weight:600;letter-spacing:-.02em}
+.person{display:flex;gap:14px;align-items:flex-start;padding:15px 0;border-top:1px solid var(--line)}
+.av{flex:0 0 40px;height:40px;border-radius:50%;background:var(--bg2);display:grid;place-items:center;
+  font-size:14px;font-weight:600;color:var(--ink2)}
+.person .n{font-weight:600;font-size:15px}
+.person .r{font-size:13px;color:var(--ink2);margin-top:2px}
+.person .c{margin-top:7px;display:flex;flex-wrap:wrap;gap:8px}
+.person a{font-size:12px;color:var(--accent);text-decoration:none;background:var(--bg2);
+  padding:4px 11px;border-radius:980px}
+.person a:hover{text-decoration:underline}
+.rgpd{margin-top:18px;padding:13px 15px;border-radius:12px;background:var(--bg2);
+  font-size:12px;color:var(--ink2);line-height:1.5}
+.empty{color:var(--ink2);font-size:14px;padding:14px 0}
+footer{border-top:1px solid var(--line);padding:34px 0 60px;font-size:12px;color:var(--ink2)}
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <b>Prospects Maralpins</b>
+  <a href="#chiffres">Chiffres</a>
+  <a href="#liste">Entreprises</a>
+  <span class="sp" id="navcount"></span>
+</div></nav>
+
+<header class="wrap">
+  <h1>Le tissu économique.<br><span class="g">Entreprise par entreprise.</span></h1>
+  <p>Alpes-Maritimes, PACA et Monaco réunis dans une seule base. Chiffre d'affaires,
+     effectifs, dirigeants et contacts — consolidés depuis sept sources.</p>
+</header>
+
+<div class="wrap"><div class="stats" id="chiffres"></div></div>
+
+<div class="tools" id="liste"><div class="wrap">
+  <input type="search" id="q" placeholder="Rechercher une entreprise, une ville, un dirigeant…">
+  <select id="territoire"><option value="">Tous territoires</option></select>
+  <select id="secteur"><option value="">Tous secteurs</option></select>
+  <select id="effmin">
+    <option value="">Tout effectif</option>
+    <option value="10">10 salariés et plus</option>
+    <option value="50">50 et plus</option>
+    <option value="250">250 et plus</option>
+  </select>
+  <select id="tri">
+    <option value="ca">Chiffre d'affaires</option>
+    <option value="effectif">Effectif</option>
+    <option value="nom">Nom</option>
+    <option value="recent">Fraîcheur</option>
+  </select>
+  <span class="count" id="count"></span>
+</div></div>
+
+<div class="wrap">
+  <div class="grid" id="grid"></div>
+  <button class="more" id="more">Charger la suite</button>
+</div>
+
+<div class="ov" id="ov"><div class="sheet" id="sheet"></div></div>
+
+<footer class="wrap">
+  Données internes — accès restreint. Contient des données à caractère personnel :
+  base légale intérêt légitime, conservation 36 mois après le dernier contact,
+  droit d'opposition via le champ <code>OPPOSITION</code>. Ne pas diffuser.
+</footer>
+
+<script>
+const KEY = new URLSearchParams(location.search).get('key');
+const api = p => fetch(p + (p.includes('?') ? '&' : '?') + (KEY ? 'key=' + encodeURIComponent(KEY) : ''))
+                  .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
+
+const nf = new Intl.NumberFormat('fr-FR');
+const eur = v => v == null ? '—'
+  : v >= 1e9 ? (v / 1e9).toFixed(2).replace('.', ',') + ' Md€'
+  : v >= 1e6 ? (v / 1e6).toFixed(1).replace('.', ',') + ' M€'
+  : nf.format(v) + ' €';
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+
+// ---- chiffres ----
+api('/api/stats').then(d => {
+  const t = d.totaux;
+  document.getElementById('chiffres').innerHTML = [
+    [nf.format(t.ENTREPRISES), 'entreprises'],
+    [nf.format(t.CONTACTS), 'contacts identifiés'],
+    [nf.format(t.ACTIVES), 'cibles actives'],
+    [eur(t.CA_CUMULE), 'chiffre d\'affaires cumulé'],
+  ].map(([n, l]) => `<div class="stat"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
+  document.getElementById('navcount').textContent = nf.format(t.ENTREPRISES) + ' entreprises';
+
+  const lib = { '06': 'Alpes-Maritimes', 'PACA': 'PACA', 'MC': 'Monaco' };
+  d.territoires.forEach(r => document.getElementById('territoire')
+    .insertAdjacentHTML('beforeend', `<option value="${r.TERRITOIRE}">${lib[r.TERRITOIRE] || r.TERRITOIRE} (${r.N})</option>`));
+  d.secteurs.forEach(r => document.getElementById('secteur')
+    .insertAdjacentHTML('beforeend', `<option value="${esc(r.S)}">${esc(r.S)} (${r.N})</option>`));
+});
+
+// ---- liste ----
+let page = 0, dernier = '';
+const io = new IntersectionObserver(es => es.forEach(e => e.isIntersecting && e.target.classList.add('in')), { threshold: .1 });
+
+function params() {
+  const g = id => document.getElementById(id).value;
+  return `q=${encodeURIComponent(g('q'))}&territoire=${g('territoire')}&secteur=${encodeURIComponent(g('secteur'))}`
+       + `&effmin=${g('effmin')}&tri=${g('tri')}`;
+}
+
+function charger(reset) {
+  if (reset) { page = 0; document.getElementById('grid').innerHTML = ''; }
+  const p = params();
+  api(`/api/entreprises?${p}&page=${page}`).then(d => {
+    document.getElementById('count').textContent = nf.format(d.total) + ' résultat' + (d.total > 1 ? 's' : '');
+    const lib = { '06': 'Alpes-Maritimes', 'PACA': 'PACA', 'MC': 'Monaco' };
+    document.getElementById('grid').insertAdjacentHTML('beforeend', d.rows.map(r => `
+      <div class="card" data-id="${r.ID}">
+        <h3>${esc(r.RAISON_SOCIALE)}</h3>
+        <div class="meta">${esc(r.SECTEUR_LIBELLE || 'Secteur non renseigné')}${r.VILLE ? ' · ' + esc(r.VILLE) : ''}</div>
+        <span class="tag t${r.TERRITOIRE}">${lib[r.TERRITOIRE] || r.TERRITOIRE}</span>
+        <div class="kpi">
+          <div>CA<b>${eur(r.CA_EUR)}</b></div>
+          <div>Effectif<b>${r.EFFECTIF != null ? nf.format(r.EFFECTIF) : '—'}</b></div>
+        </div>
+      </div>`).join(''));
+    document.querySelectorAll('.card:not(.in)').forEach(c => io.observe(c));
+    document.getElementById('more').disabled = (page + 1) * 60 >= d.total;
+  }).catch(e => document.getElementById('grid').innerHTML =
+      `<p class="empty">Chargement impossible (${e.message}). Vérifiez la clé d'accès.</p>`);
+}
+
+['q','territoire','secteur','effmin','tri'].forEach(id => {
+  const el = document.getElementById(id);
+  const ev = id === 'q' ? 'input' : 'change';
+  let t; el.addEventListener(ev, () => { clearTimeout(t); t = setTimeout(() => charger(true), id === 'q' ? 280 : 0); });
+});
+document.getElementById('more').onclick = () => { page++; charger(false); };
+charger(true);
+
+// ---- fiche ----
+const ov = document.getElementById('ov'), sheet = document.getElementById('sheet');
+document.getElementById('grid').addEventListener('click', e => {
+  const c = e.target.closest('.card'); if (c) ouvrir(c.dataset.id);
+});
+ov.addEventListener('click', e => { if (e.target === ov) fermer(); });
+addEventListener('keydown', e => e.key === 'Escape' && fermer());
+function fermer() { ov.classList.remove('on'); document.body.style.overflow = ''; }
+
+function ouvrir(id) {
+  ov.classList.add('on'); document.body.style.overflow = 'hidden';
+  sheet.innerHTML = '<p class="empty">Chargement…</p>';
+  api('/api/entreprises/' + id).then(d => {
+    const e = d.entreprise;
+    const champ = (l, v) => v == null || v === '' ? '' : `<div>${l}<b>${esc(v)}</b></div>`;
+    const lib = { '06': 'Alpes-Maritimes', 'PACA': 'PACA', 'MC': 'Monaco' };
+    sheet.innerHTML = `
+      <button class="close" onclick="fermer()">×</button>
+      <h2>${esc(e.RAISON_SOCIALE)}</h2>
+      <div class="sub">${esc(e.SECTEUR_LIBELLE || 'Secteur non renseigné')}
+        · ${lib[e.TERRITOIRE] || e.TERRITOIRE}${e.VILLE ? ' · ' + esc(e.VILLE) : ''}</div>
+      <div class="dl">
+        ${champ('Chiffre d\'affaires', e.CA_EUR != null ? eur(e.CA_EUR) : null)}
+        ${champ('Résultat', e.RESULTAT_EUR != null ? eur(e.RESULTAT_EUR) : null)}
+        ${champ('Effectif', e.EFFECTIF != null ? nf.format(e.EFFECTIF) : e.EFFECTIF_ESTIME)}
+        ${champ('Dirigeant', e.DIRIGEANT)}
+        ${champ('Téléphone', e.TELEPHONE)}
+        ${champ('SIREN', e.SIREN)}
+        ${champ('Code NAF', e.CODE_NAF)}
+        ${champ('Adresse', [e.ADRESSE, e.CODE_POSTAL, e.VILLE].filter(Boolean).join(' '))}
+        ${champ('Statut', e.STATUT)}
+        ${champ('Source', e.SOURCE + (e.ANNEE_SOURCE ? ' (' + e.ANNEE_SOURCE + ')' : ''))}
+      </div>
+      ${e.SITE_WEB ? `<p style="margin-top:20px"><a href="${esc(e.SITE_WEB.startsWith('http') ? e.SITE_WEB : 'https://' + e.SITE_WEB)}"
+          target="_blank" rel="noopener noreferrer" style="color:var(--accent);text-decoration:none">
+          ${esc(e.SITE_WEB)} →</a></p>` : ''}
+      ${e.ACTIVITE ? `<p style="margin-top:18px;color:var(--ink2);font-size:14px">${esc(e.ACTIVITE)}</p>` : ''}
+      ${e.DOUBLON_POTENTIEL ? `<div class="rgpd">Doublon potentiel à arbitrer : « ${esc(e.DOUBLON_POTENTIEL)} »
+          apparaît plusieurs fois avec des villes différentes.</div>` : ''}
+
+      <h4>Contacts (${d.contacts.length})</h4>
+      ${d.contacts.length ? d.contacts.map(p => {
+        const nom = [p.PRENOM, p.NOM].filter(Boolean).join(' ');
+        const ini = (p.PRENOM || p.NOM || '?').trim()[0].toUpperCase();
+        return `<div class="person">
+          <div class="av">${esc(ini)}</div>
+          <div style="flex:1">
+            <div class="n">${esc(nom)}${p.OPPOSITION === 'O' ? ' — opposition enregistrée' : ''}</div>
+            <div class="r">${esc(p.FONCTION || p.INTITULE_POSTE || '')}${p.LOCALISATION ? ' · ' + esc(p.LOCALISATION) : ''}</div>
+            <div class="c">
+              ${p.EMAIL ? `<a href="mailto:${esc(p.EMAIL)}">${esc(p.EMAIL)}</a>` : ''}
+              ${p.TELEPHONE ? `<a href="tel:${esc(p.TELEPHONE)}">${esc(p.TELEPHONE)}</a>` : ''}
+              ${p.LINKEDIN_URL ? `<a href="${esc(p.LINKEDIN_URL)}" target="_blank" rel="noopener noreferrer">LinkedIn</a>` : ''}
+            </div>
+          </div></div>`;
+      }).join('') : '<p class="empty">Aucun contact rattaché.</p>'}
+      ${d.contacts.length ? '<div class="rgpd">Données personnelles. Purge automatique 36 mois après collecte. Ne pas exporter hors de cet outil.</div>' : ''}`;
+  }).catch(e => sheet.innerHTML = `<button class="close" onclick="fermer()">×</button>
+      <p class="empty">Erreur : ${esc(e.message)}</p>`);
+}
+window.fermer = fermer;
+</script>
+</body>
+</html>
