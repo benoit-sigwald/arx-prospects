@@ -160,6 +160,9 @@ app.get('/', auth, (_req, res) => {
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.send(fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8'));
 });
+// Assets (logo…) : derrière le même jeton — le cookie posé à l'ouverture de la page suffit.
+// index:false pour que la racine reste servie par la route ci-dessus.
+app.use(auth, express.static(path.join(__dirname, 'public'), { index: false, maxAge: '1h' }));
 app.get('/healthz', (_req, res) => res.send('ok'));
 
 app.use((e, _req, res, _next) => {
