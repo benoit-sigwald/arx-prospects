@@ -31,7 +31,10 @@ nav{position:sticky;top:0;z-index:60;height:48px;background:var(--nav);
   backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);
   border-bottom:1px solid var(--line)}
 nav .wrap{display:flex;align-items:center;gap:26px;height:100%}
-nav .brand{display:flex;align-items:center;gap:9px;margin-right:-14px}
+/* color explicite : sinon la regle `nav a` grise le libelle de la marque. */
+nav .brand{display:flex;align-items:center;gap:9px;margin-right:-14px;
+  color:var(--ink);text-decoration:none;transition:opacity .2s}
+nav .brand:hover{color:var(--ink);opacity:.62}
 nav .mark{height:26px;width:auto;display:block}
 /* Le logo est bleu marine : on l'éclaircit sur fond sombre pour rester lisible. */
 @media (prefers-color-scheme:dark){nav .mark{filter:brightness(1.95) saturate(.9)}}
@@ -126,7 +129,8 @@ footer{border-top:1px solid var(--line);padding:34px 0 60px;font-size:12px;color
 <body>
 
 <nav><div class="wrap">
-  <span class="brand"><img class="mark" src="arx-logo.png" alt="ArX" width="24" height="26"><b>Prospects Maralpins</b></span>
+  <a class="brand" href="https://arx-consulting.com/" target="_blank" rel="noopener noreferrer"
+     title="ArX Consulting"><img class="mark" src="arx-logo.png" alt="ArX" width="24" height="26"><b>Prospects Maralpins</b></a>
   <a href="#chiffres">Chiffres</a>
   <a href="#liste">Entreprises</a>
   <span class="sp" id="navcount"></span>
