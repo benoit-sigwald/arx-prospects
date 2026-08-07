@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="fr">
 <head>
+<base href="/prospects/" />
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
@@ -165,6 +166,7 @@ footer{border-top:1px solid var(--line);padding:34px 0 60px;font-size:12px;color
 </footer>
 
 <script>
+// Chemins relatifs : Coolify sert l'app sous /prospects/ et Traefik retire le préfixe.
 const KEY = new URLSearchParams(location.search).get('key');
 const api = p => fetch(p + (p.includes('?') ? '&' : '?') + (KEY ? 'key=' + encodeURIComponent(KEY) : ''))
                   .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
@@ -177,7 +179,7 @@ const eur = v => v == null ? '—'
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
 
 // ---- chiffres ----
-api('/api/stats').then(d => {
+api('api/stats').then(d => {
   const t = d.totaux;
   document.getElementById('chiffres').innerHTML = [
     [nf.format(t.ENTREPRISES), 'entreprises'],
@@ -207,7 +209,7 @@ function params() {
 function charger(reset) {
   if (reset) { page = 0; document.getElementById('grid').innerHTML = ''; }
   const p = params();
-  api(`/api/entreprises?${p}&page=${page}`).then(d => {
+  api(`api/entreprises?${p}&page=${page}`).then(d => {
     document.getElementById('count').textContent = nf.format(d.total) + ' résultat' + (d.total > 1 ? 's' : '');
     const lib = { '06': 'Alpes-Maritimes', 'PACA': 'PACA', 'MC': 'Monaco' };
     document.getElementById('grid').insertAdjacentHTML('beforeend', d.rows.map(r => `
@@ -246,7 +248,7 @@ function fermer() { ov.classList.remove('on'); document.body.style.overflow = ''
 function ouvrir(id) {
   ov.classList.add('on'); document.body.style.overflow = 'hidden';
   sheet.innerHTML = '<p class="empty">Chargement…</p>';
-  api('/api/entreprises/' + id).then(d => {
+  api('api/entreprises/' + id).then(d => {
     const e = d.entreprise;
     const champ = (l, v) => v == null || v === '' ? '' : `<div>${l}<b>${esc(v)}</b></div>`;
     const lib = { '06': 'Alpes-Maritimes', 'PACA': 'PACA', 'MC': 'Monaco' };
