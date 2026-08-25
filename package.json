@@ -1,7 +1,7 @@
 {
   "name": "arx-prospects",
   "version": "1.0.0",
-  "description": "Entreprises Prospects Maralpines — consultation du schéma Oracle PROSPECTS",
+  "description": "Tissu Économique PACA — consultation du schéma Oracle PROSPECTS",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

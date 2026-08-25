@@ -1,4 +1,4 @@
-# arx-prospects
+# arx-prospects — Tissu Économique PACA
 
 Consultation des entreprises et contacts du schéma Oracle `PROSPECTS` (ATP `arxdb01`).
 
