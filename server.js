@@ -139,7 +139,12 @@ const SQL_PERSONNES = `
          c.FONCTION                                        AS ROLE,
          c.INTITULE_POSTE                                  AS DETAIL,
          c.LOCALISATION                                    AS LIEU,
-         c.EMAIL                                           AS EMAIL,
+         -- L'import Waalaxy a decale les colonnes sur au moins une ligne :
+         -- EMAIL y contient une localisation. On ne retient que ce qui a la
+         -- forme d'une adresse, sinon le filtre « avec e-mail » ment et la
+         -- fiche propose un mailto: invalide.
+         CASE WHEN REGEXP_LIKE(c.EMAIL, '^[^[:space:]@]+@[^[:space:]@]+\.[A-Za-z]{2,}$')
+              THEN c.EMAIL END                             AS EMAIL,
          c.TELEPHONE                                       AS TELEPHONE,
          c.LINKEDIN_URL                                    AS LINKEDIN_URL,
          c.ENTREPRISE_ID                                   AS ENTREPRISE_ID,
