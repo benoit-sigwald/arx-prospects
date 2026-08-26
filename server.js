@@ -143,8 +143,10 @@ const SQL_PERSONNES = `
          'contact'                                         AS ORIGINE,
          TRIM(NVL(c.PRENOM, ' ') || ' ' || NVL(c.NOM, ' ')) AS NOM_COMPLET,
          c.FONCTION                                        AS ROLE,
-         c.INTITULE_POSTE                                  AS DETAIL,
-         c.LOCALISATION                                    AS LIEU,
+         -- Un contact rattache doit montrer sa societe, pas son titre LinkedIn :
+         -- c'est la colonne sur laquelle on lit la table et on recherche.
+         NVL(ec.RAISON_SOCIALE, c.INTITULE_POSTE)          AS DETAIL,
+         NVL(c.LOCALISATION, ec.VILLE)                     AS LIEU,
          -- L'import Waalaxy a decale les colonnes sur au moins une ligne :
          -- EMAIL y contient une localisation. On ne retient que ce qui a la
          -- forme d'une adresse, sinon le filtre « avec e-mail » ment et la
@@ -154,10 +156,11 @@ const SQL_PERSONNES = `
          c.TELEPHONE                                       AS TELEPHONE,
          c.LINKEDIN_URL                                    AS LINKEDIN_URL,
          c.ENTREPRISE_ID                                   AS ENTREPRISE_ID,
-         CAST(NULL AS VARCHAR2(16))                        AS TERRITOIRE,
+         ec.TERRITOIRE                                     AS TERRITOIRE,
          c.SOURCE                                          AS SOURCE,
          c.OPPOSITION                                      AS OPPOSITION
   FROM CONTACTS c
+  LEFT JOIN ENTREPRISES ec ON ec.ID = c.ENTREPRISE_ID
   UNION ALL
   SELECT e.ID,
          'dirigeant',
