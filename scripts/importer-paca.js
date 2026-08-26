@@ -201,11 +201,29 @@ async function parLots(c, sql, lignes, binds, libelle) {
     base: { type: oracledb.STRING, maxSize: 60 },
   };
 
-  let orphelins = 0;
+  // Une personne est identifiee par sa societe, son nom et sa fonction. Sans
+  // ce releve, relancer l'import sur un lac recollecte reinsere tout le stock
+  // deja present — 57 000 doublons au deuxieme passage.
+  const dejaVus = new Set();
+  {
+    const q = await c.execute(
+      `SELECT ENTREPRISE_ID, PRENOM, NOM, FONCTION FROM CONTACTS`, {}, { resultSet: true });
+    let l;
+    while ((l = await q.resultSet.getRow())) {
+      dejaVus.add(`${l.ENTREPRISE_ID}|${l.PRENOM || ''}|${l.NOM || ''}|${l.FONCTION || ''}`);
+    }
+    await q.resultSet.close();
+  }
+  console.log(`contacts deja en base : ${dejaVus.size} cles distinctes`);
+
+  let orphelins = 0, connus = 0;
   const lignesCt = [];
   for (const k of contacts) {
     const eid = map.get(k.siren);
     if (!eid) { orphelins++; continue; }
+    const cle = `${eid}|${k.prenom || ''}|${k.nom || ''}|${k.fonction || ''}`;
+    if (dejaVus.has(cle)) { connus++; continue; }
+    dejaVus.add(cle);
     lignesCt.push({
       eid, prenom: s(k.prenom, 120), nom: s(k.nom, 200),
       fonction: s(k.fonction, 200), intitule: s(k.intitule, 300), lieu: s(k.lieu, 200),
@@ -214,7 +232,7 @@ async function parLots(c, sql, lignes, binds, libelle) {
       base: s(k.base_legale, 60) || 'public_register',
     });
   }
-  console.log(`contacts a inserer : ${lignesCt.length} (${orphelins} sans societe resolue)`);
+  console.log(`contacts a inserer : ${lignesCt.length} (${orphelins} sans societe resolue, ${connus} deja presents)`);
   console.log('\ninsertion des contacts…');
   console.log(`contacts inseres : ${await parLots(c, SQL_CT, lignesCt, bindsCt, 'contacts')}`);
 
