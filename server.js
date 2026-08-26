@@ -87,11 +87,17 @@ app.get('/api/stats', auth, async (_req, res, next) => {
       q(`SELECT (SELECT COUNT(*) FROM ENTREPRISES) ENTREPRISES,
                 (SELECT COUNT(*) FROM CONTACTS) CONTACTS,
                 (SELECT COUNT(*) FROM V_CIBLES_ACTIVES) ACTIVES,
-                (SELECT NVL(SUM(CA_EUR),0) FROM ENTREPRISES) CA_CUMULE FROM DUAL`),
+                (SELECT NVL(SUM(CA_EUR),0) FROM ENTREPRISES) CA_CUMULE,
+                (SELECT COUNT(*) FROM ENTREPRISES
+                  WHERE DIRIGEANT IS NOT NULL AND TRIM(DIRIGEANT) IS NOT NULL) DIRIGEANTS,
+                (SELECT COUNT(ENTREPRISE_ID) FROM CONTACTS) CONTACTS_LIES,
+                (SELECT COUNT(*) FROM CONTACTS WHERE LINKEDIN_URL IS NOT NULL) AVEC_LINKEDIN
+           FROM DUAL`),
     ]);
+    const t = tot.rows[0];
     res.json({
-      territoires: terr.rows, secteurs: sect.rows,
-      effectifs: eff.rows, totaux: tot.rows[0],
+      territoires: terr.rows, secteurs: sect.rows, effectifs: eff.rows,
+      totaux: { ...t, PERSONNES: Number(t.DIRIGEANTS) + Number(t.CONTACTS) },
     });
   } catch (e) { next(e); }
 });

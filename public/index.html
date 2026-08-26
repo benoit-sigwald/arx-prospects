@@ -7,216 +7,251 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Tissu Économique PACA</title>
 <style>
+/* Systeme visuel repris de l'Atlas des investisseurs : pile de polices systeme,
+   corps dense a 11 px, gris #F5F5F7, bleu #0071E3, pilules et hairlines.
+   Les deux outils se lisent ainsi de la meme facon. */
 :root{
-  --bg:#fff; --bg2:#f5f5f7; --ink:#1d1d1f; --ink2:#6e6e73; --line:#d2d2d7;
-  --accent:#0071e3; --card:#fff; --shadow:0 4px 24px rgba(0,0,0,.07);
-  --nav:rgba(255,255,255,.72);
+  --bg:#FFFFFF; --bg-alt:#F5F5F7; --card:#FFFFFF;
+  --ink:#1D1D1F; --ink-2:#6E6E73; --ink-3:#86868B;
+  --hair:#D2D2D7; --hair-soft:#E8E8ED;
+  --blue:#0071E3;
+  --ok:#248A3D; --warn:#B25000; --crit:#D70015;
+  --r:18px; --pill:980px; --shadow:0 4px 24px rgba(0,0,0,.06);
 }
 @media (prefers-color-scheme:dark){
-  :root{--bg:#000; --bg2:#101012; --ink:#f5f5f7; --ink2:#98989d; --line:#2c2c2e;
-        --accent:#2997ff; --card:#1c1c1e; --shadow:0 4px 24px rgba(0,0,0,.5);
-        --nav:rgba(22,22,23,.72);}
+  :root:not([data-theme="light"]){
+    --bg:#000000; --bg-alt:#101012; --card:#1D1D1F;
+    --ink:#F5F5F7; --ink-2:#A1A1A6; --ink-3:#86868B;
+    --hair:#38383D; --hair-soft:#2A2A2E;
+    --blue:#2997FF;
+    --ok:#30D158; --warn:#FF9F0A; --crit:#FF453A;
+    --shadow:0 4px 24px rgba(0,0,0,.5);
+  }
 }
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+:root[data-theme="dark"]{
+  --bg:#000000; --bg-alt:#101012; --card:#1D1D1F;
+  --ink:#F5F5F7; --ink-2:#A1A1A6; --ink-3:#86868B;
+  --hair:#38383D; --hair-soft:#2A2A2E;
+  --blue:#2997FF;
+  --ok:#30D158; --warn:#FF9F0A; --crit:#FF453A;
+  --shadow:0 4px 24px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box}
+html{-webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale}
 body{
-  background:var(--bg);color:var(--ink);
-  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-  font-size:17px;line-height:1.47;letter-spacing:-.01em;-webkit-font-smoothing:antialiased;
+  margin:0; background:var(--bg); color:var(--ink); font-size:11px; line-height:1.45;
+  letter-spacing:-.012em;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display",
+    "Helvetica Neue",Helvetica,Arial,sans-serif;
 }
-.wrap{max-width:1120px;margin:0 auto;padding:0 22px}
+h1,h2,h3{margin:0; font-weight:600; letter-spacing:-.022em; text-wrap:balance}
+.mono{font-family:ui-monospace,"SF Mono",SFMono-Regular,Menlo,monospace;
+  font-variant-numeric:tabular-nums; letter-spacing:0}
 
-/* ---------- nav ---------- */
-nav{position:sticky;top:0;z-index:60;height:48px;background:var(--nav);
-  backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);
-  border-bottom:1px solid var(--line)}
-nav .wrap{display:flex;align-items:center;gap:26px;height:100%}
-/* color explicite : sinon la regle `nav a` grise le libelle de la marque. */
-nav .brand{display:flex;align-items:center;gap:9px;margin-right:-14px;
-  color:var(--ink);text-decoration:none;transition:opacity .2s}
-nav .brand:hover{color:var(--ink);opacity:.62}
-nav .mark{height:26px;width:auto;display:block}
-/* Le logo est bleu marine : on l'éclaircit sur fond sombre pour rester lisible. */
-@media (prefers-color-scheme:dark){nav .mark{filter:brightness(1.95) saturate(.9)}}
-nav b{font-size:15px;font-weight:600;letter-spacing:-.02em}
-nav a{color:var(--ink2);text-decoration:none;font-size:12px;transition:color .2s}
-nav a:hover{color:var(--ink)}
-nav .sp{margin-left:auto;font-size:12px;color:var(--ink2);font-variant-numeric:tabular-nums}
-nav .cta{background:var(--accent);color:#fff;padding:5px 14px;border-radius:980px;
-  font-size:12px;font-weight:500;white-space:nowrap;transition:opacity .2s}
-nav .cta:hover{color:#fff;opacity:.82}
+header{background:var(--bg-alt); padding:14px 28px; position:relative;
+  display:flex; align-items:center; gap:20px;
+  border-bottom:1px solid var(--hair-soft)}
+header .brand{flex:0 0 auto; order:-1}
+header .brand img{display:block; height:46px; width:auto}
+header .titles{flex:1; min-width:0; display:flex; align-items:baseline; gap:14px; flex-wrap:wrap}
+header h1{font-size:14px; letter-spacing:-.02em; line-height:1.2; white-space:nowrap}
+header .sub{color:var(--ink-3); font-size:10px; margin:0; max-width:60ch; line-height:1.3}
+header .right{display:flex; align-items:center; gap:12px; flex:0 0 auto}
+.cta{font:inherit; font-size:10px; text-decoration:none; white-space:nowrap;
+  background:var(--blue); color:#fff; border-radius:var(--pill); padding:7px 16px}
+.cta:hover{opacity:.9}
+/* Le blason est bleu nuit : sur fond noir il s'efface. */
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) header .brand img{filter:brightness(1.95) saturate(.9)}
+}
+:root[data-theme="dark"] header .brand img{filter:brightness(1.95) saturate(.9)}
+@media (max-width:820px){
+  header{flex-wrap:wrap; padding:12px 18px}
+  header .sub{display:none}
+  header .brand img{height:38px}
+}
 
-/* ---------- hero ---------- */
-header{padding:110px 0 90px;text-align:center}
-h1{font-size:clamp(42px,7.5vw,88px);font-weight:600;letter-spacing:-.035em;line-height:1.04}
-h1 .g{background:linear-gradient(120deg,#0071e3,#a24bf5 55%,#ff5f6d);
-  -webkit-background-clip:text;background-clip:text;color:transparent}
-header p{margin:22px auto 0;max-width:640px;font-size:clamp(17px,2.2vw,22px);color:var(--ink2)}
+.theme{display:flex; gap:2px;
+  background:var(--card); border:1px solid var(--hair); border-radius:var(--pill); padding:3px}
+.theme button{font:inherit; font-size:10px; color:var(--ink-2); background:none; border:0;
+  cursor:pointer; padding:5px 12px; border-radius:var(--pill)}
+.theme button[aria-pressed="true"]{background:var(--blue); color:#fff}
+.theme button:focus-visible{outline:none; box-shadow:0 0 0 4px color-mix(in srgb,var(--blue) 25%,transparent)}
 
-/* ---------- chiffres ---------- */
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;padding:0 0 96px}
-.stat{background:var(--bg2);border-radius:18px;padding:30px 26px;text-align:center}
-.stat .n{font-size:clamp(34px,5vw,50px);font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
-.stat .l{margin-top:6px;font-size:13px;color:var(--ink2)}
+nav.tabs{position:sticky; top:0; z-index:20; display:flex; justify-content:center; gap:26px;
+  background:var(--bg);
+  backdrop-filter:saturate(180%) blur(20px); -webkit-backdrop-filter:saturate(180%) blur(20px);
+  border-bottom:1px solid var(--hair-soft); padding:0 24px}
+nav.tabs button{font:inherit; font-size:10px; color:var(--ink-2); background:none; border:0;
+  cursor:pointer; padding:14px 2px; border-bottom:2px solid transparent}
+nav.tabs button[aria-selected="true"]{color:var(--ink); border-bottom-color:var(--ink)}
+nav.tabs button:focus-visible{outline:2px solid var(--blue); outline-offset:-4px; border-radius:6px}
 
-/* ---------- filtres ---------- */
-.tools{position:sticky;top:48px;z-index:50;background:var(--nav);
-  backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);
-  border-bottom:1px solid var(--line);padding:14px 0}
-.tools .wrap{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-input[type=search],select{
-  font:inherit;font-size:14px;color:var(--ink);background:var(--bg2);
-  border:1px solid transparent;border-radius:980px;padding:9px 16px;outline:none;transition:.2s}
-input[type=search]{flex:1;min-width:220px}
-input[type=search]:focus,select:focus{border-color:var(--accent);background:var(--bg)}
-select{cursor:pointer;-webkit-appearance:none;appearance:none;padding-right:34px;
-  background-image:linear-gradient(45deg,transparent 50%,var(--ink2) 50%),linear-gradient(135deg,var(--ink2) 50%,transparent 50%);
-  background-position:calc(100% - 18px) 52%,calc(100% - 13px) 52%;
-  background-size:5px 5px,5px 5px;background-repeat:no-repeat}
-.count{font-size:13px;color:var(--ink2);margin-left:auto;font-variant-numeric:tabular-nums}
+.tiles{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px;
+  max-width:1760px; margin:0 auto; padding:28px 24px 10px}
+.tile{background:var(--bg-alt); border-radius:var(--r); padding:20px 22px}
+.tile .n{font-size:23px; font-weight:600; letter-spacing:-.03em; font-variant-numeric:tabular-nums}
+.tile .k{font-size:10px; color:var(--ink-2); margin-top:3px}
+.tile .bar{height:4px; background:var(--hair-soft); margin-top:12px;
+  border-radius:var(--pill); overflow:hidden}
+.tile .bar i{display:block; height:100%; background:var(--blue); border-radius:var(--pill)}
 
-/* ---------- bascule entreprises / personnes ---------- */
-.seg{display:inline-flex;background:var(--bg2);border-radius:980px;padding:3px;gap:2px}
-.seg button{font:inherit;font-size:13px;font-weight:500;color:var(--ink2);background:none;
-  border:0;border-radius:980px;padding:6px 15px;cursor:pointer;transition:.2s;white-space:nowrap}
-.seg button[aria-selected=true]{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.wrap{display:grid; grid-template-columns:270px 1fr; gap:24px;
+  max-width:1760px; margin:0 auto; padding:16px 24px 72px; align-items:start}
+@media (max-width:900px){.wrap{grid-template-columns:1fr}}
+aside.filtres{position:sticky; top:64px; max-height:calc(100vh - 84px); overflow-y:auto;
+  background:var(--bg-alt); border-radius:var(--r); padding:22px}
+@media (max-width:900px){aside.filtres{position:static; max-height:none}}
+aside.filtres h3{font-size:10px; font-weight:600; color:var(--ink-3); margin:22px 0 9px}
+aside.filtres h3:first-child{margin-top:0}
+input[type=search],select{width:100%; font:inherit; font-size:10px; color:var(--ink);
+  background:var(--card); border:1px solid var(--hair); border-radius:11px;
+  padding:9px 12px; appearance:none}
+input[type=search]:focus,select:focus{outline:none; border-color:var(--blue);
+  box-shadow:0 0 0 4px color-mix(in srgb,var(--blue) 20%,transparent)}
+.chips{display:flex; flex-wrap:wrap; gap:6px}
+.chip{font:inherit; font-size:10px; padding:6px 13px; border-radius:var(--pill);
+  border:1px solid var(--hair); background:var(--card); color:var(--ink-2); cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--blue); border-color:var(--blue); color:#fff}
+.chip:focus-visible{outline:none; box-shadow:0 0 0 4px color-mix(in srgb,var(--blue) 25%,transparent)}
+.reset{margin-top:24px; width:100%; font:inherit; font-size:10px; cursor:pointer;
+  background:var(--card); border:1px solid var(--hair); border-radius:var(--pill);
+  padding:9px; color:var(--blue)}
+
+main{min-width:0}
+.bar-top{display:flex; align-items:baseline; gap:14px; margin-bottom:14px; flex-wrap:wrap}
+.count{font-size:12px; font-weight:600; letter-spacing:-.02em; font-variant-numeric:tabular-nums}
+.count span{color:var(--ink-3); font-weight:400; font-size:10px}
+.hint{color:var(--ink-3); font-size:10px}
+.scroll{overflow-x:auto; background:var(--card); border-radius:var(--r);
+  border:1px solid var(--hair-soft); box-shadow:var(--shadow)}
+table{border-collapse:collapse; width:100%; min-width:max-content; font-size:11px}
+th{position:sticky; top:var(--nav-h,46px); z-index:5; background:var(--card); text-align:left;
+  white-space:nowrap; font-size:10px; font-weight:600; color:var(--ink-3);
+  padding:8px 10px; border-bottom:1px solid var(--hair-soft)}
+th.tri{cursor:pointer}
+th[aria-sort]{color:var(--ink)}
+td{padding:7px 10px; border-bottom:1px solid var(--hair-soft); vertical-align:top;
+  white-space:nowrap}
+tbody tr:last-child td{border-bottom:0}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:var(--bg-alt)}
+td.name{font-weight:600; letter-spacing:-.015em; white-space:normal; min-width:170px}
+td.org{color:var(--ink-2); max-width:280px; white-space:normal; min-width:160px}
+td.num{text-align:right; font-variant-numeric:tabular-nums}
+a{color:var(--blue); text-decoration:none}
+a:hover{text-decoration:underline}
+.pill{display:inline-block; font-size:10px; padding:2px 9px; border-radius:var(--pill);
+  background:var(--bg-alt); color:var(--ink-2); white-space:nowrap}
+.pill.ok{color:var(--ok)} .pill.warn{color:var(--warn)} .pill.crit{color:var(--crit)}
+.flags{display:flex; gap:4px}
+.flag{width:8px; height:8px; border-radius:50%; background:var(--hair)}
+.flag.on{background:var(--blue)}
+
+/* Panneau de detail : la table ne peut pas montrer tous les champs d'une fiche. */
+.detail{position:fixed; top:0; right:0; bottom:0; width:min(430px,92vw); z-index:60;
+  background:var(--card); border-left:1px solid var(--hair); overflow-y:auto;
+  padding:26px 28px 40px; box-shadow:-8px 0 40px rgba(0,0,0,.12)}
+.detail[hidden]{display:none}
+.detail h2{font-size:18px; letter-spacing:-.025em}
+.detail .role{color:var(--ink-2); margin:4px 0 20px; font-size:11px}
+.detail dl{display:grid; grid-template-columns:124px 1fr; gap:8px 14px; margin:0; font-size:11px}
+.detail dt{color:var(--ink-3); font-size:10px}
+.detail dd{margin:0; word-break:break-word}
+.detail h4{margin:26px 0 10px; font-size:10px; font-weight:600; color:var(--ink-3)}
+.detail .close{position:absolute; top:18px; right:20px; font:inherit; font-size:15px;
+  line-height:1; cursor:pointer; background:none; border:0; color:var(--ink-3); padding:4px 8px}
+.detail .close:hover{color:var(--ink)}
+.detail .liens{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px}
+.detail .liens a{font-size:10px; background:var(--bg-alt); padding:5px 12px; border-radius:var(--pill)}
+.pers{padding:10px 0; border-top:1px solid var(--hair-soft)}
+.pers .n{font-weight:600}
+.pers .r{color:var(--ink-2); font-size:10px; margin-top:2px}
+.rgpd{margin-top:20px; padding:12px 14px; border-radius:12px; background:var(--bg-alt);
+  font-size:10px; color:var(--ink-3); line-height:1.5}
+@media (max-width:640px){.detail dl{grid-template-columns:104px 1fr}}
+
+.pager{display:flex; gap:10px; align-items:center; justify-content:center; margin-top:22px}
+.pager button{font:inherit; font-size:10px; cursor:pointer; background:var(--blue);
+  color:#fff; border:0; border-radius:var(--pill); padding:9px 20px}
+.pager button[disabled]{background:var(--hair); color:var(--ink-3); cursor:default}
+.pager .mono{color:var(--ink-2); font-size:10px}
+.empty{padding:56px; text-align:center; color:var(--ink-3)}
 [hidden]{display:none !important}
-
-/* ---------- carte personne ---------- */
-.pcard{display:flex;gap:14px;align-items:flex-start;background:var(--card);
-  border:1px solid var(--line);border-radius:18px;padding:18px 20px;cursor:pointer;
-  transition:transform .25s cubic-bezier(.25,.1,.25,1),box-shadow .25s;
-  opacity:0;transform:translateY(16px)}
-.pcard.in{opacity:1;transform:none}
-.pcard:hover{transform:translateY(-4px);box-shadow:var(--shadow)}
-.pcard .n{font-size:16px;font-weight:600;letter-spacing:-.02em;line-height:1.3}
-.pcard .r{margin-top:3px;font-size:13px;color:var(--ink2);
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.pcard .l{margin-top:4px;font-size:12px;color:var(--ink2)}
-.chips{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px}
-.chip{font-size:11px;font-weight:500;padding:3px 9px;border-radius:980px;
-  background:var(--bg2);color:var(--ink2)}
-.chip.on{color:var(--accent)}
-.chip.no{opacity:.55}
-.chip.op{color:#ff453a}
-
-/* ---------- grille ---------- */
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:16px;padding:36px 0 20px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;
-  cursor:pointer;transition:transform .25s cubic-bezier(.25,.1,.25,1),box-shadow .25s;
-  opacity:0;transform:translateY(16px)}
-.card.in{opacity:1;transform:none}
-.card:hover{transform:translateY(-4px);box-shadow:var(--shadow)}
-.card h3{font-size:17px;font-weight:600;letter-spacing:-.02em;line-height:1.3}
-.card .meta{margin-top:5px;font-size:13px;color:var(--ink2)}
-.card .kpi{display:flex;gap:18px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
-.card .kpi div{font-size:12px;color:var(--ink2)}
-.card .kpi b{display:block;font-size:16px;color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
-.tag{display:inline-block;margin-top:12px;padding:3px 10px;border-radius:980px;
-  font-size:11px;font-weight:500;background:var(--bg2);color:var(--ink2)}
-.tag.t06{color:#0071e3}.tag.tMC{color:#bf5af2}.tag.tPACA{color:#30a14e}
-.more{display:block;margin:26px auto 90px;padding:11px 24px;border:0;border-radius:980px;
-  background:var(--accent);color:#fff;font:inherit;font-size:15px;cursor:pointer}
-.more[disabled]{opacity:.35;cursor:default}
-
-/* ---------- fiche ---------- */
-.ov{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.45);
-  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
-  display:none;align-items:flex-start;justify-content:center;overflow-y:auto;padding:44px 18px}
-.ov.on{display:flex}
-.sheet{background:var(--bg);border-radius:22px;max-width:760px;width:100%;padding:38px;
-  box-shadow:0 24px 70px rgba(0,0,0,.35);animation:up .3s cubic-bezier(.25,.1,.25,1)}
-@keyframes up{from{opacity:0;transform:translateY(22px)}}
-.sheet h2{font-size:clamp(26px,4vw,40px);font-weight:600;letter-spacing:-.03em;line-height:1.1}
-.sheet .sub{margin-top:8px;color:var(--ink2);font-size:15px}
-.close{float:right;border:0;background:var(--bg2);color:var(--ink);width:30px;height:30px;
-  border-radius:50%;font-size:17px;cursor:pointer;line-height:1}
-.dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;margin-top:26px}
-.dl div{font-size:13px;color:var(--ink2)}
-.dl b{display:block;font-size:16px;color:var(--ink);font-weight:600;margin-top:2px;
-  font-variant-numeric:tabular-nums;word-break:break-word}
-h4{margin:34px 0 12px;font-size:20px;font-weight:600;letter-spacing:-.02em}
-.person{display:flex;gap:14px;align-items:flex-start;padding:15px 0;border-top:1px solid var(--line)}
-.av{flex:0 0 40px;height:40px;border-radius:50%;background:var(--bg2);display:grid;place-items:center;
-  font-size:14px;font-weight:600;color:var(--ink2)}
-.person .n{font-weight:600;font-size:15px}
-.person .r{font-size:13px;color:var(--ink2);margin-top:2px}
-.person .c{margin-top:7px;display:flex;flex-wrap:wrap;gap:8px}
-.person a{font-size:12px;color:var(--accent);text-decoration:none;background:var(--bg2);
-  padding:4px 11px;border-radius:980px}
-.person a:hover{text-decoration:underline}
-.rgpd{margin-top:18px;padding:13px 15px;border-radius:12px;background:var(--bg2);
-  font-size:12px;color:var(--ink2);line-height:1.5}
-.empty{color:var(--ink2);font-size:14px;padding:14px 0}
-footer{border-top:1px solid var(--line);padding:34px 0 60px;font-size:12px;color:var(--ink2)}
+footer{max-width:62ch; margin:0 auto; padding:8px 24px 90px; color:var(--ink-3);
+  font-size:10px; line-height:1.6}
+footer code{font-family:ui-monospace,"SF Mono",Menlo,monospace; font-size:10px}
 </style>
 </head>
 <body>
 
-<nav><div class="wrap">
-  <a class="brand" href="https://arx-consulting.com/" target="_blank" rel="noopener noreferrer"
-     title="ArX Consulting"><img class="mark" src="arx-logo.png" alt="ArX" width="24" height="26"><b>Tissu Économique PACA</b></a>
-  <a href="#chiffres">Chiffres</a>
-  <a href="#liste">Entreprises</a>
-  <a href="#liste" id="navpers">Personnes</a>
-  <span class="sp" id="navcount"></span>
-  <a class="cta" href="https://arx-consulting.com/" target="_blank" rel="noopener noreferrer">ArX Consulting</a>
-</div></nav>
-
-<header class="wrap">
-  <h1>Le tissu économique.<br><span class="g">Entreprise par entreprise.</span></h1>
-  <p>Alpes-Maritimes, PACA et Monaco réunis dans une seule base. Chiffre d'affaires,
-     effectifs, dirigeants et contacts — consolidés depuis sept sources.</p>
+<header>
+  <div class="brand"><img src="arx-logo.png" alt="ArX Consulting"></div>
+  <div class="titles">
+    <h1>Tissu Économique PACA</h1>
+    <p class="sub">Alpes-Maritimes, PACA et Monaco. Entreprises, dirigeants et contacts
+       consolidés depuis sept sources.</p>
+  </div>
+  <div class="right">
+    <div class="theme" role="group" aria-label="Apparence">
+      <button data-t="auto" aria-pressed="true">Auto</button>
+      <button data-t="light" aria-pressed="false">Clair</button>
+      <button data-t="dark" aria-pressed="false">Sombre</button>
+    </div>
+    <a class="cta" href="https://arx-consulting.com/" target="_blank" rel="noopener noreferrer">ArX Consulting</a>
+  </div>
 </header>
 
-<div class="wrap"><div class="stats" id="chiffres"></div></div>
+<nav class="tabs" role="tablist">
+  <button id="ongletEnt" role="tab" aria-selected="true">Entreprises</button>
+  <button id="ongletPers" role="tab" aria-selected="false">Personnes</button>
+</nav>
 
-<div class="tools" id="liste"><div class="wrap">
-  <div class="seg" role="tablist">
-    <button id="ongletEnt" role="tab" aria-selected="true">Entreprises</button>
-    <button id="ongletPers" role="tab" aria-selected="false">Personnes</button>
-  </div>
-  <input type="search" id="q" placeholder="Rechercher une entreprise, une ville, un dirigeant…">
-  <select id="territoire"><option value="">Tous territoires</option></select>
-  <select id="secteur"><option value="">Tous secteurs</option></select>
-  <select id="effmin">
-    <option value="">Tout effectif</option>
-    <option value="10">10 salariés et plus</option>
-    <option value="50">50 et plus</option>
-    <option value="250">250 et plus</option>
-  </select>
-  <select id="tri">
-    <option value="ca">Chiffre d'affaires</option>
-    <option value="effectif">Effectif</option>
-    <option value="nom">Nom</option>
-    <option value="recent">Fraîcheur</option>
-  </select>
-  <select id="origine" hidden>
-    <option value="">Toutes origines</option>
-    <option value="dirigeant">Dirigeants</option>
-    <option value="contact">Contacts LinkedIn</option>
-  </select>
-  <select id="canal" hidden>
-    <option value="">Tout canal</option>
-    <option value="email">Avec e-mail</option>
-    <option value="linkedin">Avec LinkedIn</option>
-    <option value="tel">Avec téléphone</option>
-  </select>
-  <select id="tripers" hidden>
-    <option value="joignable">Joignables d'abord</option>
-    <option value="nom">Nom</option>
-  </select>
-  <span class="count" id="count"></span>
-</div></div>
+<section class="tiles" id="tiles"></section>
 
 <div class="wrap">
-  <div class="grid" id="grid"></div>
-  <button class="more" id="more">Charger la suite</button>
+  <aside class="filtres">
+    <h3>Recherche</h3>
+    <input type="search" id="q" placeholder="Nom, ville, secteur…">
+
+    <h3>Territoire</h3><div class="chips" id="fTerr"></div>
+
+    <div id="filtresEnt">
+      <h3>Secteur</h3>
+      <select id="secteur"><option value="">Tous secteurs</option></select>
+      <h3>Effectif</h3><div class="chips" id="fEff"></div>
+    </div>
+
+    <div id="filtresPers" hidden>
+      <h3>Origine</h3><div class="chips" id="fOrig"></div>
+      <h3>Canal disponible</h3><div class="chips" id="fCanal"></div>
+    </div>
+
+    <button class="reset" id="reset">Réinitialiser les filtres</button>
+  </aside>
+
+  <main>
+    <div class="bar-top">
+      <div class="count" id="count"></div>
+      <div class="hint">Cliquer une ligne pour ouvrir la fiche. Les en-têtes soulignables trient.</div>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead><tr id="head"></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <div class="pager">
+      <button id="prev">Précédent</button>
+      <span class="mono" id="pos"></span>
+      <button id="next">Suivant</button>
+    </div>
+  </main>
 </div>
 
-<div class="ov" id="ov"><div class="sheet" id="sheet"></div></div>
+<aside class="detail" id="detail" hidden></aside>
 
-<footer class="wrap">
+<footer>
   Données internes — accès restreint. Contient des données à caractère personnel :
   base légale intérêt légitime, conservation 36 mois après le dernier contact,
   droit d'opposition via le champ <code>OPPOSITION</code>. Ne pas diffuser.
@@ -228,228 +263,287 @@ const KEY = new URLSearchParams(location.search).get('key');
 const api = p => fetch(p + (p.includes('?') ? '&' : '?') + (KEY ? 'key=' + encodeURIComponent(KEY) : ''))
                   .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
 
-const nf = new Intl.NumberFormat('fr-FR');
+const nf  = new Intl.NumberFormat('fr-FR');
 const eur = v => v == null ? '—'
   : v >= 1e9 ? (v / 1e9).toFixed(2).replace('.', ',') + ' Md€'
   : v >= 1e6 ? (v / 1e6).toFixed(1).replace('.', ',') + ' M€'
   : nf.format(v) + ' €';
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+const TERR = { '06': 'Alpes-Maritimes', 'PACA': 'PACA', 'MC': 'Monaco' };
+const $ = id => document.getElementById(id);
 
-// ---- chiffres ----
-api('api/stats').then(d => {
-  const t = d.totaux;
-  document.getElementById('chiffres').innerHTML = [
-    [nf.format(t.ENTREPRISES), 'entreprises'],
-    [nf.format(t.CONTACTS), 'contacts identifiés'],
-    [nf.format(t.ACTIVES), 'cibles actives'],
-    [eur(t.CA_CUMULE), 'chiffre d\'affaires cumulé'],
-  ].map(([n, l]) => `<div class="stat"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
-  document.getElementById('navcount').textContent = nf.format(t.ENTREPRISES) + ' entreprises';
-
-  const lib = { '06': 'Alpes-Maritimes', 'PACA': 'PACA', 'MC': 'Monaco' };
-  d.territoires.forEach(r => document.getElementById('territoire')
-    .insertAdjacentHTML('beforeend', `<option value="${r.TERRITOIRE}">${lib[r.TERRITOIRE] || r.TERRITOIRE} (${r.N})</option>`));
-  d.secteurs.forEach(r => document.getElementById('secteur')
-    .insertAdjacentHTML('beforeend', `<option value="${esc(r.S)}">${esc(r.S)} (${r.N})</option>`));
+/* ---------------------------- apparence ---------------------------- */
+// L'Atlas laisse le choix explicite : « auto » suit le systeme, les deux
+// autres forcent, via l'attribut data-theme que la CSS lit en priorite.
+document.querySelectorAll('.theme button').forEach(b => b.onclick = () => {
+  const t = b.dataset.t;
+  document.querySelectorAll('.theme button').forEach(x =>
+    x.setAttribute('aria-pressed', String(x === b)));
+  if (t === 'auto') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme', t);
 });
 
-// ---- liste ----
-let page = 0, mode = 'entreprises';
-const personnes = new Map();   // PID -> ligne, pour ouvrir la fiche sans re-interroger
-const io = new IntersectionObserver(es => es.forEach(e => e.isIntersecting && e.target.classList.add('in')), { threshold: .1 });
-const g = id => document.getElementById(id).value;
-const lib = { '06': 'Alpes-Maritimes', 'PACA': 'PACA', 'MC': 'Monaco' };
+// La barre d'onglets est collante : les en-têtes de table doivent s'arrêter
+// juste dessous. On mesure sa hauteur réelle plutôt que de la coder en dur.
+const barre = document.querySelector('nav.tabs');
+const calerEntete = () => document.documentElement.style.setProperty(
+  '--nav-h', (barre ? barre.getBoundingClientRect().height : 46) + 'px');
+calerEntete();
+addEventListener('resize', calerEntete);
 
-// Filtres propres a chaque mode : on masque ceux qui ne s'appliquent pas
-// plutot que de les laisser agir silencieusement sur la mauvaise requete.
-const FILTRES = {
-  entreprises: ['secteur', 'effmin', 'tri'],
-  personnes:   ['origine', 'canal', 'tripers'],
+/* ------------------------------ etat ------------------------------- */
+let mode = 'entreprises', page = 0, total = 0;
+const etat = {
+  entreprises: { q: '', territoire: '', secteur: '', effmin: '', tri: 'ca' },
+  personnes:   { q: '', territoire: '', origine: '', canal: '', tri: 'joignable' },
 };
 
-function basculer(m) {
-  mode = m;
-  document.getElementById('ongletEnt').setAttribute('aria-selected', m === 'entreprises');
-  document.getElementById('ongletPers').setAttribute('aria-selected', m === 'personnes');
-  Object.entries(FILTRES).forEach(([k, ids]) =>
-    ids.forEach(id => { document.getElementById(id).hidden = (k !== m); }));
-  document.getElementById('q').placeholder = m === 'personnes'
-    ? 'Rechercher une personne, un poste, une ville…'
-    : 'Rechercher une entreprise, une ville, un dirigeant…';
+const COLS = {
+  entreprises: [
+    { t: 'Raison sociale', c: 'name', tri: 'nom',  v: r => esc(r.RAISON_SOCIALE) },
+    { t: 'Secteur',        c: 'org',            v: r => esc(r.SECTEUR_LIBELLE || '—') },
+    { t: 'Ville',          c: '',               v: r => esc(r.VILLE || '—') },
+    { t: 'Territoire',     c: '',               v: r => `<span class="pill">${TERR[r.TERRITOIRE] || esc(r.TERRITOIRE || '—')}</span>` },
+    { t: 'CA',             c: 'num', tri: 'ca',       v: r => eur(r.CA_EUR) },
+    { t: 'Résultat',       c: 'num',                  v: r => r.RESULTAT_EUR == null ? '—'
+        : `<span class="${r.RESULTAT_EUR < 0 ? 'pill crit' : ''}">${eur(r.RESULTAT_EUR)}</span>` },
+    { t: 'Effectif',       c: 'num', tri: 'effectif', v: r => r.EFFECTIF != null ? nf.format(r.EFFECTIF) : '—' },
+    { t: 'Dirigeant',      c: '',                     v: r => esc(r.DIRIGEANT || '—') },
+    { t: 'SIREN',          c: 'mono',                 v: r => esc(r.SIREN || '—') },
+    { t: 'Source',         c: '', tri: 'recent',      v: r => esc(r.SOURCE || '—') + (r.ANNEE_SOURCE ? ' (' + r.ANNEE_SOURCE + ')' : '') },
+  ],
+  personnes: [
+    { t: 'Nom',        c: 'name', tri: 'nom', v: r => esc(r.NOM_COMPLET || '—') },
+    { t: 'Rôle',       c: '',                 v: r => esc(r.ROLE || '—') },
+    { t: 'Entreprise / intitulé', c: 'org',   v: r => esc(r.DETAIL || '—') },
+    { t: 'Lieu',       c: '',                 v: r => esc(r.LIEU || '—') },
+    { t: 'Origine',    c: '',                 v: r => `<span class="pill">${r.ORIGINE === 'dirigeant' ? 'Dirigeant' : 'Contact LinkedIn'}</span>` },
+    { t: 'Rattachée',  c: '',                 v: r => r.ENTREPRISE_ID
+        ? '<span class="pill ok">oui</span>' : '<span class="pill warn">non</span>' },
+    { t: 'Canaux', c: '', tri: 'joignable', v: r =>
+        `<div class="flags" title="e-mail · téléphone · LinkedIn">
+           <i class="flag ${r.EMAIL ? 'on' : ''}"></i>
+           <i class="flag ${r.TELEPHONE ? 'on' : ''}"></i>
+           <i class="flag ${r.LINKEDIN_URL ? 'on' : ''}"></i></div>` },
+  ],
+};
+
+/* ----------------------------- filtres ----------------------------- */
+function chips(hote, options, champ) {
+  $(hote).innerHTML = options.map(o =>
+    `<button class="chip" data-v="${esc(o.v)}" aria-pressed="false">${esc(o.t)}</button>`).join('');
+  $(hote).querySelectorAll('.chip').forEach(b => b.onclick = () => {
+    const actif = b.getAttribute('aria-pressed') === 'true';
+    // Filtres exclusifs : recliquer la puce active la desactive.
+    $(hote).querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', 'false'));
+    b.setAttribute('aria-pressed', String(!actif));
+    etat[mode][champ] = actif ? '' : b.dataset.v;
+    charger(true);
+  });
+}
+
+chips('fEff', [{ t: '10+', v: '10' }, { t: '50+', v: '50' }, { t: '250+', v: '250' }], 'effmin');
+chips('fOrig', [{ t: 'Dirigeants', v: 'dirigeant' }, { t: 'Contacts LinkedIn', v: 'contact' }], 'origine');
+chips('fCanal', [{ t: 'E-mail', v: 'email' }, { t: 'Téléphone', v: 'tel' }, { t: 'LinkedIn', v: 'linkedin' }], 'canal');
+
+$('secteur').onchange = () => { etat.entreprises.secteur = $('secteur').value; charger(true); };
+let tq; $('q').oninput = () => { clearTimeout(tq); tq = setTimeout(() => {
+  etat[mode].q = $('q').value; charger(true); }, 280); };
+$('reset').onclick = () => {
+  Object.assign(etat[mode], mode === 'entreprises'
+    ? { q: '', territoire: '', secteur: '', effmin: '' }
+    : { q: '', territoire: '', origine: '', canal: '' });
+  $('q').value = ''; $('secteur').value = '';
+  document.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', 'false'));
   charger(true);
+};
+
+/* ------------------------------ chiffres ---------------------------- */
+let STATS = null;
+api('api/stats').then(d => {
+  STATS = d;
+  chips('fTerr', d.territoires.map(r => ({ t: (TERR[r.TERRITOIRE] || r.TERRITOIRE) + ' · ' + r.N, v: r.TERRITOIRE })), 'territoire');
+  d.secteurs.forEach(r => $('secteur').insertAdjacentHTML('beforeend',
+    `<option value="${esc(r.S)}">${esc(r.S)} (${r.N})</option>`));
+  tuiles();
+});
+
+function tuile(n, k, pct) {
+  return `<div class="tile"><div class="n">${n}</div><div class="k">${k}</div>` +
+         (pct != null ? `<div class="bar"><i style="width:${pct}%"></i></div>` : '') + '</div>';
+}
+function tuiles() {
+  if (!STATS) return;
+  const t = STATS.totaux;
+  $('tiles').innerHTML = mode === 'entreprises'
+    ? tuile(nf.format(t.ENTREPRISES), 'entreprises')
+    + tuile(nf.format(t.ACTIVES), 'cibles actives', Math.round(100 * t.ACTIVES / t.ENTREPRISES))
+    + tuile(eur(t.CA_CUMULE), 'chiffre d\'affaires cumulé')
+    + tuile(nf.format(t.DIRIGEANTS), 'dirigeants nommés', Math.round(100 * t.DIRIGEANTS / t.ENTREPRISES))
+    : tuile(nf.format(t.PERSONNES), 'personnes')
+    + tuile(nf.format(t.DIRIGEANTS), 'dirigeants rattachés')
+    + tuile(nf.format(t.CONTACTS), 'contacts LinkedIn')
+    + tuile(nf.format(t.CONTACTS_LIES) + ' / ' + nf.format(t.CONTACTS), 'contacts rattachés',
+            Math.round(100 * t.CONTACTS_LIES / (t.CONTACTS || 1)));
 }
 
-function carteEntreprise(r) {
-  return `
-    <div class="card" data-id="${r.ID}">
-      <h3>${esc(r.RAISON_SOCIALE)}</h3>
-      <div class="meta">${esc(r.SECTEUR_LIBELLE || 'Secteur non renseigné')}${r.VILLE ? ' · ' + esc(r.VILLE) : ''}</div>
-      <span class="tag t${r.TERRITOIRE}">${lib[r.TERRITOIRE] || r.TERRITOIRE}</span>
-      <div class="kpi">
-        <div>CA<b>${eur(r.CA_EUR)}</b></div>
-        <div>Effectif<b>${r.EFFECTIF != null ? nf.format(r.EFFECTIF) : '—'}</b></div>
-      </div>
-    </div>`;
+/* ------------------------------- table ------------------------------ */
+function entetes() {
+  $('head').innerHTML = COLS[mode].map((c, i) => {
+    const actif = c.tri && etat[mode].tri === c.tri;
+    return `<th class="${c.tri ? 'tri' : ''}" data-i="${i}"${actif ? ' aria-sort="descending"' : ''}>`
+         + esc(c.t) + (c.tri ? ' ↕' : '') + '</th>';
+  }).join('');
+  $('head').querySelectorAll('th.tri').forEach(th => th.onclick = () => {
+    etat[mode].tri = COLS[mode][+th.dataset.i].tri;
+    charger(true);
+  });
 }
 
-function initiales(nom) {
-  const m = String(nom || '?').trim().split(/\s+/).filter(Boolean);
-  return ((m[0] || '?')[0] + (m.length > 1 ? m[m.length - 1][0] : '')).toUpperCase();
-}
-
-function cartePersonne(r) {
-  personnes.set(String(r.PID) + r.ORIGINE, r);
-  const canal = (libelle, present) => `<span class="chip ${present ? 'on' : 'no'}">${present ? '' : 'sans '}${libelle}</span>`;
-  return `
-    <div class="pcard" data-pid="${r.PID}" data-origine="${r.ORIGINE}">
-      <div class="av">${esc(initiales(r.NOM_COMPLET))}</div>
-      <div style="flex:1;min-width:0">
-        <div class="n">${esc(r.NOM_COMPLET || 'Sans nom')}</div>
-        <div class="r">${esc(r.DETAIL || r.ROLE || '')}</div>
-        ${r.LIEU ? `<div class="l">${esc(r.LIEU)}</div>` : ''}
-        <div class="chips">
-          <span class="chip">${r.ORIGINE === 'dirigeant' ? 'Dirigeant' : 'Contact LinkedIn'}</span>
-          ${canal('e-mail', !!r.EMAIL)}
-          ${r.LINKEDIN_URL ? '<span class="chip on">LinkedIn</span>' : ''}
-          ${r.TELEPHONE ? '<span class="chip on">téléphone</span>' : ''}
-          ${r.OPPOSITION === 'O' ? '<span class="chip op">opposition</span>' : ''}
-        </div>
-      </div>
-    </div>`;
-}
+const lignes = new Map();   // cle -> enregistrement, pour la fiche sans re-requete
 
 function charger(reset) {
-  if (reset) { page = 0; document.getElementById('grid').innerHTML = ''; }
-  const perso = mode === 'personnes';
-  const url = perso
-    ? `api/personnes?q=${encodeURIComponent(g('q'))}&origine=${g('origine')}`
-      + `&territoire=${g('territoire')}&canal=${g('canal')}&tri=${g('tripers')}`
-    : `api/entreprises?q=${encodeURIComponent(g('q'))}&territoire=${g('territoire')}`
-      + `&secteur=${encodeURIComponent(g('secteur'))}&effmin=${g('effmin')}&tri=${g('tri')}`;
+  if (reset) page = 0;
+  const e = etat[mode];
+  const url = mode === 'personnes'
+    ? `api/personnes?q=${encodeURIComponent(e.q)}&origine=${e.origine}&territoire=${e.territoire}`
+      + `&canal=${e.canal}&tri=${e.tri}`
+    : `api/entreprises?q=${encodeURIComponent(e.q)}&territoire=${e.territoire}`
+      + `&secteur=${encodeURIComponent(e.secteur)}&effmin=${e.effmin}&tri=${e.tri}`;
 
+  entetes();
   api(`${url}&page=${page}`).then(d => {
-    document.getElementById('count').textContent =
-      nf.format(d.total) + (perso ? ' personne' : ' résultat') + (d.total > 1 ? 's' : '');
-    document.getElementById('grid').insertAdjacentHTML('beforeend',
-      d.rows.map(perso ? cartePersonne : carteEntreprise).join(''));
-    if (!d.total) document.getElementById('grid').innerHTML =
-      '<p class="empty">Aucun résultat pour cette recherche.</p>';
-    document.querySelectorAll('.card:not(.in),.pcard:not(.in)').forEach(c => io.observe(c));
-    document.getElementById('more').disabled = (page + 1) * 60 >= d.total;
-  }).catch(e => document.getElementById('grid').innerHTML =
-      `<p class="empty">Chargement impossible (${e.message}). Vérifiez la clé d'accès.</p>`);
+    total = d.total;
+    const cols = COLS[mode];
+    lignes.clear();
+    $('rows').innerHTML = d.rows.length ? d.rows.map((r, i) => {
+      const k = mode === 'personnes' ? r.ORIGINE + ':' + r.PID : 'e:' + r.ID;
+      lignes.set(k, r);
+      return `<tr data-k="${esc(k)}">` + cols.map(c =>
+        `<td class="${c.c}">${c.v(r)}</td>`).join('') + '</tr>';
+    }).join('') : `<tr><td class="empty" colspan="${cols.length}">Aucun résultat.</td></tr>`;
+
+    const deb = total ? page * 60 + 1 : 0, fin = Math.min((page + 1) * 60, total);
+    $('count').innerHTML = nf.format(total) + ' <span>'
+      + (mode === 'personnes' ? 'personne' : 'entreprise') + (total > 1 ? 's' : '') + '</span>';
+    $('pos').textContent = total ? `${deb}–${fin} sur ${nf.format(total)}` : '—';
+    $('prev').disabled = page === 0;
+    $('next').disabled = (page + 1) * 60 >= total;
+  }).catch(err => {
+    $('rows').innerHTML = `<tr><td class="empty" colspan="${COLS[mode].length}">`
+      + `Chargement impossible (${esc(err.message)}). Vérifiez la clé d'accès.</td></tr>`;
+  });
 }
 
-['q','territoire','secteur','effmin','tri','origine','canal','tripers'].forEach(id => {
-  const el = document.getElementById(id);
-  const ev = id === 'q' ? 'input' : 'change';
-  let t; el.addEventListener(ev, () => { clearTimeout(t); t = setTimeout(() => charger(true), id === 'q' ? 280 : 0); });
-});
-document.getElementById('ongletEnt').onclick = () => basculer('entreprises');
-document.getElementById('ongletPers').onclick = () => basculer('personnes');
-document.getElementById('navpers').onclick = () => basculer('personnes');
-document.getElementById('more').onclick = () => { page++; charger(false); };
-basculer('entreprises');
+$('prev').onclick = () => { if (page > 0) { page--; charger(false); scrollTo({ top: 0, behavior: 'smooth' }); } };
+$('next').onclick = () => { if ((page + 1) * 60 < total) { page++; charger(false); scrollTo({ top: 0, behavior: 'smooth' }); } };
 
-// ---- fiche ----
-const ov = document.getElementById('ov'), sheet = document.getElementById('sheet');
-document.getElementById('grid').addEventListener('click', e => {
-  const c = e.target.closest('.card');
-  if (c) return ouvrir(c.dataset.id);
-  const p = e.target.closest('.pcard');
-  if (!p) return;
-  // Un dirigeant est deja rattache a sa societe : on ouvre la fiche entreprise,
-  // qui porte le CA, le SIREN et l'adresse. Un contact importe n'a pas ce lien.
-  if (p.dataset.origine === 'dirigeant') ouvrir(p.dataset.pid);
-  else ouvrirPersonne(personnes.get(p.dataset.pid + p.dataset.origine));
-});
-
-function ouvrirPersonne(r) {
-  if (!r) return;
-  ov.classList.add('on'); document.body.style.overflow = 'hidden';
-  const champ = (l, v) => v == null || v === '' ? '' : `<div>${l}<b>${esc(v)}</b></div>`;
-  const lien = (t, href) => `<a href="${esc(href)}" target="_blank" rel="noopener noreferrer">${t}</a>`;
-  sheet.innerHTML = `
-    <button class="close" onclick="fermer()">×</button>
-    <h2>${esc(r.NOM_COMPLET || 'Sans nom')}</h2>
-    <div class="sub">${esc(r.ROLE || '')}${r.LIEU ? ' · ' + esc(r.LIEU) : ''}</div>
-    <div class="dl">
-      ${champ('Poste', r.DETAIL)}
-      ${champ('Origine', r.ORIGINE === 'dirigeant' ? 'Dirigeant déclaré' : 'Contact LinkedIn importé')}
-      ${champ('Source', r.SOURCE)}
-    </div>
-    <div class="person" style="border-top:1px solid var(--line);margin-top:26px">
-      <div class="av">${esc(initiales(r.NOM_COMPLET))}</div>
-      <div style="flex:1">
-        <div class="r">Canaux disponibles</div>
-        <div class="c">
-          ${r.EMAIL ? lien(esc(r.EMAIL), 'mailto:' + r.EMAIL) : ''}
-          ${r.TELEPHONE ? lien(esc(r.TELEPHONE), 'tel:' + r.TELEPHONE) : ''}
-          ${r.LINKEDIN_URL ? lien('LinkedIn', r.LINKEDIN_URL) : ''}
-          ${!r.EMAIL && !r.TELEPHONE && !r.LINKEDIN_URL ? '<span class="empty">Aucun canal direct.</span>' : ''}
-        </div>
-      </div>
-    </div>
-    ${r.OPPOSITION === 'O'
-      ? '<div class="rgpd">Opposition enregistrée : cette personne ne doit pas être démarchée.</div>'
-      : '<div class="rgpd">Données personnelles. Purge automatique 36 mois après collecte. Ne pas exporter hors de cet outil.</div>'}`;
+/* ------------------------------ onglets ----------------------------- */
+function basculer(m) {
+  mode = m;
+  $('ongletEnt').setAttribute('aria-selected', String(m === 'entreprises'));
+  $('ongletPers').setAttribute('aria-selected', String(m === 'personnes'));
+  $('filtresEnt').hidden = m !== 'entreprises';
+  $('filtresPers').hidden = m !== 'personnes';
+  $('q').placeholder = m === 'personnes' ? 'Nom, poste, ville…' : 'Nom, ville, secteur…';
+  $('q').value = etat[m].q;
+  // Les puces sont partagees entre les deux modes : on les realigne sur l'etat
+  // du mode courant, sinon un filtre invisible resterait actif.
+  document.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', 'false'));
+  ['fTerr', 'fEff', 'fOrig', 'fCanal'].forEach(h => {
+    const champ = { fTerr: 'territoire', fEff: 'effmin', fOrig: 'origine', fCanal: 'canal' }[h];
+    const v = etat[m][champ];
+    if (v) { const b = $(h).querySelector(`.chip[data-v="${CSS.escape(v)}"]`);
+             if (b) b.setAttribute('aria-pressed', 'true'); }
+  });
+  tuiles();
+  fermer();
+  charger(true);
 }
-ov.addEventListener('click', e => { if (e.target === ov) fermer(); });
+$('ongletEnt').onclick = () => basculer('entreprises');
+$('ongletPers').onclick = () => basculer('personnes');
+
+/* ------------------------------- fiche ------------------------------ */
+const det = $('detail');
+function fermer() { det.hidden = true; }
 addEventListener('keydown', e => e.key === 'Escape' && fermer());
-function fermer() { ov.classList.remove('on'); document.body.style.overflow = ''; }
+$('rows').addEventListener('click', ev => {
+  const tr = ev.target.closest('tr[data-k]');
+  if (!tr) return;
+  const r = lignes.get(tr.dataset.k);
+  if (!r) return;
+  if (mode === 'entreprises') ficheEntreprise(r.ID);
+  else if (r.ORIGINE === 'dirigeant' || r.ENTREPRISE_ID) ficheEntreprise(r.ENTREPRISE_ID);
+  else fichePersonne(r);
+});
 
-function ouvrir(id) {
-  ov.classList.add('on'); document.body.style.overflow = 'hidden';
-  sheet.innerHTML = '<p class="empty">Chargement…</p>';
+const dd = (l, v) => v == null || v === '' ? '' : `<dt>${l}</dt><dd>${esc(v)}</dd>`;
+const cadre = (titre, sous, corps) => `<button class="close" onclick="fermer()">×</button>
+  <h2>${esc(titre)}</h2><p class="role">${esc(sous)}</p>${corps}`;
+
+function ficheEntreprise(id) {
+  det.hidden = false;
+  det.innerHTML = '<p class="empty">Chargement…</p>';
   api('api/entreprises/' + id).then(d => {
     const e = d.entreprise;
-    const champ = (l, v) => v == null || v === '' ? '' : `<div>${l}<b>${esc(v)}</b></div>`;
-    const lib = { '06': 'Alpes-Maritimes', 'PACA': 'PACA', 'MC': 'Monaco' };
-    sheet.innerHTML = `
-      <button class="close" onclick="fermer()">×</button>
-      <h2>${esc(e.RAISON_SOCIALE)}</h2>
-      <div class="sub">${esc(e.SECTEUR_LIBELLE || 'Secteur non renseigné')}
-        · ${lib[e.TERRITOIRE] || e.TERRITOIRE}${e.VILLE ? ' · ' + esc(e.VILLE) : ''}</div>
-      <div class="dl">
-        ${champ('Chiffre d\'affaires', e.CA_EUR != null ? eur(e.CA_EUR) : null)}
-        ${champ('Résultat', e.RESULTAT_EUR != null ? eur(e.RESULTAT_EUR) : null)}
-        ${champ('Effectif', e.EFFECTIF != null ? nf.format(e.EFFECTIF) : e.EFFECTIF_ESTIME)}
-        ${champ('Dirigeant', e.DIRIGEANT)}
-        ${champ('Téléphone', e.TELEPHONE)}
-        ${champ('SIREN', e.SIREN)}
-        ${champ('Code NAF', e.CODE_NAF)}
-        ${champ('Adresse', [e.ADRESSE, e.CODE_POSTAL, e.VILLE].filter(Boolean).join(' '))}
-        ${champ('Statut', e.STATUT)}
-        ${champ('Source', e.SOURCE + (e.ANNEE_SOURCE ? ' (' + e.ANNEE_SOURCE + ')' : ''))}
-      </div>
-      ${e.SITE_WEB ? `<p style="margin-top:20px"><a href="${esc(e.SITE_WEB.startsWith('http') ? e.SITE_WEB : 'https://' + e.SITE_WEB)}"
-          target="_blank" rel="noopener noreferrer" style="color:var(--accent);text-decoration:none">
-          ${esc(e.SITE_WEB)} →</a></p>` : ''}
-      ${e.ACTIVITE ? `<p style="margin-top:18px;color:var(--ink2);font-size:14px">${esc(e.ACTIVITE)}</p>` : ''}
-      ${e.DOUBLON_POTENTIEL ? `<div class="rgpd">Doublon potentiel à arbitrer : « ${esc(e.DOUBLON_POTENTIEL)} »
-          apparaît plusieurs fois avec des villes différentes.</div>` : ''}
-
-      <h4>Contacts (${d.contacts.length})</h4>
-      ${d.contacts.length ? d.contacts.map(p => {
-        const nom = [p.PRENOM, p.NOM].filter(Boolean).join(' ');
-        const ini = (p.PRENOM || p.NOM || '?').trim()[0].toUpperCase();
-        return `<div class="person">
-          <div class="av">${esc(ini)}</div>
-          <div style="flex:1">
-            <div class="n">${esc(nom)}${p.OPPOSITION === 'O' ? ' — opposition enregistrée' : ''}</div>
-            <div class="r">${esc(p.FONCTION || p.INTITULE_POSTE || '')}${p.LOCALISATION ? ' · ' + esc(p.LOCALISATION) : ''}</div>
-            <div class="c">
-              ${p.EMAIL ? `<a href="mailto:${esc(p.EMAIL)}">${esc(p.EMAIL)}</a>` : ''}
-              ${p.TELEPHONE ? `<a href="tel:${esc(p.TELEPHONE)}">${esc(p.TELEPHONE)}</a>` : ''}
-              ${p.LINKEDIN_URL ? `<a href="${esc(p.LINKEDIN_URL)}" target="_blank" rel="noopener noreferrer">LinkedIn</a>` : ''}
-            </div>
-          </div></div>`;
-      }).join('') : '<p class="empty">Aucun contact rattaché.</p>'}
-      ${d.contacts.length ? '<div class="rgpd">Données personnelles. Purge automatique 36 mois après collecte. Ne pas exporter hors de cet outil.</div>' : ''}`;
-  }).catch(e => sheet.innerHTML = `<button class="close" onclick="fermer()">×</button>
-      <p class="empty">Erreur : ${esc(e.message)}</p>`);
+    const site = e.SITE_WEB ? (e.SITE_WEB.startsWith('http') ? e.SITE_WEB : 'https://' + e.SITE_WEB) : '';
+    det.innerHTML = cadre(e.RAISON_SOCIALE,
+      [e.SECTEUR_LIBELLE || 'Secteur non renseigné', TERR[e.TERRITOIRE] || e.TERRITOIRE, e.VILLE]
+        .filter(Boolean).join(' · '),
+      `<dl>
+         ${dd('Chiffre d\'affaires', e.CA_EUR != null ? eur(e.CA_EUR) : null)}
+         ${dd('Résultat', e.RESULTAT_EUR != null ? eur(e.RESULTAT_EUR) : null)}
+         ${dd('Effectif', e.EFFECTIF != null ? nf.format(e.EFFECTIF) : e.EFFECTIF_ESTIME)}
+         ${dd('Dirigeant', e.DIRIGEANT)}
+         ${dd('Téléphone', e.TELEPHONE)}
+         ${dd('SIREN', e.SIREN)}
+         ${dd('Code NAF', e.CODE_NAF)}
+         ${dd('Adresse', [e.ADRESSE, e.CODE_POSTAL, e.VILLE].filter(Boolean).join(' '))}
+         ${dd('Statut', e.STATUT)}
+         ${dd('Source', e.SOURCE + (e.ANNEE_SOURCE ? ' (' + e.ANNEE_SOURCE + ')' : ''))}
+       </dl>
+       ${site ? `<div class="liens"><a href="${esc(site)}" target="_blank" rel="noopener noreferrer">${esc(e.SITE_WEB)} →</a></div>` : ''}
+       ${e.ACTIVITE ? `<p class="role" style="margin-top:16px">${esc(e.ACTIVITE)}</p>` : ''}
+       ${e.DOUBLON_POTENTIEL ? `<div class="rgpd">Doublon potentiel à arbitrer : « ${esc(e.DOUBLON_POTENTIEL)} ».</div>` : ''}
+       <h4>Contacts (${d.contacts.length})</h4>
+       ${d.contacts.length ? d.contacts.map(p => `
+         <div class="pers">
+           <div class="n">${esc([p.PRENOM, p.NOM].filter(Boolean).join(' '))}${p.OPPOSITION === 'O' ? ' — opposition' : ''}</div>
+           <div class="r">${esc(p.FONCTION || p.INTITULE_POSTE || '')}${p.LOCALISATION ? ' · ' + esc(p.LOCALISATION) : ''}</div>
+           <div class="liens">
+             ${p.EMAIL ? `<a href="mailto:${esc(p.EMAIL)}">${esc(p.EMAIL)}</a>` : ''}
+             ${p.TELEPHONE ? `<a href="tel:${esc(p.TELEPHONE)}">${esc(p.TELEPHONE)}</a>` : ''}
+             ${p.LINKEDIN_URL ? `<a href="${esc(p.LINKEDIN_URL)}" target="_blank" rel="noopener noreferrer">LinkedIn</a>` : ''}
+           </div>
+         </div>`).join('') : '<p class="hint">Aucun contact rattaché.</p>'}
+       ${d.contacts.length ? '<div class="rgpd">Données personnelles. Purge automatique 36 mois après collecte. Ne pas exporter hors de cet outil.</div>' : ''}`);
+  }).catch(err => det.innerHTML = cadre('Erreur', String(err.message), ''));
 }
+
+function fichePersonne(r) {
+  det.hidden = false;
+  det.innerHTML = cadre(r.NOM_COMPLET || 'Sans nom',
+    [r.ROLE, r.LIEU].filter(Boolean).join(' · '),
+    `<dl>
+       ${dd('Intitulé', r.DETAIL)}
+       ${dd('Origine', r.ORIGINE === 'dirigeant' ? 'Dirigeant déclaré' : 'Contact LinkedIn importé')}
+       ${dd('Rattachement', r.ENTREPRISE_ID ? 'lié à une entreprise' : 'aucun — société absente de la base')}
+       ${dd('Source', r.SOURCE)}
+     </dl>
+     <h4>Canaux</h4>
+     <div class="liens">
+       ${r.EMAIL ? `<a href="mailto:${esc(r.EMAIL)}">${esc(r.EMAIL)}</a>` : ''}
+       ${r.TELEPHONE ? `<a href="tel:${esc(r.TELEPHONE)}">${esc(r.TELEPHONE)}</a>` : ''}
+       ${r.LINKEDIN_URL ? `<a href="${esc(r.LINKEDIN_URL)}" target="_blank" rel="noopener noreferrer">LinkedIn</a>` : ''}
+       ${!r.EMAIL && !r.TELEPHONE && !r.LINKEDIN_URL ? '<span class="hint">Aucun canal direct.</span>' : ''}
+     </div>
+     ${r.OPPOSITION === 'O'
+       ? '<div class="rgpd">Opposition enregistrée : cette personne ne doit pas être démarchée.</div>'
+       : '<div class="rgpd">Données personnelles. Purge automatique 36 mois après collecte. Ne pas exporter hors de cet outil.</div>'}`);
+}
+
 window.fermer = fermer;
+basculer('entreprises');
 </script>
 <script defer src="https://arx-apps.duckdns.org/gate/t.js" data-site="prospects"></script>
 </body>
