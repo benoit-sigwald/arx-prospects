@@ -270,6 +270,13 @@ const eur = v => v == null ? '—'
   : nf.format(v) + ' €';
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
 const TERR = { '06': 'Alpes-Maritimes', 'PACA': 'PACA', 'MC': 'Monaco' };
+// Provenance d'une personne : libelle et teinte de la pastille. Le registre
+// est opposable, LinkedIn est declaratif, la fiche est une saisie interne.
+const ORIG = {
+  registre: ['Registre (RNE)', 'ok'],
+  linkedin: ['LinkedIn', ''],
+  fiche:    ['Fiche entreprise', 'warn'],
+};
 const $ = id => document.getElementById(id);
 
 /* ---------------------------- apparence ---------------------------- */
@@ -317,7 +324,7 @@ const COLS = {
     { t: 'Rôle',       c: '',                 v: r => esc(r.ROLE || '—') },
     { t: 'Entreprise / intitulé', c: 'org',   v: r => esc(r.DETAIL || '—') },
     { t: 'Lieu',       c: '',                 v: r => esc(r.LIEU || '—') },
-    { t: 'Origine',    c: '',                 v: r => `<span class="pill">${r.ORIGINE === 'dirigeant' ? 'Dirigeant' : 'Contact LinkedIn'}</span>` },
+    { t: 'Provenance', c: '',                 v: r => `<span class="pill ${ORIG[r.ORIGINE]?.[1] || ''}">${ORIG[r.ORIGINE]?.[0] || esc(r.ORIGINE)}</span>` },
     { t: 'Rattachée',  c: '',                 v: r => r.ENTREPRISE_ID
         ? '<span class="pill ok">oui</span>' : '<span class="pill warn">non</span>' },
     { t: 'Canaux', c: '', tri: 'joignable', v: r =>
@@ -343,7 +350,8 @@ function chips(hote, options, champ) {
 }
 
 chips('fEff', [{ t: '10+', v: '10' }, { t: '50+', v: '50' }, { t: '250+', v: '250' }], 'effmin');
-chips('fOrig', [{ t: 'Dirigeants', v: 'dirigeant' }, { t: 'Contacts LinkedIn', v: 'contact' }], 'origine');
+chips('fOrig', [{ t: 'Registre (RNE)', v: 'registre' }, { t: 'LinkedIn', v: 'linkedin' },
+                { t: 'Fiche entreprise', v: 'fiche' }], 'origine');
 chips('fCanal', [{ t: 'E-mail', v: 'email' }, { t: 'Téléphone', v: 'tel' }, { t: 'LinkedIn', v: 'linkedin' }], 'canal');
 
 $('secteur').onchange = () => { etat.entreprises.secteur = $('secteur').value; charger(true); };
@@ -381,9 +389,9 @@ function tuiles() {
     + tuile(eur(t.CA_CUMULE), 'chiffre d\'affaires cumulé')
     + tuile(nf.format(t.DIRIGEANTS), 'dirigeants nommés', Math.round(100 * t.DIRIGEANTS / t.ENTREPRISES))
     : tuile(nf.format(t.PERSONNES), 'personnes')
-    + tuile(nf.format(t.DIRIGEANTS), 'dirigeants rattachés')
-    + tuile(nf.format(t.CONTACTS), 'contacts LinkedIn')
-    + tuile(nf.format(t.CONTACTS_LIES) + ' / ' + nf.format(t.CONTACTS), 'contacts rattachés',
+    + tuile(nf.format(t.AU_REGISTRE), 'dirigeants au registre')
+    + tuile(nf.format(t.AVEC_LINKEDIN), 'profils LinkedIn')
+    + tuile(nf.format(t.CONTACTS_LIES) + ' / ' + nf.format(t.CONTACTS), 'rattachés à une société',
             Math.round(100 * t.CONTACTS_LIES / (t.CONTACTS || 1)));
 }
 
@@ -473,7 +481,7 @@ $('rows').addEventListener('click', ev => {
   const r = lignes.get(tr.dataset.k);
   if (!r) return;
   if (mode === 'entreprises') ficheEntreprise(r.ID);
-  else if (r.ORIGINE === 'dirigeant' || r.ENTREPRISE_ID) ficheEntreprise(r.ENTREPRISE_ID);
+  else if (r.ORIGINE === 'fiche' || r.ENTREPRISE_ID) ficheEntreprise(r.ENTREPRISE_ID);
   else fichePersonne(r);
 });
 
@@ -526,7 +534,7 @@ function fichePersonne(r) {
     [r.ROLE, r.LIEU].filter(Boolean).join(' · '),
     `<dl>
        ${dd('Intitulé', r.DETAIL)}
-       ${dd('Origine', r.ORIGINE === 'dirigeant' ? 'Dirigeant déclaré' : 'Contact LinkedIn importé')}
+       ${dd('Provenance', (ORIG[r.ORIGINE] || [r.ORIGINE])[0])}
        ${dd('Rattachement', r.ENTREPRISE_ID ? 'lié à une entreprise' : 'aucun — société absente de la base')}
        ${dd('Source', r.SOURCE)}
      </dl>

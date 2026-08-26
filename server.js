@@ -91,7 +91,9 @@ app.get('/api/stats', auth, async (_req, res, next) => {
                 (SELECT COUNT(*) FROM ENTREPRISES
                   WHERE DIRIGEANT IS NOT NULL AND TRIM(DIRIGEANT) IS NOT NULL) DIRIGEANTS,
                 (SELECT COUNT(ENTREPRISE_ID) FROM CONTACTS) CONTACTS_LIES,
-                (SELECT COUNT(*) FROM CONTACTS WHERE LINKEDIN_URL IS NOT NULL) AVEC_LINKEDIN
+                (SELECT COUNT(*) FROM CONTACTS WHERE LINKEDIN_URL IS NOT NULL) AVEC_LINKEDIN,
+                (SELECT COUNT(*) FROM CONTACTS WHERE LINKEDIN_URL IS NULL) AU_REGISTRE,
+                (SELECT COUNT(*) FROM ENTREPRISES WHERE SIREN IS NOT NULL) AVEC_SIREN
            FROM DUAL`),
     ]);
     const t = tot.rows[0];
@@ -140,7 +142,11 @@ app.get('/api/entreprises', auth, async (req, res, next) => {
  */
 const SQL_PERSONNES = `
   SELECT c.ID                                              AS PID,
-         'contact'                                         AS ORIGINE,
+         -- Trois provenances, trois niveaux de confiance : le registre est
+         -- opposable, l'export LinkedIn est declaratif, la fiche entreprise
+         -- est une saisie. Les confondre sous « contact » induirait en erreur.
+         CASE WHEN c.LINKEDIN_URL IS NOT NULL THEN 'linkedin'
+              ELSE 'registre' END                          AS ORIGINE,
          TRIM(NVL(c.PRENOM, ' ') || ' ' || NVL(c.NOM, ' ')) AS NOM_COMPLET,
          c.FONCTION                                        AS ROLE,
          -- Un contact rattache doit montrer sa societe, pas son titre LinkedIn :
@@ -163,7 +169,7 @@ const SQL_PERSONNES = `
   LEFT JOIN ENTREPRISES ec ON ec.ID = c.ENTREPRISE_ID
   UNION ALL
   SELECT e.ID,
-         'dirigeant',
+         'fiche',
          e.DIRIGEANT,
          CAST('Dirigeant' AS VARCHAR2(120)),
          e.RAISON_SOCIALE,
