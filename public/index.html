@@ -492,8 +492,11 @@ function charger(reset) {
     }).join('') : `<tr><td class="empty" colspan="${cols.length}">Aucun résultat.</td></tr>`;
 
     const deb = total ? page * 60 + 1 : 0, fin = Math.min((page + 1) * 60, total);
-    const unite = { personnes: 'personne', appels: 'société à appeler', entreprises: 'entreprise' }[mode];
-    $('count').innerHTML = nf.format(total) + ' <span>' + unite + (total > 1 ? 's' : '') + '</span>';
+    // Le pluriel ne se met pas toujours en fin de libelle : « societes a appeler ».
+    const [un, plusieurs] = { personnes: ['personne', 'personnes'],
+                              appels: ['société à appeler', 'sociétés à appeler'],
+                              entreprises: ['entreprise', 'entreprises'] }[mode];
+    $('count').innerHTML = nf.format(total) + ' <span>' + (total > 1 ? plusieurs : un) + '</span>';
     $('pos').textContent = total ? `${deb}–${fin} sur ${nf.format(total)}` : '—';
     $('prev').disabled = page === 0;
     $('next').disabled = (page + 1) * 60 >= total;
