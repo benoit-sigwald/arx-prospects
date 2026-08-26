@@ -75,6 +75,31 @@ select{cursor:pointer;-webkit-appearance:none;appearance:none;padding-right:34px
   background-size:5px 5px,5px 5px;background-repeat:no-repeat}
 .count{font-size:13px;color:var(--ink2);margin-left:auto;font-variant-numeric:tabular-nums}
 
+/* ---------- bascule entreprises / personnes ---------- */
+.seg{display:inline-flex;background:var(--bg2);border-radius:980px;padding:3px;gap:2px}
+.seg button{font:inherit;font-size:13px;font-weight:500;color:var(--ink2);background:none;
+  border:0;border-radius:980px;padding:6px 15px;cursor:pointer;transition:.2s;white-space:nowrap}
+.seg button[aria-selected=true]{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+[hidden]{display:none !important}
+
+/* ---------- carte personne ---------- */
+.pcard{display:flex;gap:14px;align-items:flex-start;background:var(--card);
+  border:1px solid var(--line);border-radius:18px;padding:18px 20px;cursor:pointer;
+  transition:transform .25s cubic-bezier(.25,.1,.25,1),box-shadow .25s;
+  opacity:0;transform:translateY(16px)}
+.pcard.in{opacity:1;transform:none}
+.pcard:hover{transform:translateY(-4px);box-shadow:var(--shadow)}
+.pcard .n{font-size:16px;font-weight:600;letter-spacing:-.02em;line-height:1.3}
+.pcard .r{margin-top:3px;font-size:13px;color:var(--ink2);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pcard .l{margin-top:4px;font-size:12px;color:var(--ink2)}
+.chips{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:11px;font-weight:500;padding:3px 9px;border-radius:980px;
+  background:var(--bg2);color:var(--ink2)}
+.chip.on{color:var(--accent)}
+.chip.no{opacity:.55}
+.chip.op{color:#ff453a}
+
 /* ---------- grille ---------- */
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:16px;padding:36px 0 20px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;
@@ -133,6 +158,7 @@ footer{border-top:1px solid var(--line);padding:34px 0 60px;font-size:12px;color
      title="ArX Consulting"><img class="mark" src="arx-logo.png" alt="ArX" width="24" height="26"><b>Tissu Économique PACA</b></a>
   <a href="#chiffres">Chiffres</a>
   <a href="#liste">Entreprises</a>
+  <a href="#liste" id="navpers">Personnes</a>
   <span class="sp" id="navcount"></span>
   <a class="cta" href="https://arx-consulting.com/" target="_blank" rel="noopener noreferrer">ArX Consulting</a>
 </div></nav>
@@ -146,6 +172,10 @@ footer{border-top:1px solid var(--line);padding:34px 0 60px;font-size:12px;color
 <div class="wrap"><div class="stats" id="chiffres"></div></div>
 
 <div class="tools" id="liste"><div class="wrap">
+  <div class="seg" role="tablist">
+    <button id="ongletEnt" role="tab" aria-selected="true">Entreprises</button>
+    <button id="ongletPers" role="tab" aria-selected="false">Personnes</button>
+  </div>
   <input type="search" id="q" placeholder="Rechercher une entreprise, une ville, un dirigeant…">
   <select id="territoire"><option value="">Tous territoires</option></select>
   <select id="secteur"><option value="">Tous secteurs</option></select>
@@ -160,6 +190,21 @@ footer{border-top:1px solid var(--line);padding:34px 0 60px;font-size:12px;color
     <option value="effectif">Effectif</option>
     <option value="nom">Nom</option>
     <option value="recent">Fraîcheur</option>
+  </select>
+  <select id="origine" hidden>
+    <option value="">Toutes origines</option>
+    <option value="dirigeant">Dirigeants</option>
+    <option value="contact">Contacts LinkedIn</option>
+  </select>
+  <select id="canal" hidden>
+    <option value="">Tout canal</option>
+    <option value="email">Avec e-mail</option>
+    <option value="linkedin">Avec LinkedIn</option>
+    <option value="tel">Avec téléphone</option>
+  </select>
+  <select id="tripers" hidden>
+    <option value="joignable">Joignables d'abord</option>
+    <option value="nom">Nom</option>
   </select>
   <span class="count" id="count"></span>
 </div></div>
@@ -209,50 +254,146 @@ api('api/stats').then(d => {
 });
 
 // ---- liste ----
-let page = 0, dernier = '';
+let page = 0, mode = 'entreprises';
+const personnes = new Map();   // PID -> ligne, pour ouvrir la fiche sans re-interroger
 const io = new IntersectionObserver(es => es.forEach(e => e.isIntersecting && e.target.classList.add('in')), { threshold: .1 });
+const g = id => document.getElementById(id).value;
+const lib = { '06': 'Alpes-Maritimes', 'PACA': 'PACA', 'MC': 'Monaco' };
 
-function params() {
-  const g = id => document.getElementById(id).value;
-  return `q=${encodeURIComponent(g('q'))}&territoire=${g('territoire')}&secteur=${encodeURIComponent(g('secteur'))}`
-       + `&effmin=${g('effmin')}&tri=${g('tri')}`;
+// Filtres propres a chaque mode : on masque ceux qui ne s'appliquent pas
+// plutot que de les laisser agir silencieusement sur la mauvaise requete.
+const FILTRES = {
+  entreprises: ['secteur', 'effmin', 'tri'],
+  personnes:   ['origine', 'canal', 'tripers'],
+};
+
+function basculer(m) {
+  mode = m;
+  document.getElementById('ongletEnt').setAttribute('aria-selected', m === 'entreprises');
+  document.getElementById('ongletPers').setAttribute('aria-selected', m === 'personnes');
+  Object.entries(FILTRES).forEach(([k, ids]) =>
+    ids.forEach(id => { document.getElementById(id).hidden = (k !== m); }));
+  document.getElementById('q').placeholder = m === 'personnes'
+    ? 'Rechercher une personne, un poste, une ville…'
+    : 'Rechercher une entreprise, une ville, un dirigeant…';
+  charger(true);
+}
+
+function carteEntreprise(r) {
+  return `
+    <div class="card" data-id="${r.ID}">
+      <h3>${esc(r.RAISON_SOCIALE)}</h3>
+      <div class="meta">${esc(r.SECTEUR_LIBELLE || 'Secteur non renseigné')}${r.VILLE ? ' · ' + esc(r.VILLE) : ''}</div>
+      <span class="tag t${r.TERRITOIRE}">${lib[r.TERRITOIRE] || r.TERRITOIRE}</span>
+      <div class="kpi">
+        <div>CA<b>${eur(r.CA_EUR)}</b></div>
+        <div>Effectif<b>${r.EFFECTIF != null ? nf.format(r.EFFECTIF) : '—'}</b></div>
+      </div>
+    </div>`;
+}
+
+function initiales(nom) {
+  const m = String(nom || '?').trim().split(/\s+/).filter(Boolean);
+  return ((m[0] || '?')[0] + (m.length > 1 ? m[m.length - 1][0] : '')).toUpperCase();
+}
+
+function cartePersonne(r) {
+  personnes.set(String(r.PID) + r.ORIGINE, r);
+  const canal = (libelle, present) => `<span class="chip ${present ? 'on' : 'no'}">${present ? '' : 'sans '}${libelle}</span>`;
+  return `
+    <div class="pcard" data-pid="${r.PID}" data-origine="${r.ORIGINE}">
+      <div class="av">${esc(initiales(r.NOM_COMPLET))}</div>
+      <div style="flex:1;min-width:0">
+        <div class="n">${esc(r.NOM_COMPLET || 'Sans nom')}</div>
+        <div class="r">${esc(r.DETAIL || r.ROLE || '')}</div>
+        ${r.LIEU ? `<div class="l">${esc(r.LIEU)}</div>` : ''}
+        <div class="chips">
+          <span class="chip">${r.ORIGINE === 'dirigeant' ? 'Dirigeant' : 'Contact LinkedIn'}</span>
+          ${canal('e-mail', !!r.EMAIL)}
+          ${r.LINKEDIN_URL ? '<span class="chip on">LinkedIn</span>' : ''}
+          ${r.TELEPHONE ? '<span class="chip on">téléphone</span>' : ''}
+          ${r.OPPOSITION === 'O' ? '<span class="chip op">opposition</span>' : ''}
+        </div>
+      </div>
+    </div>`;
 }
 
 function charger(reset) {
   if (reset) { page = 0; document.getElementById('grid').innerHTML = ''; }
-  const p = params();
-  api(`api/entreprises?${p}&page=${page}`).then(d => {
-    document.getElementById('count').textContent = nf.format(d.total) + ' résultat' + (d.total > 1 ? 's' : '');
-    const lib = { '06': 'Alpes-Maritimes', 'PACA': 'PACA', 'MC': 'Monaco' };
-    document.getElementById('grid').insertAdjacentHTML('beforeend', d.rows.map(r => `
-      <div class="card" data-id="${r.ID}">
-        <h3>${esc(r.RAISON_SOCIALE)}</h3>
-        <div class="meta">${esc(r.SECTEUR_LIBELLE || 'Secteur non renseigné')}${r.VILLE ? ' · ' + esc(r.VILLE) : ''}</div>
-        <span class="tag t${r.TERRITOIRE}">${lib[r.TERRITOIRE] || r.TERRITOIRE}</span>
-        <div class="kpi">
-          <div>CA<b>${eur(r.CA_EUR)}</b></div>
-          <div>Effectif<b>${r.EFFECTIF != null ? nf.format(r.EFFECTIF) : '—'}</b></div>
-        </div>
-      </div>`).join(''));
-    document.querySelectorAll('.card:not(.in)').forEach(c => io.observe(c));
+  const perso = mode === 'personnes';
+  const url = perso
+    ? `api/personnes?q=${encodeURIComponent(g('q'))}&origine=${g('origine')}`
+      + `&territoire=${g('territoire')}&canal=${g('canal')}&tri=${g('tripers')}`
+    : `api/entreprises?q=${encodeURIComponent(g('q'))}&territoire=${g('territoire')}`
+      + `&secteur=${encodeURIComponent(g('secteur'))}&effmin=${g('effmin')}&tri=${g('tri')}`;
+
+  api(`${url}&page=${page}`).then(d => {
+    document.getElementById('count').textContent =
+      nf.format(d.total) + (perso ? ' personne' : ' résultat') + (d.total > 1 ? 's' : '');
+    document.getElementById('grid').insertAdjacentHTML('beforeend',
+      d.rows.map(perso ? cartePersonne : carteEntreprise).join(''));
+    if (!d.total) document.getElementById('grid').innerHTML =
+      '<p class="empty">Aucun résultat pour cette recherche.</p>';
+    document.querySelectorAll('.card:not(.in),.pcard:not(.in)').forEach(c => io.observe(c));
     document.getElementById('more').disabled = (page + 1) * 60 >= d.total;
   }).catch(e => document.getElementById('grid').innerHTML =
       `<p class="empty">Chargement impossible (${e.message}). Vérifiez la clé d'accès.</p>`);
 }
 
-['q','territoire','secteur','effmin','tri'].forEach(id => {
+['q','territoire','secteur','effmin','tri','origine','canal','tripers'].forEach(id => {
   const el = document.getElementById(id);
   const ev = id === 'q' ? 'input' : 'change';
   let t; el.addEventListener(ev, () => { clearTimeout(t); t = setTimeout(() => charger(true), id === 'q' ? 280 : 0); });
 });
+document.getElementById('ongletEnt').onclick = () => basculer('entreprises');
+document.getElementById('ongletPers').onclick = () => basculer('personnes');
+document.getElementById('navpers').onclick = () => basculer('personnes');
 document.getElementById('more').onclick = () => { page++; charger(false); };
-charger(true);
+basculer('entreprises');
 
 // ---- fiche ----
 const ov = document.getElementById('ov'), sheet = document.getElementById('sheet');
 document.getElementById('grid').addEventListener('click', e => {
-  const c = e.target.closest('.card'); if (c) ouvrir(c.dataset.id);
+  const c = e.target.closest('.card');
+  if (c) return ouvrir(c.dataset.id);
+  const p = e.target.closest('.pcard');
+  if (!p) return;
+  // Un dirigeant est deja rattache a sa societe : on ouvre la fiche entreprise,
+  // qui porte le CA, le SIREN et l'adresse. Un contact importe n'a pas ce lien.
+  if (p.dataset.origine === 'dirigeant') ouvrir(p.dataset.pid);
+  else ouvrirPersonne(personnes.get(p.dataset.pid + p.dataset.origine));
 });
+
+function ouvrirPersonne(r) {
+  if (!r) return;
+  ov.classList.add('on'); document.body.style.overflow = 'hidden';
+  const champ = (l, v) => v == null || v === '' ? '' : `<div>${l}<b>${esc(v)}</b></div>`;
+  const lien = (t, href) => `<a href="${esc(href)}" target="_blank" rel="noopener noreferrer">${t}</a>`;
+  sheet.innerHTML = `
+    <button class="close" onclick="fermer()">×</button>
+    <h2>${esc(r.NOM_COMPLET || 'Sans nom')}</h2>
+    <div class="sub">${esc(r.ROLE || '')}${r.LIEU ? ' · ' + esc(r.LIEU) : ''}</div>
+    <div class="dl">
+      ${champ('Poste', r.DETAIL)}
+      ${champ('Origine', r.ORIGINE === 'dirigeant' ? 'Dirigeant déclaré' : 'Contact LinkedIn importé')}
+      ${champ('Source', r.SOURCE)}
+    </div>
+    <div class="person" style="border-top:1px solid var(--line);margin-top:26px">
+      <div class="av">${esc(initiales(r.NOM_COMPLET))}</div>
+      <div style="flex:1">
+        <div class="r">Canaux disponibles</div>
+        <div class="c">
+          ${r.EMAIL ? lien(esc(r.EMAIL), 'mailto:' + r.EMAIL) : ''}
+          ${r.TELEPHONE ? lien(esc(r.TELEPHONE), 'tel:' + r.TELEPHONE) : ''}
+          ${r.LINKEDIN_URL ? lien('LinkedIn', r.LINKEDIN_URL) : ''}
+          ${!r.EMAIL && !r.TELEPHONE && !r.LINKEDIN_URL ? '<span class="empty">Aucun canal direct.</span>' : ''}
+        </div>
+      </div>
+    </div>
+    ${r.OPPOSITION === 'O'
+      ? '<div class="rgpd">Opposition enregistrée : cette personne ne doit pas être démarchée.</div>'
+      : '<div class="rgpd">Données personnelles. Purge automatique 36 mois après collecte. Ne pas exporter hors de cet outil.</div>'}`;
+}
 ov.addEventListener('click', e => { if (e.target === ov) fermer(); });
 addEventListener('keydown', e => e.key === 'Escape' && fermer());
 function fermer() { ov.classList.remove('on'); document.body.style.overflow = ''; }

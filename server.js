@@ -6,6 +6,7 @@
  *   GET /api/stats            compteurs par territoire, secteur, tranche d'effectif
  *   GET /api/entreprises      liste filtrable   ?q=&territoire=&secteur=&effmin=&statut=&page=
  *   GET /api/entreprises/:id  fiche + contacts rattachés
+ *   GET /api/personnes        recherche par nom ?q=&origine=&territoire=&canal=&tri=&page=
  *   PATCH /api/entreprises/:id  { statut, priorite, notes }
  *
  * La page expose des données personnelles (contacts) : l'accès est refusé sans jeton,
@@ -116,6 +117,84 @@ app.get('/api/entreprises', auth, async (req, res, next) => {
                        FROM ENTREPRISES ${where}
                        ORDER BY ${tri} OFFSET :off ROWS FETCH NEXT 60 ROWS ONLY`, b);
     const c = await q(`SELECT COUNT(*) N FROM ENTREPRISES ${where}`,
+                      Object.fromEntries(Object.entries(b).filter(([k]) => k !== 'off')));
+    res.json({ total: c.rows[0].N, rows: r.rows });
+  } catch (e) { next(e); }
+});
+
+/*
+ * Recherche de personnes.
+ *
+ * Deux gisements coexistent et aucun ne suffit seul :
+ *   - CONTACTS : 45 fiches nominatives issues d'un export LinkedIn/Waalaxy,
+ *     riches en profil mais sans rattachement (ENTREPRISE_ID est vide partout) ;
+ *   - ENTREPRISES.DIRIGEANT : 433 dirigeants nommes, rattaches par construction
+ *     mais sans canal de contact direct.
+ * On les expose sous un meme toit pour que la recherche par nom couvre les deux.
+ */
+const SQL_PERSONNES = `
+  SELECT c.ID                                              AS PID,
+         'contact'                                         AS ORIGINE,
+         TRIM(NVL(c.PRENOM, ' ') || ' ' || NVL(c.NOM, ' ')) AS NOM_COMPLET,
+         c.FONCTION                                        AS ROLE,
+         c.INTITULE_POSTE                                  AS DETAIL,
+         c.LOCALISATION                                    AS LIEU,
+         c.EMAIL                                           AS EMAIL,
+         c.TELEPHONE                                       AS TELEPHONE,
+         c.LINKEDIN_URL                                    AS LINKEDIN_URL,
+         c.ENTREPRISE_ID                                   AS ENTREPRISE_ID,
+         CAST(NULL AS VARCHAR2(16))                        AS TERRITOIRE,
+         c.SOURCE                                          AS SOURCE,
+         c.OPPOSITION                                      AS OPPOSITION
+  FROM CONTACTS c
+  UNION ALL
+  SELECT e.ID,
+         'dirigeant',
+         e.DIRIGEANT,
+         CAST('Dirigeant' AS VARCHAR2(120)),
+         e.RAISON_SOCIALE,
+         e.VILLE,
+         CAST(NULL AS VARCHAR2(320)),
+         e.TELEPHONE,
+         CAST(NULL AS VARCHAR2(400)),
+         e.ID,
+         e.TERRITOIRE,
+         e.SOURCE,
+         CAST(NULL AS CHAR(1))
+  FROM ENTREPRISES e
+  WHERE e.DIRIGEANT IS NOT NULL AND TRIM(e.DIRIGEANT) IS NOT NULL`;
+
+app.get('/api/personnes', auth, async (req, res, next) => {
+  try {
+    const w = [], b = {};
+    if (req.query.q) {
+      w.push(`(UPPER(NOM_COMPLET) LIKE :q OR UPPER(NVL(DETAIL,' ')) LIKE :q
+               OR UPPER(NVL(ROLE,' ')) LIKE :q OR UPPER(NVL(EMAIL,' ')) LIKE :q
+               OR UPPER(NVL(LIEU,' ')) LIKE :q)`);
+      b.q = `%${String(req.query.q).toUpperCase()}%`;
+    }
+    if (req.query.origine)    { w.push(`ORIGINE = :o`); b.o = req.query.origine; }
+    if (req.query.territoire) { w.push(`TERRITOIRE = :t`); b.t = req.query.territoire; }
+    if (req.query.canal === 'email')    w.push(`EMAIL IS NOT NULL`);
+    if (req.query.canal === 'linkedin') w.push(`LINKEDIN_URL IS NOT NULL`);
+    if (req.query.canal === 'tel')      w.push(`TELEPHONE IS NOT NULL`);
+    const where = w.length ? 'WHERE ' + w.join(' AND ') : '';
+
+    // Un nom se cherche par ordre alphabetique : les contacts joignables d'abord,
+    // sinon la page 1 ne montrerait que des fiches sans canal.
+    const tri = { nom: 'NOM_COMPLET', joignable: 'JOIGNABLE DESC, NOM_COMPLET' }
+                [req.query.tri] || 'JOIGNABLE DESC, NOM_COMPLET';
+    b.off = Number(req.query.page || 0) * 60;
+
+    const base = `SELECT p.*,
+                    CASE WHEN EMAIL IS NOT NULL THEN 2
+                         WHEN LINKEDIN_URL IS NOT NULL OR TELEPHONE IS NOT NULL THEN 1
+                         ELSE 0 END AS JOIGNABLE
+                  FROM (${SQL_PERSONNES}) p`;
+
+    const r = await q(`SELECT * FROM (${base}) ${where}
+                       ORDER BY ${tri} OFFSET :off ROWS FETCH NEXT 60 ROWS ONLY`, b);
+    const c = await q(`SELECT COUNT(*) N FROM (${base}) ${where}`,
                       Object.fromEntries(Object.entries(b).filter(([k]) => k !== 'off')));
     res.json({ total: c.rows[0].N, rows: r.rows });
   } catch (e) { next(e); }
