@@ -93,7 +93,12 @@ app.get('/api/stats', auth, async (_req, res, next) => {
                 (SELECT COUNT(ENTREPRISE_ID) FROM CONTACTS) CONTACTS_LIES,
                 (SELECT COUNT(*) FROM CONTACTS WHERE LINKEDIN_URL IS NOT NULL) AVEC_LINKEDIN,
                 (SELECT COUNT(*) FROM CONTACTS WHERE LINKEDIN_URL IS NULL) AU_REGISTRE,
-                (SELECT COUNT(*) FROM ENTREPRISES WHERE SIREN IS NOT NULL) AVEC_SIREN
+                (SELECT COUNT(*) FROM ENTREPRISES WHERE SIREN IS NOT NULL) AVEC_SIREN,
+                (SELECT COUNT(*) FROM ENTREPRISES WHERE TELEPHONE IS NOT NULL) APPELABLES,
+                (SELECT COUNT(*) FROM INTERACTIONS) APPELS_FAITS,
+                (SELECT COUNT(DISTINCT ENTREPRISE_ID) FROM INTERACTIONS
+                  WHERE RELANCE_LE <= TRUNC(SYSDATE)) RELANCES_DUES,
+                (SELECT COUNT(*) FROM ENTREPRISES WHERE SITE_WEB IS NOT NULL) AVEC_SITE
            FROM DUAL`),
     ]);
     const t = tot.rows[0];
@@ -217,6 +222,82 @@ app.get('/api/personnes', auth, async (req, res, next) => {
     const c = await q(`SELECT COUNT(*) N FROM (${base}) ${where}`,
                       Object.fromEntries(Object.entries(b).filter(([k]) => k !== 'off')));
     res.json({ total: c.rows[0].N, rows: r.rows });
+  } catch (e) { next(e); }
+});
+
+/*
+ * File d'appel.
+ *
+ * Ce gisement n'a pas d'e-mail nominatif — mesure faite, pas supposition. Le
+ * seul canal direct est le telephone du siege. La file classe donc par valeur
+ * (CA) ce qui est appelable, en remontant la derniere interaction pour ne pas
+ * rappeler deux fois le meme jour et ne pas rater une relance due.
+ */
+const ETATS_OUVERTS = ['a_qualifier', 'a_verifier', 'qualifie', 'contacte', 'rdv', 'proposition'];
+
+app.get('/api/appels', auth, async (req, res, next) => {
+  try {
+    const w = ['e.TELEPHONE IS NOT NULL'], b = {};
+    if (req.query.q) {
+      w.push(`(UPPER(e.RAISON_SOCIALE) LIKE :q OR UPPER(NVL(e.VILLE,' ')) LIKE :q)`);
+      b.q = `%${String(req.query.q).toUpperCase()}%`;
+    }
+    if (req.query.territoire) { w.push('e.TERRITOIRE = :t'); b.t = req.query.territoire; }
+    if (req.query.statut)     { w.push('e.STATUT = :st'); b.st = req.query.statut; }
+    if (req.query.camin)      { w.push('e.CA_EUR >= :ca'); b.ca = Number(req.query.camin); }
+    // « A faire » exclut ce qui est clos et ce qui a deja ete appele aujourd'hui.
+    if (req.query.file === 'todo') {
+      w.push(`e.STATUT IN (${ETATS_OUVERTS.map((_, i) => `:e${i}`).join(',')})`);
+      ETATS_OUVERTS.forEach((v, i) => { b[`e${i}`] = v; });
+      w.push(`NOT EXISTS (SELECT 1 FROM INTERACTIONS i
+                           WHERE i.ENTREPRISE_ID = e.ID AND TRUNC(i.DATE_INTER) = TRUNC(SYSDATE))`);
+    }
+    if (req.query.file === 'relance') {
+      w.push(`EXISTS (SELECT 1 FROM INTERACTIONS i
+                       WHERE i.ENTREPRISE_ID = e.ID AND i.RELANCE_LE <= TRUNC(SYSDATE))`);
+    }
+    const where = 'WHERE ' + w.join(' AND ');
+    b.off = Number(req.query.page || 0) * 60;
+
+    const tri = { ca: 'e.CA_EUR DESC NULLS LAST', nom: 'e.RAISON_SOCIALE',
+                  relance: 'RELANCE_LE ASC NULLS LAST, e.CA_EUR DESC' }
+                [req.query.tri] || 'NVL(e.PRIORITE, 3), e.CA_EUR DESC NULLS LAST';
+
+    const base = `SELECT e.ID, e.RAISON_SOCIALE, e.VILLE, e.TERRITOIRE, e.SECTEUR_LIBELLE,
+             e.CA_EUR, e.EFFECTIF, e.TELEPHONE, e.SITE_WEB, e.SIREN,
+             e.STATUT, e.PRIORITE, e.NOTES,
+             (SELECT COUNT(*) FROM INTERACTIONS i WHERE i.ENTREPRISE_ID = e.ID) NB_APPELS,
+             (SELECT MAX(i.DATE_INTER) FROM INTERACTIONS i WHERE i.ENTREPRISE_ID = e.ID) DERNIER,
+             (SELECT MIN(i.RELANCE_LE) FROM INTERACTIONS i
+               WHERE i.ENTREPRISE_ID = e.ID AND i.RELANCE_LE >= TRUNC(SYSDATE)) RELANCE_LE,
+             (SELECT LISTAGG(TRIM(NVL(k.PRENOM,' ')||' '||k.NOM) || ' (' || NVL(k.FONCTION,'?') || ')', ' · ')
+                       WITHIN GROUP (ORDER BY k.NOM)
+                FROM CONTACTS k WHERE k.ENTREPRISE_ID = e.ID AND ROWNUM <= 4) DIRIGEANTS
+        FROM ENTREPRISES e ${where}`;
+
+    const r = await q(`SELECT * FROM (${base}) ORDER BY ${tri.replace(/e\./g, '')}
+                       OFFSET :off ROWS FETCH NEXT 60 ROWS ONLY`, b);
+    const c = await q(`SELECT COUNT(*) N FROM ENTREPRISES e ${where}`,
+                      Object.fromEntries(Object.entries(b).filter(([k]) => k !== 'off')));
+    res.json({ total: c.rows[0].N, rows: r.rows });
+  } catch (e) { next(e); }
+});
+
+app.post('/api/interactions', auth, async (req, res, next) => {
+  try {
+    const { entreprise_id, canal, resume, prochaine_etape, relance_le, statut } = req.body || {};
+    if (!entreprise_id) return res.status(400).json({ erreur: 'entreprise_id requis' });
+    await q(`INSERT INTO INTERACTIONS
+               (ENTREPRISE_ID, CANAL, RESUME, PROCHAINE_ETAPE, RELANCE_LE, DATE_INTER)
+             VALUES (:id, :canal, :resume, :etape, TO_DATE(:relance,'YYYY-MM-DD'), SYSDATE)`,
+            { id: Number(entreprise_id), canal: canal || 'telephone',
+              resume: resume || null, etape: prochaine_etape || null, relance: relance_le || null });
+    // Le statut suit l'appel : le saisir ailleurs ferait diverger les deux.
+    if (statut) {
+      await q(`UPDATE ENTREPRISES SET STATUT = :s, UPDATED_AT = SYSTIMESTAMP WHERE ID = :id`,
+              { s: statut, id: Number(entreprise_id) });
+    }
+    res.json({ ok: true });
   } catch (e) { next(e); }
 });
 

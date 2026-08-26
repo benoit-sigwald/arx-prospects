@@ -39,6 +39,36 @@ VIDES = {"SA", "SAS", "SASU", "SARL", "EURL", "SNC", "SCI", "SCA", "GROUPE", "GR
 # Adresses de service : presentes partout, sans valeur de prise de contact.
 JETABLES = re.compile(r"^(no-?reply|postmaster|abuse|webmaster|hostmaster|mailer-daemon)@", re.I)
 RE_MAIL = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
+
+# Telephone francais, fixe ou mobile, dans les ecritures courantes du web :
+# 04 93 12 34 56, 04.93.12.34.56, +33 4 93 12 34 56, 0493123456.
+RE_TEL = re.compile(r"(?:(?:\+|00)33[\s.\-]?|0)([1-9])(?:[\s.\-]?\d{2}){4}")
+# 08 est surtaxe et 09 souvent de la VoIP impersonnelle : on garde, mais on
+# classe les fixes geographiques et les mobiles en tete.
+PREFIXE_UTILE = ("1", "2", "3", "4", "5", "6", "7")
+
+# Un mot generique ne suffit pas a confirmer un domaine : « MY INVEST » ne
+# possede pas invest.fr, ni « ML CAPITAL » capital.fr. Mesure : 16 faux
+# positifs sur 509 domaines confirmes avant ce garde-fou.
+GENERIQUES = {"INVEST", "CAPITAL", "PATRIMOINE", "GESTION", "CONSEIL", "SERVICES",
+              "SERVICE", "DEVELOPPEMENT", "PROMOTION", "IMMO", "FONCIER", "GERANCE",
+              "ASSOCIES", "PARTNERS", "FINANCE", "FINANCES", "TRANSPORT", "TRANSPORTS"}
+
+
+def numero_plausible(n):
+    """n est le numero national sans le 0 initial, 9 chiffres.
+
+    Le plan ARCEP n'attribue pas le bloc 00 apres l'indicatif : +33100430000 est
+    une suite de chiffres captee dans la page, pas un telephone. Une longue
+    repetition trahit de meme un identifiant. Le 08 est surtaxe, sans interet.
+    """
+    if len(n) != 9:
+        return False
+    if n[1:3] == "00":
+        return False
+    if re.search(r"(\d)\1{4,}", n):
+        return False
+    return n[0] != "8"
 RE_LIEN = re.compile(r'href=["\']([^"\']+)["\']', re.I)
 MOTS_CONTACT = ("contact", "equipe", "team", "about", "qui-sommes", "nous-connaitre",
                 "mentions-legales", "direction")
@@ -113,6 +143,9 @@ def confirme(page, nom):
     j = jetons(nom)
     if not j:
         return False
+    # Un nom reduit a un seul mot generique ne prouve rien : on refuse.
+    if len(j) == 1 and j[0] in GENERIQUES:
+        return False
     # Le premier jeton est le plus distinctif ; on exige au moins deux jetons
     # quand le nom en compte plusieurs, pour eviter les coincidences.
     presents = sum(1 for m in j if m in t)
@@ -130,6 +163,32 @@ def emails(page, domaine):
         if m.lower().split("@")[-1].endswith(domaine.split(".", 1)[-1]) or domaine in m.lower():
             out.add(m.lower())
     return sorted(out)
+
+
+def telephones(page):
+    """Numeros francais de la page, normalises en +33XXXXXXXXX.
+
+    Un numero de standard vaut mieux qu'une adresse de service : il aboutit a
+    quelqu'un. On trie fixes geographiques et mobiles avant le reste.
+    """
+    out = []
+    for m in RE_TEL.finditer(page):
+        brut = re.sub(r"[^\d+]", "", m.group(0))
+        if brut.startswith("+33"):
+            n = brut[3:]
+        elif brut.startswith("0033"):
+            n = brut[4:]
+        elif brut.startswith("0"):
+            n = brut[1:]
+        else:
+            n = brut
+        if not numero_plausible(n):
+            continue
+        num = "+33" + n
+        if num not in out:
+            out.append(num)
+    out.sort(key=lambda x: (x[3] not in PREFIXE_UTILE, x))
+    return out[:4]
 
 
 def pages_contact(base, page):
@@ -153,7 +212,7 @@ def traiter(soc):
     fiche = {"siren": soc["SIREN"], "nom": nom, "ville": soc.get("VILLE"),
              "ca": soc.get("CA_EUR"), "dirigeants": soc.get("NB_DIRIGEANTS"),
              "candidats": candidats(nom), "domaine": None, "emails": [],
-             "motif": "aucun candidat"}
+             "telephones": [], "motif": "aucun candidat"}
     if not fiche["candidats"]:
         return fiche
 
@@ -175,6 +234,7 @@ def traiter(soc):
 
         fiche["domaine"], fiche["motif"] = d, "confirme"
         trouves = set(emails(page, d))
+        tels = list(telephones(page))
         for lien in pages_contact(url, page):
             chemin = urllib.parse.urlparse(lien).path
             if not autorise(url, chemin):
@@ -184,8 +244,13 @@ def traiter(soc):
             except Exception:
                 continue
             trouves |= set(emails(p2, d))
+            for t in telephones(p2):
+                if t not in tels:
+                    tels.append(t)
         fiche["emails"] = sorted(trouves)
-        fiche["motif"] = "confirme, avec e-mail" if trouves else "confirme, sans e-mail"
+        fiche["telephones"] = tels[:4]
+        acquis = [x for x, ok in (("e-mail", trouves), ("telephone", tels)) if ok]
+        fiche["motif"] = "confirme, " + (" et ".join(acquis) if acquis else "sans contact")
         break
     return fiche
 
@@ -205,12 +270,15 @@ def main(entree, sortie):
     n = len(res)
     conf = [r for r in res if r["domaine"]]
     avec = [r for r in conf if r["emails"]]
+    avec_tel = [r for r in conf if r["telephones"]]
     total_mails = sum(len(r["emails"]) for r in conf)
     print("")
     print("=== PILOTE (n=%d) ===" % n)
     print("  domaine confirme       : %3d  (%5.1f%%)" % (len(conf), 100.0 * len(conf) / n))
     print("  dont avec e-mail       : %3d  (%5.1f%% du total)" % (len(avec), 100.0 * len(avec) / n))
     print("  e-mails recoltes       : %3d" % total_mails)
+    print("  dont avec telephone    : %3d  (%5.1f%% du total)" % (len(avec_tel), 100.0 * len(avec_tel) / n))
+    print("  telephones recoltes    : %3d" % sum(len(r["telephones"]) for r in conf))
     print("  motifs de rejet :")
     motifs = {}
     for r in res:

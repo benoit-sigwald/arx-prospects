@@ -205,6 +205,7 @@ footer code{font-family:ui-monospace,"SF Mono",Menlo,monospace; font-size:10px}
 <nav class="tabs" role="tablist">
   <button id="ongletEnt" role="tab" aria-selected="true">Entreprises</button>
   <button id="ongletPers" role="tab" aria-selected="false">Personnes</button>
+  <button id="ongletAppels" role="tab" aria-selected="false">Appels</button>
 </nav>
 
 <section class="tiles" id="tiles"></section>
@@ -223,8 +224,27 @@ footer code{font-family:ui-monospace,"SF Mono",Menlo,monospace; font-size:10px}
     </div>
 
     <div id="filtresPers" hidden>
-      <h3>Origine</h3><div class="chips" id="fOrig"></div>
+      <h3>Provenance</h3><div class="chips" id="fOrig"></div>
       <h3>Canal disponible</h3><div class="chips" id="fCanal"></div>
+    </div>
+
+    <div id="filtresAppels" hidden>
+      <h3>File</h3><div class="chips" id="fFile"></div>
+      <h3>Statut</h3>
+      <select id="statut">
+        <option value="">Tous statuts</option>
+        <option value="a_qualifier">À qualifier</option>
+        <option value="a_verifier">À vérifier</option>
+        <option value="qualifie">Qualifié</option>
+        <option value="contacte">Contacté</option>
+        <option value="rdv">Rendez-vous</option>
+        <option value="proposition">Proposition</option>
+        <option value="client">Client</option>
+        <option value="hors_cible">Hors cible</option>
+        <option value="perdu">Perdu</option>
+        <option value="cessee">Cessée</option>
+      </select>
+      <h3>Chiffre d'affaires</h3><div class="chips" id="fCa"></div>
     </div>
 
     <button class="reset" id="reset">Réinitialiser les filtres</button>
@@ -303,7 +323,16 @@ let mode = 'entreprises', page = 0, total = 0;
 const etat = {
   entreprises: { q: '', territoire: '', secteur: '', effmin: '', tri: 'ca' },
   personnes:   { q: '', territoire: '', origine: '', canal: '', tri: 'joignable' },
+  appels:      { q: '', territoire: '', statut: '', camin: '', file: 'todo', tri: '' },
 };
+const STATUTS = {
+  a_qualifier: ['À qualifier', ''], a_verifier: ['À vérifier', ''],
+  qualifie: ['Qualifié', 'ok'], contacte: ['Contacté', 'ok'],
+  rdv: ['Rendez-vous', 'ok'], proposition: ['Proposition', 'ok'],
+  client: ['Client', 'ok'], hors_cible: ['Hors cible', 'warn'],
+  perdu: ['Perdu', 'crit'], cessee: ['Cessée', 'crit'],
+};
+const jour = v => v ? new Date(v).toLocaleDateString('fr-FR') : '—';
 
 const COLS = {
   entreprises: [
@@ -333,6 +362,19 @@ const COLS = {
            <i class="flag ${r.TELEPHONE ? 'on' : ''}"></i>
            <i class="flag ${r.LINKEDIN_URL ? 'on' : ''}"></i></div>` },
   ],
+  appels: [
+    { t: 'Société',    c: 'name', tri: 'nom', v: r => esc(r.RAISON_SOCIALE) },
+    { t: 'Téléphone',  c: 'mono',             v: r => r.TELEPHONE
+        ? `<a href="tel:${esc(r.TELEPHONE)}" onclick="event.stopPropagation()">${esc(r.TELEPHONE)}</a>` : '—' },
+    { t: 'Interlocuteurs', c: 'org',          v: r => esc(r.DIRIGEANTS || '—') },
+    { t: 'Ville',      c: '',                 v: r => esc(r.VILLE || '—') },
+    { t: 'CA',         c: 'num', tri: 'ca',   v: r => eur(r.CA_EUR) },
+    { t: 'Statut',     c: '',                 v: r => `<span class="pill ${(STATUTS[r.STATUT] || ['', ''])[1]}">${(STATUTS[r.STATUT] || [r.STATUT])[0]}</span>` },
+    { t: 'Appels',     c: 'num',              v: r => r.NB_APPELS || 0 },
+    { t: 'Dernier',    c: '',                 v: r => jour(r.DERNIER) },
+    { t: 'Relance',    c: '', tri: 'relance', v: r => r.RELANCE_LE
+        ? `<span class="pill ${new Date(r.RELANCE_LE) <= new Date() ? 'crit' : 'warn'}">${jour(r.RELANCE_LE)}</span>` : '—' },
+  ],
 };
 
 /* ----------------------------- filtres ----------------------------- */
@@ -354,7 +396,12 @@ chips('fOrig', [{ t: 'Registre (RNE)', v: 'registre' }, { t: 'LinkedIn', v: 'lin
                 { t: 'Fiche entreprise', v: 'fiche' }], 'origine');
 chips('fCanal', [{ t: 'E-mail', v: 'email' }, { t: 'Téléphone', v: 'tel' }, { t: 'LinkedIn', v: 'linkedin' }], 'canal');
 
+chips('fFile', [{ t: 'À appeler', v: 'todo' }, { t: 'Relances dues', v: 'relance' }], 'file');
+chips('fCa', [{ t: '1 M€+', v: '1000000' }, { t: '10 M€+', v: '10000000' },
+              { t: '20 M€+', v: '20000000' }], 'camin');
+
 $('secteur').onchange = () => { etat.entreprises.secteur = $('secteur').value; charger(true); };
+$('statut').onchange = () => { etat.appels.statut = $('statut').value; charger(true); };
 let tq; $('q').oninput = () => { clearTimeout(tq); tq = setTimeout(() => {
   etat[mode].q = $('q').value; charger(true); }, 280); };
 $('reset').onclick = () => {
@@ -383,16 +430,25 @@ function tuile(n, k, pct) {
 function tuiles() {
   if (!STATS) return;
   const t = STATS.totaux;
-  $('tiles').innerHTML = mode === 'entreprises'
-    ? tuile(nf.format(t.ENTREPRISES), 'entreprises')
-    + tuile(nf.format(t.ACTIVES), 'cibles actives', Math.round(100 * t.ACTIVES / t.ENTREPRISES))
-    + tuile(eur(t.CA_CUMULE), 'chiffre d\'affaires cumulé')
-    + tuile(nf.format(t.DIRIGEANTS), 'dirigeants nommés', Math.round(100 * t.DIRIGEANTS / t.ENTREPRISES))
-    : tuile(nf.format(t.PERSONNES), 'personnes')
-    + tuile(nf.format(t.AU_REGISTRE), 'dirigeants au registre')
-    + tuile(nf.format(t.AVEC_LINKEDIN), 'profils LinkedIn')
-    + tuile(nf.format(t.CONTACTS_LIES) + ' / ' + nf.format(t.CONTACTS), 'rattachés à une société',
-            Math.round(100 * t.CONTACTS_LIES / (t.CONTACTS || 1)));
+  const vues = {
+    entreprises: () =>
+      tuile(nf.format(t.ENTREPRISES), 'entreprises')
+      + tuile(nf.format(t.ACTIVES), 'cibles actives', Math.round(100 * t.ACTIVES / t.ENTREPRISES))
+      + tuile(eur(t.CA_CUMULE), 'chiffre d\'affaires cumulé')
+      + tuile(nf.format(t.AVEC_SITE), 'sites web connus'),
+    personnes: () =>
+      tuile(nf.format(t.PERSONNES), 'personnes')
+      + tuile(nf.format(t.AU_REGISTRE), 'dirigeants au registre')
+      + tuile(nf.format(t.AVEC_LINKEDIN), 'profils LinkedIn')
+      + tuile(nf.format(t.CONTACTS_LIES) + ' / ' + nf.format(t.CONTACTS), 'rattachés à une société',
+              Math.round(100 * t.CONTACTS_LIES / (t.CONTACTS || 1))),
+    appels: () =>
+      tuile(nf.format(t.APPELABLES), 'sociétés joignables')
+      + tuile(nf.format(t.APPELS_FAITS), 'appels enregistrés')
+      + tuile(nf.format(t.RELANCES_DUES), 'relances dues')
+      + tuile(nf.format(t.AVEC_SITE), 'sites web connus'),
+  };
+  $('tiles').innerHTML = vues[mode]();
 }
 
 /* ------------------------------- table ------------------------------ */
@@ -413,11 +469,15 @@ const lignes = new Map();   // cle -> enregistrement, pour la fiche sans re-requ
 function charger(reset) {
   if (reset) page = 0;
   const e = etat[mode];
-  const url = mode === 'personnes'
-    ? `api/personnes?q=${encodeURIComponent(e.q)}&origine=${e.origine}&territoire=${e.territoire}`
-      + `&canal=${e.canal}&tri=${e.tri}`
-    : `api/entreprises?q=${encodeURIComponent(e.q)}&territoire=${e.territoire}`
-      + `&secteur=${encodeURIComponent(e.secteur)}&effmin=${e.effmin}&tri=${e.tri}`;
+  const URLS = {
+    personnes: () => `api/personnes?q=${encodeURIComponent(e.q)}&origine=${e.origine}`
+      + `&territoire=${e.territoire}&canal=${e.canal}&tri=${e.tri}`,
+    appels: () => `api/appels?q=${encodeURIComponent(e.q)}&territoire=${e.territoire}`
+      + `&statut=${e.statut}&camin=${e.camin}&file=${e.file}&tri=${e.tri}`,
+    entreprises: () => `api/entreprises?q=${encodeURIComponent(e.q)}&territoire=${e.territoire}`
+      + `&secteur=${encodeURIComponent(e.secteur)}&effmin=${e.effmin}&tri=${e.tri}`,
+  };
+  const url = URLS[mode]();
 
   entetes();
   api(`${url}&page=${page}`).then(d => {
@@ -432,8 +492,8 @@ function charger(reset) {
     }).join('') : `<tr><td class="empty" colspan="${cols.length}">Aucun résultat.</td></tr>`;
 
     const deb = total ? page * 60 + 1 : 0, fin = Math.min((page + 1) * 60, total);
-    $('count').innerHTML = nf.format(total) + ' <span>'
-      + (mode === 'personnes' ? 'personne' : 'entreprise') + (total > 1 ? 's' : '') + '</span>';
+    const unite = { personnes: 'personne', appels: 'société à appeler', entreprises: 'entreprise' }[mode];
+    $('count').innerHTML = nf.format(total) + ' <span>' + unite + (total > 1 ? 's' : '') + '</span>';
     $('pos').textContent = total ? `${deb}–${fin} sur ${nf.format(total)}` : '—';
     $('prev').disabled = page === 0;
     $('next').disabled = (page + 1) * 60 >= total;
@@ -447,19 +507,25 @@ $('prev').onclick = () => { if (page > 0) { page--; charger(false); scrollTo({ t
 $('next').onclick = () => { if ((page + 1) * 60 < total) { page++; charger(false); scrollTo({ top: 0, behavior: 'smooth' }); } };
 
 /* ------------------------------ onglets ----------------------------- */
+const PLACEHOLDER = { personnes: 'Nom, poste, ville…', appels: 'Société ou ville…',
+                      entreprises: 'Nom, ville, secteur…' };
+const CHAMP_PUCE = { fTerr: 'territoire', fEff: 'effmin', fOrig: 'origine',
+                     fCanal: 'canal', fFile: 'file', fCa: 'camin' };
+
 function basculer(m) {
   mode = m;
-  $('ongletEnt').setAttribute('aria-selected', String(m === 'entreprises'));
-  $('ongletPers').setAttribute('aria-selected', String(m === 'personnes'));
+  [['ongletEnt', 'entreprises'], ['ongletPers', 'personnes'], ['ongletAppels', 'appels']]
+    .forEach(([id, k]) => $(id).setAttribute('aria-selected', String(m === k)));
   $('filtresEnt').hidden = m !== 'entreprises';
   $('filtresPers').hidden = m !== 'personnes';
-  $('q').placeholder = m === 'personnes' ? 'Nom, poste, ville…' : 'Nom, ville, secteur…';
+  $('filtresAppels').hidden = m !== 'appels';
+  $('q').placeholder = PLACEHOLDER[m];
   $('q').value = etat[m].q;
-  // Les puces sont partagees entre les deux modes : on les realigne sur l'etat
-  // du mode courant, sinon un filtre invisible resterait actif.
+  $('statut').value = etat.appels.statut;
+  // Les puces sont partagees entre les modes : on les realigne sur l'etat du
+  // mode courant, sinon un filtre invisible resterait actif.
   document.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', 'false'));
-  ['fTerr', 'fEff', 'fOrig', 'fCanal'].forEach(h => {
-    const champ = { fTerr: 'territoire', fEff: 'effmin', fOrig: 'origine', fCanal: 'canal' }[h];
+  Object.entries(CHAMP_PUCE).forEach(([h, champ]) => {
     const v = etat[m][champ];
     if (v) { const b = $(h).querySelector(`.chip[data-v="${CSS.escape(v)}"]`);
              if (b) b.setAttribute('aria-pressed', 'true'); }
@@ -470,6 +536,7 @@ function basculer(m) {
 }
 $('ongletEnt').onclick = () => basculer('entreprises');
 $('ongletPers').onclick = () => basculer('personnes');
+$('ongletAppels').onclick = () => basculer('appels');
 
 /* ------------------------------- fiche ------------------------------ */
 const det = $('detail');
@@ -480,10 +547,64 @@ $('rows').addEventListener('click', ev => {
   if (!tr) return;
   const r = lignes.get(tr.dataset.k);
   if (!r) return;
-  if (mode === 'entreprises') ficheEntreprise(r.ID);
+  if (mode === 'appels') ficheAppel(r);
+  else if (mode === 'entreprises') ficheEntreprise(r.ID);
   else if (r.ORIGINE === 'fiche' || r.ENTREPRISE_ID) ficheEntreprise(r.ENTREPRISE_ID);
   else fichePersonne(r);
 });
+
+function ficheAppel(r) {
+  det.hidden = false;
+  const opts = Object.entries(STATUTS)
+    .map(([v, [l]]) => `<option value="${v}"${v === r.STATUT ? ' selected' : ''}>${l}</option>`).join('');
+  det.innerHTML = cadre(r.RAISON_SOCIALE,
+    [r.SECTEUR_LIBELLE, r.VILLE, eur(r.CA_EUR)].filter(Boolean).join(' · '),
+    `<div class="liens" style="margin-bottom:18px">
+       ${r.TELEPHONE ? `<a href="tel:${esc(r.TELEPHONE)}" style="background:var(--blue);color:#fff;padding:8px 16px">Appeler ${esc(r.TELEPHONE)}</a>` : ''}
+       ${r.SITE_WEB ? `<a href="${esc(r.SITE_WEB)}" target="_blank" rel="noopener noreferrer">Site</a>` : ''}
+     </div>
+     <dl>
+       ${dd('Interlocuteurs', r.DIRIGEANTS)}
+       ${dd('SIREN', r.SIREN)}
+       ${dd('Effectif', r.EFFECTIF != null ? nf.format(r.EFFECTIF) : null)}
+       ${dd('Appels passés', r.NB_APPELS || 0)}
+       ${dd('Dernier appel', r.DERNIER ? jour(r.DERNIER) : null)}
+       ${dd('Relance prévue', r.RELANCE_LE ? jour(r.RELANCE_LE) : null)}
+       ${dd('Notes', r.NOTES)}
+     </dl>
+     <h4>Compte rendu d'appel</h4>
+     <div style="display:grid; gap:9px">
+       <select id="apStatut">${opts}</select>
+       <textarea id="apResume" rows="4" placeholder="Ce qui s'est dit, qui a répondu, objections…"
+         style="font:inherit;font-size:10px;color:var(--ink);background:var(--card);
+                border:1px solid var(--hair);border-radius:11px;padding:9px 12px;resize:vertical"></textarea>
+       <input id="apEtape" type="text" placeholder="Prochaine étape"
+         style="font:inherit;font-size:10px;color:var(--ink);background:var(--card);
+                border:1px solid var(--hair);border-radius:11px;padding:9px 12px">
+       <label style="font-size:10px;color:var(--ink-3)">Relancer le
+         <input id="apRelance" type="date"
+           style="font:inherit;font-size:10px;color:var(--ink);background:var(--card);
+                  border:1px solid var(--hair);border-radius:11px;padding:7px 10px;margin-left:6px"></label>
+       <button id="apOk" class="reset" style="margin-top:4px;background:var(--blue);
+               border-color:var(--blue);color:#fff">Enregistrer l'appel</button>
+       <span id="apMsg" class="hint"></span>
+     </div>`);
+
+  $('apOk').onclick = () => {
+    $('apOk').disabled = true;
+    $('apMsg').textContent = 'Enregistrement…';
+    fetch('api/interactions' + (KEY ? '?key=' + encodeURIComponent(KEY) : ''), {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        entreprise_id: r.ID, canal: 'telephone',
+        resume: $('apResume').value.trim(), prochaine_etape: $('apEtape').value.trim(),
+        relance_le: $('apRelance').value || null, statut: $('apStatut').value,
+      }),
+    }).then(x => { if (!x.ok) throw new Error(x.status); return x.json(); })
+      .then(() => { $('apMsg').textContent = 'Enregistré.'; charger(false); setTimeout(fermer, 600); })
+      .catch(e => { $('apOk').disabled = false; $('apMsg').textContent = 'Échec : ' + e.message; });
+  };
+}
 
 const dd = (l, v) => v == null || v === '' ? '' : `<dt>${l}</dt><dd>${esc(v)}</dd>`;
 const cadre = (titre, sous, corps) => `<button class="close" onclick="fermer()">×</button>
