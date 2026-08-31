@@ -371,7 +371,11 @@ const etat = {
   personnes:   { q: '', territoire: '', origine: '', canal: '', tri: 'joignable' },
   appels:      { q: '', territoire: '', statut: '', camin: '', file: 'todo', tri: '' },
   // Le CRM ne filtre pas par territoire : une base d'investisseurs n'en a pas.
-  crm:         { q: '', source: '', statut: '', file: '', canal: '', tri: 'action' },
+  // Le pipeline s'ouvre sur les personnes joignables. Sans ce filtre par
+  // defaut, les 70 009 fiches de registre sans canal — un nom, jamais une
+  // adresse — occupent les premieres pages et masquent les 3 828 investisseurs
+  // qu'on peut reellement demarcher. L'annuaire complet reste sous « Personnes ».
+  crm:         { q: '', source: '', statut: '', file: '', canal: 'joignable', tri: 'action' },
   // La file de travail n'a pas de filtre, mais elle a besoin d'une entree :
   // la bascule d'onglet lit etat[mode] sans condition.
   jour:        { q: '', tri: '' },
@@ -822,7 +826,12 @@ const PLACEHOLDER = { personnes: 'Nom, poste, ville…', appels: 'Société ou v
                       campagnes: 'Nom de campagne…', organisations: 'Nom de maison…',
                       entreprises: 'Nom, ville, secteur…' };
 const CHAMP_PUCE = { fTerr: 'territoire', fEff: 'effmin', fOrig: 'origine',
-                     fCanal: 'canal', fFile: 'file', fCa: 'camin' };
+                     fCanal: 'canal', fFile: 'file', fCa: 'camin',
+                     // Les puces du CRM : sans elles, le filtre par defaut
+                     // « joignable » s'applique sans qu'aucune puce ne s'allume,
+                     // et l'ecran ment sur ce qu'il montre.
+                     fBase: 'source', fFile2: 'file', fStatut: 'statut',
+                     fCanal2: 'canal' };
 
 function basculer(m) {
   mode = m;
