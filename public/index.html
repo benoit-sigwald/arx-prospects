@@ -254,6 +254,7 @@ footer code{font-family:ui-monospace,"SF Mono",Menlo,monospace; font-size:10px}
     <div class="bar-top">
       <div class="count" id="count"></div>
       <div class="hint">Cliquer une ligne pour ouvrir la fiche. Les en-têtes soulignables trient.</div>
+      <button class="reset" id="versLinki" style="margin-left:auto; width:auto">Envoyer vers Linki</button>
     </div>
     <div class="scroll">
       <table>
@@ -413,6 +414,73 @@ $('reset').onclick = () => {
   charger(true);
 };
 
+/* --------------------------- envoi vers Linki ----------------------- */
+/*
+ * Le bouton reprend le filtre affiche, sans rien redemander. C'est tout
+ * l'objet du pont : ce qu'on voit est ce qu'on demarche.
+ *
+ * L'apercu passe toujours avant l'envoi. Un ciblage vide ou ampute par les
+ * exclusions doit se voir avant que quiconque soit sollicite, pas apres.
+ */
+const poster = (p, corps) =>
+  fetch(p + (KEY ? '?key=' + encodeURIComponent(KEY) : ''),
+        { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(corps) })
+    .then(r => r.json().then(d => r.ok ? d : Promise.reject(new Error(d.erreur || r.status))));
+
+// Les ecrans parlent d'entreprises et de provenances ; V_PERSONNES parle de
+// personnes et de gisements. La traduction se fait ici, en un seul endroit.
+const SOURCE_DE_LORIGINE = { fiche: 'prospects_dirigeant', registre: 'prospects', linkedin: 'prospects' };
+
+function filtreCourant() {
+  const e = etat[mode];
+  const f = {};
+  if (e.q) f.q = e.q;
+  if (e.territoire) f.territoire = e.territoire;
+  if (mode === 'entreprises') {
+    if (e.secteur) f.secteur = e.secteur;
+  } else {
+    if (e.origine) f.source = SOURCE_DE_LORIGINE[e.origine] || e.origine;
+    // « Telephone » n'est pas un canal Linki : le laisser passer promettrait un
+    // envoi que l'import refuserait ligne par ligne.
+    if (e.canal === 'email' || e.canal === 'linkedin') f.canal = e.canal;
+  }
+  return f;
+}
+
+$('versLinki').onclick = async () => {
+  const b = $('versLinki'), libelle = b.textContent;
+  const filtre = filtreCourant();
+  b.disabled = true; b.textContent = 'Aperçu…';
+  try {
+    const a = await poster('api/listes/apercu', { filtre });
+    if (a.avertissement) alert('Attention : ' + a.avertissement);
+    if (!a.lignes) {
+      alert(`Rien à envoyer.\n${a.candidats} personne(s) dans ce ciblage, ` +
+            `${a.ecartes_demarches} déjà démarchée(s).\n\n` +
+            `Linki exige un e-mail ou un profil LinkedIn par ligne.`);
+      return;
+    }
+    const nom = prompt(
+      `${a.lignes} personne(s) à envoyer` +
+      (a.ecartes_demarches ? ` (${a.ecartes_demarches} déjà démarchée(s) écartée(s))` : '') +
+      `.\n\nNom de la liste dans Linki :`,
+      `Ciblage ${mode} ${new Date().toISOString().slice(0, 10)}`);
+    if (!nom) return;
+
+    b.textContent = 'Envoi…';
+    const r = await poster('api/listes/envoyer', { nom, filtre });
+    if (!r.ok) { alert('Envoi refusé : ' + (r.raison || 'raison inconnue')); return; }
+    alert(`Liste « ${r.liste} » : ${r.crees} créé(s), ${r.mis_a_jour} mis à jour, ` +
+          `${r.deja_dans_la_liste} déjà présent(s)` +
+          (r.refus.length ? `, ${r.refus.length} refus` : '') + '.');
+  } catch (e) {
+    alert('Échec : ' + e.message);
+  } finally {
+    b.disabled = false; b.textContent = libelle;
+  }
+};
+
 /* ------------------------------ chiffres ---------------------------- */
 let STATS = null;
 api('api/stats').then(d => {
@@ -522,6 +590,8 @@ function basculer(m) {
   $('filtresEnt').hidden = m !== 'entreprises';
   $('filtresPers').hidden = m !== 'personnes';
   $('filtresAppels').hidden = m !== 'appels';
+  // La file d'appel n'a pas de canal ecrit : rien a envoyer a un sequenceur.
+  $('versLinki').hidden = m === 'appels';
   $('q').placeholder = PLACEHOLDER[m];
   $('q').value = etat[m].q;
   $('statut').value = etat.appels.statut;

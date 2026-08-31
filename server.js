@@ -16,39 +16,11 @@ const fs = require('fs');
 const path = require('path');
 const express = require('express');
 
-// ---------- wallet ----------
-const WALLET_DIR = process.env.ORA_WALLET_DIR || '/tmp/wallet';
-if (process.env.ORA_WALLET_B64 && !fs.existsSync(path.join(WALLET_DIR, 'tnsnames.ora'))) {
-  const AdmZip = require('adm-zip');
-  fs.mkdirSync(WALLET_DIR, { recursive: true });
-  new AdmZip(Buffer.from(process.env.ORA_WALLET_B64, 'base64')).extractAllTo(WALLET_DIR, true);
-  console.log('wallet extrait dans', WALLET_DIR);
-}
-
 // ---------- db ----------
-const oracledb = require('oracledb');
-oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
-oracledb.fetchAsString = [oracledb.CLOB];
-let _pool;
-async function pool() {
-  if (!_pool) {
-    _pool = await oracledb.createPool({
-      user: process.env.ORA_USER,
-      password: process.env.ORA_PASSWORD,
-      connectString: process.env.ORA_CONNECT,
-      configDir: WALLET_DIR,
-      walletLocation: WALLET_DIR,
-      walletPassword: process.env.ORA_WALLET_PASSWORD,
-      poolMin: 0, poolMax: 4, poolTimeout: 120,
-    });
-  }
-  return _pool;
-}
-async function q(sql, binds = {}, opts = {}) {
-  const c = await (await pool()).getConnection();
-  try { return await c.execute(sql, binds, { autoCommit: true, ...opts }); }
-  finally { await c.close(); }
-}
+// Wallet et pool vivent dans lib/oracle.js : la CLI d'export vers Linki
+// interroge la meme base avec la meme connexion.
+const { q } = require('./lib/oracle');
+const pont = require('./lib/pont-linki');
 
 // ---------- auth ----------
 const TOKEN = process.env.DASH_TOKEN || '';
@@ -298,6 +270,109 @@ app.post('/api/interactions', auth, async (req, res, next) => {
               { s: statut, id: Number(entreprise_id) });
     }
     res.json({ ok: true });
+  } catch (e) { next(e); }
+});
+
+/*
+ * Pont vers Linki (B1.4).
+ *
+ * Les ecrans Entreprises et Personnes filtrent deja ; le bouton reprend le
+ * filtre affiche et l'envoie tel quel. Rien n'est recopie, donc rien ne peut
+ * diverger entre ce qu'on a vu et ce qu'on demarche.
+ *
+ * LISTE garde le filtre, jamais les lignes : rejouer une liste dans six mois
+ * doit rendre l'etat du referentiel a ce moment-la, pas une photo perimee.
+ */
+const CHAMPS_FILTRE = ['source', 'canal', 'pays', 'ville', 'titre', 'q', 'territoire', 'secteur'];
+
+function filtreDeLaRequete(src = {}) {
+  const f = {};
+  for (const k of CHAMPS_FILTRE) if (src[k]) f[k] = String(src[k]);
+  if (src.limite) f.limite = Number(src.limite);
+  return f;
+}
+
+app.get('/api/listes', auth, async (_req, res, next) => {
+  try {
+    const r = await q(`SELECT ID, NOM, FILTRE, CANAL, LINKI_INSTANCE, LINKI_LIST_ID,
+                              DERNIER_ENVOI, LIGNES_ENVOYEES, CREE_PAR, CREATED_AT, UPDATED_AT
+                       FROM LISTE ORDER BY UPDATED_AT DESC`);
+    res.json({ rows: r.rows.map(l => ({ ...l, FILTRE: JSON.parse(l.FILTRE) })) });
+  } catch (e) { next(e); }
+});
+
+app.post('/api/listes', auth, async (req, res, next) => {
+  try {
+    const { nom } = req.body || {};
+    if (!nom) return res.status(400).json({ erreur: 'nom requis' });
+    const filtre = filtreDeLaRequete(req.body.filtre || req.body);
+    // MERGE : reenregistrer un ciblage sous le meme nom le corrige au lieu
+    // d'echouer sur l'unicite du nom.
+    await q(`MERGE INTO LISTE l USING (SELECT :nom NOM FROM DUAL) s ON (l.NOM = s.NOM)
+             WHEN MATCHED THEN UPDATE SET FILTRE = :filtre, CANAL = :canal, UPDATED_AT = SYSTIMESTAMP
+             WHEN NOT MATCHED THEN INSERT (NOM, FILTRE, CANAL, CREE_PAR)
+                                  VALUES (:nom, :filtre, :canal, :par)`,
+            { nom, filtre: JSON.stringify(filtre), canal: filtre.canal || 'mixte', par: 'arx-prospects' });
+    res.json({ ok: true, filtre });
+  } catch (e) { next(e); }
+});
+
+/*
+ * Apercu : ce que l'envoi ferait, sans rien envoyer.
+ *
+ * Le CSV n'est pas renvoye — il porte des donnees personnelles et l'ecran n'en
+ * a pas besoin pour decider. Seuls les compteurs remontent.
+ */
+app.post('/api/listes/apercu', auth, async (req, res, next) => {
+  try {
+    const filtre = filtreDeLaRequete(req.body.filtre || req.body);
+    let exclusions = null, avertissement = null;
+    try { exclusions = await pont.exclusionsLinki(); }
+    catch (e) { avertissement = `exclusions Linki indisponibles : ${e.message}`; }
+    const r = await pont.construireCsv(q, filtre, { exclusions });
+    res.json({ filtre, candidats: r.candidats, ecartes_demarches: r.ecartes_demarches,
+               lignes: r.lignes, avertissement });
+  } catch (e) { next(e); }
+});
+
+app.post('/api/listes/envoyer', auth, async (req, res, next) => {
+  try {
+    const { nom } = req.body || {};
+    if (!nom) return res.status(400).json({ erreur: 'nom de liste requis' });
+
+    // Un nom deja connu fait foi : on rejoue son filtre plutot que celui de
+    // l'ecran, sinon deux envois de « la meme » liste viseraient deux publics.
+    const dejaLa = await q(`SELECT ID, FILTRE FROM LISTE WHERE NOM = :n`, { n: nom });
+    const filtre = dejaLa.rows.length
+      ? JSON.parse(dejaLa.rows[0].FILTRE)
+      : filtreDeLaRequete(req.body.filtre || req.body);
+
+    let exclusions = null, avertissement = null;
+    try { exclusions = await pont.exclusionsLinki(); }
+    catch (e) { avertissement = `exclusions Linki indisponibles : ${e.message}`; }
+
+    const r = await pont.construireCsv(q, filtre, { exclusions });
+    if (!r.lignes) {
+      return res.json({ ok: false, raison: 'aucune ligne exportable',
+                        candidats: r.candidats, ecartes_demarches: r.ecartes_demarches, avertissement });
+    }
+
+    const envoi = await pont.pousserVersLinki(nom, r.csv);
+
+    await q(`MERGE INTO LISTE l USING (SELECT :nom NOM FROM DUAL) s ON (l.NOM = s.NOM)
+             WHEN MATCHED THEN UPDATE SET LINKI_LIST_ID = :lid, LINKI_INSTANCE = :inst,
+                    DERNIER_ENVOI = SYSTIMESTAMP, LIGNES_ENVOYEES = :n, UPDATED_AT = SYSTIMESTAMP
+             WHEN NOT MATCHED THEN INSERT (NOM, FILTRE, CANAL, LINKI_LIST_ID, LINKI_INSTANCE,
+                                           DERNIER_ENVOI, LIGNES_ENVOYEES, CREE_PAR)
+                                  VALUES (:nom, :filtre, :canal, :lid, :inst,
+                                          SYSTIMESTAMP, :n, 'arx-prospects')`,
+            { nom, filtre: JSON.stringify(filtre), canal: filtre.canal || 'mixte',
+              lid: envoi.liste_id, inst: pont.LINKI_BASE, n: r.lignes });
+
+    res.json({ ok: true, liste: envoi.nom, liste_id: envoi.liste_id,
+               candidats: r.candidats, ecartes_demarches: r.ecartes_demarches, lignes: r.lignes,
+               crees: envoi.imported, mis_a_jour: envoi.updated, deja_dans_la_liste: envoi.skipped,
+               refus: envoi.errors || [], avertissement });
   } catch (e) { next(e); }
 });
 
