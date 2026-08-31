@@ -118,6 +118,38 @@ input[type=search]:focus,select:focus{outline:none; border-color:var(--blue);
   background:var(--card); border:1px solid var(--hair); border-radius:var(--pill);
   padding:9px; color:var(--blue)}
 
+
+/* --- CRM : file de travail, frise, cartes ---------------------------- */
+/* Palette et typographie inchangees : ce sont deja celles d'apple.com
+   (SF Pro, #F5F5F7, #1D1D1F, #0071E3, pilules a 980px). Ce bloc ne fait
+   qu'appliquer le meme systeme aux vues qui n'existaient pas. */
+.jour{max-width:980px; margin:0 auto; display:grid; gap:34px}
+.jour section h2{font-size:23px; letter-spacing:-.03em; margin-bottom:3px}
+.jour section .sous{color:var(--ink-3); font-size:11px; margin-bottom:14px}
+.cartes{display:grid; gap:10px}
+.carte{display:flex; align-items:center; gap:16px; background:var(--card);
+  border:1px solid var(--hair-soft); border-radius:var(--r); padding:16px 20px;
+  cursor:pointer; transition:transform .18s ease, box-shadow .18s ease}
+.carte:hover{transform:translateY(-1px); box-shadow:var(--shadow)}
+.carte .qui{flex:1; min-width:0}
+.carte .qui b{display:block; font-size:13px; letter-spacing:-.02em}
+.carte .qui span{color:var(--ink-2); display:block; margin-top:1px}
+.carte .quoi{flex:0 0 auto; text-align:right; color:var(--ink-3)}
+.vide{background:var(--bg-alt); border-radius:var(--r); padding:26px;
+  text-align:center; color:var(--ink-3)}
+
+.frise{list-style:none; margin:14px 0 0; padding:0; position:relative}
+.frise:before{content:""; position:absolute; left:5px; top:6px; bottom:6px;
+  width:1px; background:var(--hair-soft)}
+.frise li{position:relative; padding:0 0 14px 22px}
+.frise li:before{content:""; position:absolute; left:0; top:5px; width:11px; height:11px;
+  border-radius:50%; background:var(--card); border:2px solid var(--hair)}
+.frise li.entrant:before{border-color:var(--ok); background:var(--ok)}
+.frise li b{font-size:11px}
+.frise li .q{color:var(--ink-3); font-variant-numeric:tabular-nums}
+.frise li p{margin:2px 0 0; color:var(--ink-2)}
+.voisins{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px}
+
 main{min-width:0}
 .bar-top{display:flex; align-items:baseline; gap:14px; margin-bottom:14px; flex-wrap:wrap}
 .count{font-size:12px; font-weight:600; letter-spacing:-.02em; font-variant-numeric:tabular-nums}
@@ -203,10 +235,13 @@ footer code{font-family:ui-monospace,"SF Mono",Menlo,monospace; font-size:10px}
 </header>
 
 <nav class="tabs" role="tablist">
-  <button id="ongletEnt" role="tab" aria-selected="true">Entreprises</button>
+  <button id="ongletJour" role="tab" aria-selected="true">Aujourd'hui</button>
+  <button id="ongletEnt" role="tab" aria-selected="false">Entreprises</button>
   <button id="ongletPers" role="tab" aria-selected="false">Personnes</button>
   <button id="ongletAppels" role="tab" aria-selected="false">Appels</button>
-  <button id="ongletCrm" role="tab" aria-selected="false">CRM</button>
+  <button id="ongletCrm" role="tab" aria-selected="false">Pipeline</button>
+  <button id="ongletCamp" role="tab" aria-selected="false">Campagnes</button>
+  <button id="ongletOrg" role="tab" aria-selected="false">Organisations</button>
 </nav>
 
 <section class="tiles" id="tiles"></section>
@@ -264,7 +299,9 @@ footer code{font-family:ui-monospace,"SF Mono",Menlo,monospace; font-size:10px}
       <div class="hint">Cliquer une ligne pour ouvrir la fiche. Les en-têtes soulignables trient.</div>
       <button class="reset" id="versLinki" style="margin-left:auto; width:auto">Envoyer vers Linki</button>
     </div>
-    <div class="scroll">
+    <div class="jour" id="vueJour" hidden></div>
+
+    <div class="scroll" id="vueTable">
       <table>
         <thead><tr id="head"></tr></thead>
         <tbody id="rows"></tbody>
@@ -328,14 +365,21 @@ calerEntete();
 addEventListener('resize', calerEntete);
 
 /* ------------------------------ etat ------------------------------- */
-let mode = 'entreprises', page = 0, total = 0;
+let mode = 'jour', page = 0, total = 0;
 const etat = {
   entreprises: { q: '', territoire: '', secteur: '', effmin: '', tri: 'ca' },
   personnes:   { q: '', territoire: '', origine: '', canal: '', tri: 'joignable' },
   appels:      { q: '', territoire: '', statut: '', camin: '', file: 'todo', tri: '' },
   // Le CRM ne filtre pas par territoire : une base d'investisseurs n'en a pas.
   crm:         { q: '', source: '', statut: '', file: '', canal: '', tri: 'action' },
+  // La file de travail n'a pas de filtre, mais elle a besoin d'une entree :
+  // la bascule d'onglet lit etat[mode] sans condition.
+  jour:        { q: '', tri: '' },
+  campagnes:   { q: '', tri: '' },
+  organisations: { q: '', source: '', tri: '' },
 };
+// La file de travail n'a pas de filtre : c'est tout son interet.
+const MODES_TABLE = ['entreprises', 'personnes', 'appels', 'crm', 'campagnes', 'organisations'];
 
 /* Vocabulaire du pipeline, cote ecran. Les libelles sont ici, les valeurs
    viennent du serveur : si le vocabulaire bouge en base, il bouge ici seul. */
@@ -361,6 +405,10 @@ const STATUTS = {
   perdu: ['Perdu', 'crit'], cessee: ['Cessée', 'crit'],
 };
 const jour = v => v ? new Date(v).toLocaleDateString('fr-FR') : '—';
+const heure = v => v ? new Date(v).toLocaleString('fr-FR',
+  { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—';
+// Un pourcentage sans son effectif ment : 1 clic sur 2 envois n'est pas « 50 % ».
+const taux = (n, d) => !d ? '—' : `${n} <span style="color:var(--ink-3)">(${Math.round(100 * n / d)} %)</span>`;
 
 const COLS = {
   entreprises: [
@@ -415,6 +463,33 @@ const COLS = {
            <i class="flag ${r.EMAIL ? 'on' : ''}"></i>
            <i class="flag ${r.PHONE ? 'on' : ''}"></i>
            <i class="flag ${r.LINKEDIN_URL ? 'on' : ''}"></i></div>` },
+  ],
+  campagnes: [
+    { t: 'Campagne', c: 'name', v: r => esc(r.NOM) },
+    { t: 'Moteur', c: '', v: r => `<span class="pill">${esc(r.MOTEUR)}</span>` },
+    { t: 'Lancée', c: '', v: r => jour(r.DEBUT) },
+    { t: 'Ciblées', c: 'num', v: r => nf.format(r.CIBLES || 0) },
+    { t: 'Touchées', c: 'num', v: r => nf.format(r.TOUCHEES || 0) },
+    { t: 'Envois', c: 'num', v: r => nf.format(r.ENVOIS || 0) },
+    // Les taux se lisent sur les envois, jamais sur les cibles : une cible qui
+    // n'a rien recu fausserait le denominateur.
+    { t: 'Ouvertures', c: 'num', v: r => taux(r.OUVERTURES, r.ENVOIS) },
+    { t: 'Clics', c: 'num', v: r => taux(r.CLICS, r.ENVOIS) },
+    { t: 'Réponses', c: 'num', v: r => taux(r.REPONSES, r.ENVOIS) },
+    { t: 'Rebonds', c: 'num', v: r => r.REBONDS
+        ? `<span class="pill crit">${taux(r.REBONDS, r.ENVOIS)}</span>` : '—' },
+  ],
+  organisations: [
+    { t: 'Maison', c: 'name', v: r => esc(r.NOM || '—') },
+    { t: 'Type', c: '', v: r => esc(r.TYPE || '—') },
+    { t: 'Lieu', c: '', v: r => esc([r.VILLE, r.PAYS].filter(Boolean).join(', ') || '—') },
+    { t: 'Base', c: '', v: r => `<span class="pill">${esc(nomBase(r.SOURCE))}</span>` },
+    { t: 'Joignables', c: 'num', v: r => nf.format(r.JOIGNABLES) },
+    { t: 'Interactions', c: 'num', v: r => r.INTERACTIONS ? nf.format(r.INTERACTIONS) : '—' },
+    { t: 'Site', c: '', v: r => r.SITE_WEB
+        ? `<a href="${esc(r.SITE_WEB.startsWith('http') ? r.SITE_WEB : 'https://' + r.SITE_WEB)}"
+             target="_blank" rel="noopener noreferrer"
+             onclick="event.stopPropagation()">${esc(r.SITE_WEB)}</a>` : '—' },
   ],
   appels: [
     { t: 'Société',    c: 'name', tri: 'nom', v: r => esc(r.RAISON_SOCIALE) },
@@ -535,6 +610,67 @@ $('versLinki').onclick = async () => {
   }
 };
 
+
+/* -------------------------- Aujourd'hui ----------------------------- */
+/*
+ * La page d'entree du CRM.
+ *
+ * Trois listes courtes, dans l'ordre du cout d'un oubli : une reponse qui
+ * attend coute une affaire, un retard coute une relance, une echeance du jour
+ * ne coute encore rien. Afficher 85 494 lignes demandait a l'utilisateur de
+ * decider quoi faire ; ces trois listes le lui disent.
+ */
+const SECTIONS_JOUR = [
+  ['reponses', 'Réponses à traiter', 'Quelqu’un a répondu et personne n’a repris la main.'],
+  ['retard', 'En retard', 'L’échéance est passée.'],
+  ['dues', 'Pour aujourd’hui', 'Ce qui tombe à date.'],
+];
+
+function carteJour(r) {
+  const nom = [r.FIRST_NAME, r.LAST_NAME].filter(Boolean).join(' ') || '—';
+  const [lib, cl] = ETATS[r.STATUT] || [r.STATUT, ''];
+  const j = r.JOURS;
+  const quand = r.ACTION_LE == null ? ''
+    : j < 0 ? `<span class="pill crit">en retard de ${-j} j</span>`
+    : j === 0 ? `<span class="pill warn">aujourd’hui</span>`
+    : `<span class="pill">dans ${j} j</span>`;
+  return `<div class="carte" data-k="${esc(r.PERSON_KEY)}">
+    <div class="qui">
+      <b>${esc(nom)}</b>
+      <span>${esc(r.COMPANY || '—')}${r.TITLE ? ' · ' + esc(r.TITLE) : ''}</span>
+    </div>
+    <div class="quoi">
+      <span class="pill ${cl}">${esc(lib)}</span> ${quand}
+      <div style="margin-top:4px">${esc(r.ACTION_TYPE || '')}${
+        r.PROPRIETAIRE ? ' · ' + esc(r.PROPRIETAIRE) : ''}</div>
+    </div>
+  </div>`;
+}
+
+function chargerJour() {
+  $('count').innerHTML = '';
+  $('pos').textContent = '';
+  api('api/aujourdhui').then(d => {
+    const total = SECTIONS_JOUR.reduce((n, [k]) => n + d[k].length, 0);
+    $('count').innerHTML = nf.format(total) + ' <span>à traiter</span>';
+    $('vueJour').innerHTML = SECTIONS_JOUR.map(([k, titre, sous]) => `
+      <section>
+        <h2>${titre}${d[k].length ? ` <span style="color:var(--ink-3)">${d[k].length}</span>` : ''}</h2>
+        <div class="sous">${sous}</div>
+        ${d[k].length
+          ? `<div class="cartes">${d[k].map(carteJour).join('')}</div>`
+          : `<div class="vide">Rien ici.</div>`}
+      </section>`).join('');
+    // Les cartes ouvrent la meme fiche que le pipeline : une seule fiche, un
+    // seul endroit ou l'etat se change.
+    $('vueJour').querySelectorAll('.carte').forEach(c => {
+      c.onclick = () => ficheCrm({ PERSON_KEY: c.dataset.k });
+    });
+  }).catch(err => {
+    $('vueJour').innerHTML = `<div class="vide">Chargement impossible (${esc(err.message)}).</div>`;
+  });
+}
+
 /* ------------------------------- CRM -------------------------------- */
 chips('fFile2', [{ t: 'En retard', v: 'retard' }, { t: "Aujourd'hui", v: 'aujourdhui' },
                  { t: 'Cette semaine', v: 'semaine' }, { t: 'Fiches actives', v: 'actifs' }], 'file');
@@ -554,6 +690,9 @@ api('api/pipeline/stats').then(d => {
   chips('fBase', bases, 'source');
   chips('fStatut', d.statuts.map(x => ({
     t: `${(ETATS[x.STATUT] || [x.STATUT])[0]} · ${x.N}`, v: x.STATUT })), 'statut');
+  // Les compteurs arrivent apres le premier rendu : sans ce rappel, les tuiles
+  // de la page d'entree restent vides au chargement.
+  tuiles();
 }).catch(() => {});
 
 /* ------------------------------ chiffres ---------------------------- */
@@ -592,6 +731,9 @@ function tuiles() {
       + tuile(nf.format(t.AVEC_SITE), 'sites web connus'),
     // Les quatre chiffres du matin : ce qui est en retard, ce qui tombe
     // aujourd'hui, ce qui vit encore, et la reserve joignable.
+    jour: () => vues.crm(),
+    campagnes: () => '',
+    organisations: () => '',
     crm: () => {
       if (!PIPE) return '';
       const e = PIPE.echeances;
@@ -621,6 +763,7 @@ function entetes() {
 const lignes = new Map();   // cle -> enregistrement, pour la fiche sans re-requete
 
 function charger(reset) {
+  if (mode === 'jour') return chargerJour();
   if (reset) page = 0;
   const e = etat[mode];
   const URLS = {
@@ -632,6 +775,8 @@ function charger(reset) {
       + `&secteur=${encodeURIComponent(e.secteur)}&effmin=${e.effmin}&tri=${e.tri}`,
     crm: () => `api/pipeline?q=${encodeURIComponent(e.q)}&source=${encodeURIComponent(e.source)}`
       + `&statut=${e.statut}&file=${e.file}&canal=${e.canal}&tri=${e.tri}`,
+    campagnes: () => `api/campagnes?`,
+    organisations: () => `api/organisations?q=${encodeURIComponent(e.q)}&source=${e.source}`,
   };
   const url = URLS[mode]();
 
@@ -642,6 +787,8 @@ function charger(reset) {
     lignes.clear();
     $('rows').innerHTML = d.rows.length ? d.rows.map((r, i) => {
       const k = mode === 'crm' ? r.PERSON_KEY
+              : mode === 'organisations' ? r.ORG_KEY
+              : mode === 'campagnes' ? 'c:' + r.ID
               : mode === 'personnes' ? r.ORIGINE + ':' + r.PID : 'e:' + r.ID;
       lignes.set(k, r);
       return `<tr data-k="${esc(k)}">` + cols.map(c =>
@@ -653,6 +800,8 @@ function charger(reset) {
     const [un, plusieurs] = { personnes: ['personne', 'personnes'],
                               appels: ['société à appeler', 'sociétés à appeler'],
                               crm: ['fiche', 'fiches'],
+                              campagnes: ['campagne', 'campagnes'],
+                              organisations: ['maison', 'maisons'],
                               entreprises: ['entreprise', 'entreprises'] }[mode];
     $('count').innerHTML = nf.format(total) + ' <span>' + (total > 1 ? plusieurs : un) + '</span>';
     $('pos').textContent = total ? `${deb}–${fin} sur ${nf.format(total)}` : '—';
@@ -669,22 +818,32 @@ $('next').onclick = () => { if ((page + 1) * 60 < total) { page++; charger(false
 
 /* ------------------------------ onglets ----------------------------- */
 const PLACEHOLDER = { personnes: 'Nom, poste, ville…', appels: 'Société ou ville…',
-                      crm: 'Nom, société, e-mail…',
+                      crm: 'Nom, société, e-mail…', jour: '',
+                      campagnes: 'Nom de campagne…', organisations: 'Nom de maison…',
                       entreprises: 'Nom, ville, secteur…' };
 const CHAMP_PUCE = { fTerr: 'territoire', fEff: 'effmin', fOrig: 'origine',
                      fCanal: 'canal', fFile: 'file', fCa: 'camin' };
 
 function basculer(m) {
   mode = m;
-  [['ongletEnt', 'entreprises'], ['ongletPers', 'personnes'],
-   ['ongletAppels', 'appels'], ['ongletCrm', 'crm']]
+  [['ongletJour', 'jour'], ['ongletEnt', 'entreprises'], ['ongletPers', 'personnes'],
+   ['ongletAppels', 'appels'], ['ongletCrm', 'crm'],
+   ['ongletCamp', 'campagnes'], ['ongletOrg', 'organisations']]
     .forEach(([id, k]) => $(id).setAttribute('aria-selected', String(m === k)));
   $('filtresEnt').hidden = m !== 'entreprises';
   $('filtresPers').hidden = m !== 'personnes';
   $('filtresAppels').hidden = m !== 'appels';
   $('filtresCrm').hidden = m !== 'crm';
+  // La file de travail n'a ni filtre, ni tableau, ni pagination : elle a trois
+  // listes courtes. Tout le reste de la page s'efface.
+  const table = MODES_TABLE.includes(m);
+  $('vueTable').hidden = !table;
+  $('vueJour').hidden = table;
+  document.querySelector('.pager').hidden = !table;
+  document.querySelector('aside.filtres').hidden = m === 'jour';
+  document.querySelector('.wrap').style.gridTemplateColumns = m === 'jour' ? '1fr' : '';
   // La file d'appel n'a pas de canal ecrit : rien a envoyer a un sequenceur.
-  $('versLinki').hidden = m === 'appels';
+  $('versLinki').hidden = !['entreprises', 'personnes', 'crm'].includes(m);
   $('q').placeholder = PLACEHOLDER[m];
   $('q').value = etat[m].q;
   $('statut').value = etat.appels.statut;
@@ -704,6 +863,9 @@ $('ongletEnt').onclick = () => basculer('entreprises');
 $('ongletPers').onclick = () => basculer('personnes');
 $('ongletAppels').onclick = () => basculer('appels');
 $('ongletCrm').onclick = () => basculer('crm');
+$('ongletJour').onclick = () => basculer('jour');
+$('ongletCamp').onclick = () => basculer('campagnes');
+$('ongletOrg').onclick = () => basculer('organisations');
 
 /* ------------------------------- fiche ------------------------------ */
 const det = $('detail');
@@ -715,6 +877,7 @@ $('rows').addEventListener('click', ev => {
   const r = lignes.get(tr.dataset.k);
   if (!r) return;
   if (mode === 'crm') ficheCrm(r);
+  else if (mode === 'organisations' || mode === 'campagnes') return;
   else if (mode === 'appels') ficheAppel(r);
   else if (mode === 'entreprises') ficheEntreprise(r.ID);
   else if (r.ORIGINE === 'fiche' || r.ENTREPRISE_ID) ficheEntreprise(r.ENTREPRISE_ID);
@@ -722,68 +885,132 @@ $('rows').addEventListener('click', ev => {
 });
 
 /*
- * Fiche CRM : lire l'etat, et le changer.
+ * Fiche CRM : l'etat, la frise, la maison.
  *
- * Le formulaire n'impose pas la prochaine action — c'est la base qui la refuse.
- * Le message d'erreur du serveur est donc affiche tel quel : une seule regle,
- * un seul endroit ou elle est ecrite.
+ * Elle se recharge depuis le serveur au lieu de se contenter de la ligne du
+ * tableau : la frise et les voisins n'y sont pas, et ce sont eux qui repondent
+ * a la question qu'on se pose avant de decrocher — que s'est-il deja passe, et
+ * qui d'autre connait-on dans cette maison.
+ *
+ * Le formulaire n'impose pas la prochaine action : c'est la base qui la refuse
+ * (CK_CS_ACTION_DUE). Le message du serveur est donc affiche tel quel — une
+ * seule regle, un seul endroit ou elle est ecrite.
  */
-function ficheCrm(r) {
-  const nom = [r.FIRST_NAME, r.LAST_NAME].filter(Boolean).join(' ') || '—';
-  const opts = (liste, choisi) => liste.map(v =>
-    `<option value="${esc(v)}"${v === choisi ? ' selected' : ''}>${esc((ETATS[v] || [v])[0])}</option>`).join('');
-  const iso = d => d ? new Date(d).toISOString().slice(0, 10) : '';
-
+function ficheCrm(ligne) {
   det.hidden = false;
-  det.innerHTML = cadre(nom, `${esc(r.COMPANY || '—')}${r.TITLE ? ' · ' + esc(r.TITLE) : ''}`, `
-    <dl>
-      ${dd('Base', nomBase(r.SOURCE))}
-      ${dd('E-mail', r.EMAIL)}
-      ${dd('Téléphone', r.PHONE)}
-      ${r.LINKEDIN_URL ? `<dt>LinkedIn</dt><dd><a href="${esc(r.LINKEDIN_URL)}" target="_blank"
-         rel="noopener noreferrer">profil</a></dd>` : ''}
-      ${dd('Ville', [r.CITY, r.COUNTRY].filter(Boolean).join(', '))}
-      ${dd('Dernier contact', r.DERNIER_CONTACT_LE ? jour(r.DERNIER_CONTACT_LE)
-           + (r.DERNIER_CANAL ? ' · ' + esc(r.DERNIER_CANAL) : '') : null)}
-      ${dd('A répondu le', r.DERNIERE_REPONSE_LE ? jour(r.DERNIERE_REPONSE_LE) : null)}
-      ${dd('Origine de l’état', r.ORIGINE_ETAT)}
-      ${r.MOTIF_PERTE ? dd('Motif', r.MOTIF_PERTE) : ''}
-    </dl>
-    <div style="display:grid; gap:8px; margin-top:14px">
-      <label class="hint">Statut
-        <select id="csStatut">${opts(PIPE ? PIPE.vocabulaire : Object.keys(ETATS), r.STATUT)}</select></label>
-      <label class="hint">Propriétaire
-        <input type="search" id="csProp" value="${esc(r.PROPRIETAIRE || '')}" placeholder="qui suit cette fiche"></label>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px">
-        <label class="hint">Prochaine action
-          <select id="csType"><option value="">—</option>${
-            (PIPE ? PIPE.types_action : []).map(v =>
-              `<option value="${esc(v)}"${v === r.ACTION_TYPE ? ' selected' : ''}>${esc(v)}</option>`).join('')
-          }</select></label>
-        <label class="hint">Le
-          <input type="date" id="csDate" value="${iso(r.ACTION_LE)}"></label>
-      </div>
-      <label class="hint">Note d'action
-        <input type="search" id="csNote" value="${esc(r.ACTION_NOTE || '')}" placeholder="ce qu'il faut faire"></label>
-      <button id="csOk" class="reset" style="margin-top:4px; background:var(--blue);
-              border-color:var(--blue); color:#fff">Enregistrer</button>
-      <span id="csMsg" class="hint"></span>
-    </div>`);
+  det.innerHTML = cadre('…', '', '<div class="hint">Chargement…</div>');
 
-  $('csOk').onclick = () => {
-    $('csMsg').textContent = 'Enregistrement…';
-    poster('api/etat/' + encodeURIComponent(r.PERSON_KEY), {
-      statut: $('csStatut').value,
-      proprietaire: $('csProp').value || null,
-      action_type: $('csType').value || null,
-      action_le: $('csDate').value || null,
-      action_note: $('csNote').value || null,
-    }, 'PATCH').then(() => {
-      $('csMsg').textContent = 'Enregistré.';
-      charger(false);
-      setTimeout(fermer, 600);
-    }).catch(e => { $('csMsg').textContent = e.message; });
-  };
+  api('api/personne/' + encodeURIComponent(ligne.PERSON_KEY)).then(d => {
+    const r = d.fiche, o = d.organisation;
+    const nom = [r.FIRST_NAME, r.LAST_NAME].filter(Boolean).join(' ') || '—';
+    const iso = v => v ? new Date(v).toISOString().slice(0, 10) : '';
+    const opt = (liste, choisi) => liste.map(v =>
+      `<option value="${esc(v)}"${v === choisi ? ' selected' : ''}>${esc((ETATS[v] || [v])[0])}</option>`).join('');
+
+    const frise = d.frise.length ? `<ul class="frise">${d.frise.map(i => `
+      <li class="${i.SENS === 'entrant' ? 'entrant' : ''}">
+        <b>${esc(i.TYPE)}</b> <span class="q">· ${esc(i.CANAL)} · ${heure(i.QUAND)}</span>
+        ${i.CAMPAGNE ? `<span class="pill">${esc(i.CAMPAGNE)}</span>` : ''}
+        ${i.RESUME ? `<p>${esc(i.RESUME)}</p>` : ''}
+      </li>`).join('')}</ul>` : '<div class="hint">Aucune interaction enregistrée.</div>';
+
+    const voisins = d.voisins.length ? `
+      <h3 style="margin-top:18px; font-size:10px; color:var(--ink-3)">
+        ${d.voisins.length} autre${d.voisins.length > 1 ? 's' : ''} contact${d.voisins.length > 1 ? 's' : ''}
+        chez ${esc(o ? o.NOM : r.COMPANY)}</h3>
+      <div class="voisins">${d.voisins.map(v =>
+        `<button class="chip" data-k="${esc(v.PERSON_KEY)}">${
+          esc([v.FIRST_NAME, v.LAST_NAME].filter(Boolean).join(' '))}</button>`).join('')}</div>` : '';
+
+    det.innerHTML = cadre(nom, `${esc(r.COMPANY || '—')}${r.TITLE ? ' · ' + esc(r.TITLE) : ''}`, `
+      <dl>
+        ${dd('Base', nomBase(r.SOURCE))}
+        ${dd('E-mail', r.EMAIL)}
+        ${dd('Téléphone', r.PHONE)}
+        ${r.LINKEDIN_URL ? `<dt>LinkedIn</dt><dd><a href="${esc(r.LINKEDIN_URL)}" target="_blank"
+           rel="noopener noreferrer">profil</a></dd>` : ''}
+        ${dd('Ville', [r.CITY, r.COUNTRY].filter(Boolean).join(', '))}
+        ${o && o.SITE_WEB ? `<dt>Site</dt><dd><a href="${
+          esc(o.SITE_WEB.startsWith('http') ? o.SITE_WEB : 'https://' + o.SITE_WEB)}"
+          target="_blank" rel="noopener noreferrer">${esc(o.SITE_WEB)}</a></dd>` : ''}
+        ${dd('Origine de l’état', r.ORIGINE_ETAT)}
+        ${r.MOTIF_PERTE ? dd('Motif', r.MOTIF_PERTE) : ''}
+      </dl>
+      ${voisins}
+
+      <h3 style="margin-top:18px; font-size:10px; color:var(--ink-3)">État</h3>
+      <div style="display:grid; gap:8px">
+        <label class="hint">Statut
+          <select id="csStatut">${opt(PIPE ? PIPE.vocabulaire : Object.keys(ETATS), r.STATUT)}</select></label>
+        <label class="hint">Propriétaire
+          <input type="search" id="csProp" value="${esc(r.PROPRIETAIRE || '')}"
+                 placeholder="qui suit cette fiche"></label>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px">
+          <label class="hint">Prochaine action
+            <select id="csType"><option value="">—</option>${
+              (PIPE ? PIPE.types_action : []).map(v =>
+                `<option value="${esc(v)}"${v === r.ACTION_TYPE ? ' selected' : ''}>${esc(v)}</option>`).join('')
+            }</select></label>
+          <label class="hint">Le
+            <input type="date" id="csDate" value="${iso(r.ACTION_LE)}"></label>
+        </div>
+        <label class="hint">Note d’action
+          <input type="search" id="csNote" value="${esc(r.ACTION_NOTE || '')}"
+                 placeholder="ce qu’il faut faire"></label>
+        <button id="csOk" class="reset" style="margin-top:2px; background:var(--blue);
+                border-color:var(--blue); color:#fff">Enregistrer l’état</button>
+        <span id="csMsg" class="hint"></span>
+      </div>
+
+      <h3 style="margin-top:22px; font-size:10px; color:var(--ink-3)">Journal</h3>
+      <div style="display:grid; gap:8px">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px">
+          <label class="hint">Canal
+            <select id="inCanal">${(PIPE ? PIPE.canaux : ['appel']).map(v =>
+              `<option value="${esc(v)}"${v === 'appel' ? ' selected' : ''}>${esc(v)}</option>`).join('')}</select></label>
+          <label class="hint">Type
+            <select id="inType">${(PIPE ? PIPE.types_interaction : ['appel']).map(v =>
+              `<option value="${esc(v)}"${v === 'appel' ? ' selected' : ''}>${esc(v)}</option>`).join('')}</select></label>
+        </div>
+        <label class="hint">Ce qui s’est dit
+          <input type="search" id="inResume" placeholder="compte rendu, objection, suite"></label>
+        <button id="inOk" class="reset">Journaliser</button>
+        <span id="inMsg" class="hint"></span>
+      </div>
+      ${frise}`);
+
+    det.querySelectorAll('.voisins .chip').forEach(b =>
+      b.onclick = () => ficheCrm({ PERSON_KEY: b.dataset.k }));
+
+    $('csOk').onclick = () => {
+      $('csMsg').textContent = 'Enregistrement…';
+      poster('api/etat/' + encodeURIComponent(r.PERSON_KEY), {
+        statut: $('csStatut').value,
+        proprietaire: $('csProp').value || null,
+        action_type: $('csType').value || null,
+        action_le: $('csDate').value || null,
+        action_note: $('csNote').value || null,
+      }, 'PATCH').then(() => {
+        $('csMsg').textContent = 'Enregistré.';
+        charger(false);
+        setTimeout(fermer, 600);
+      }).catch(e => { $('csMsg').textContent = e.message; });
+    };
+
+    // La saisie est reservee a ce qu'aucune machine ne voit : l'appel, la
+    // rencontre, la note. Les envois et les reponses sont deja ingeres.
+    $('inOk').onclick = () => {
+      if (!$('inResume').value.trim()) { $('inMsg').textContent = 'Dites ce qui s’est passé.'; return; }
+      $('inMsg').textContent = 'Enregistrement…';
+      poster('api/journal', {
+        person_key: r.PERSON_KEY, canal: $('inCanal').value,
+        type: $('inType').value, resume: $('inResume').value,
+      }).then(() => { ficheCrm({ PERSON_KEY: r.PERSON_KEY }); charger(false); })
+        .catch(e => { $('inMsg').textContent = e.message; });
+    };
+  }).catch(e => {
+    det.innerHTML = cadre('Erreur', '', `<div class="hint">${esc(e.message)}</div>`);
+  });
 }
 
 function ficheAppel(r) {
@@ -905,7 +1132,9 @@ function fichePersonne(r) {
 }
 
 window.fermer = fermer;
-basculer('entreprises');
+// La file de travail est la page d'entree : un CRM s'ouvre sur ce qu'il y a a
+// faire, pas sur son annuaire.
+basculer('jour');
 </script>
 <script defer src="https://arx-apps.duckdns.org/gate/t.js" data-site="prospects"></script>
 </body>

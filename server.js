@@ -458,7 +458,8 @@ app.get('/api/pipeline/stats', auth, async (_req, res, next) => {
     ]);
     res.json({ bases: bases.rows, statuts: statuts.rows, echeances: echeances.rows[0],
                vocabulaire: crm.STATUTS, motifs: crm.MOTIFS_PERTE,
-               types_action: crm.TYPES_ACTION, sans_action_due: crm.SANS_ACTION_DUE });
+               types_action: crm.TYPES_ACTION, sans_action_due: crm.SANS_ACTION_DUE,
+               canaux: crm.CANAUX, types_interaction: crm.TYPES_INTER });
   } catch (e) { next(e); }
 });
 
@@ -521,6 +522,172 @@ app.patch('/api/etat/:person_key', auth, async (req, res, next) => {
     }
     next(e);
   }
+});
+
+
+/*
+ * « Aujourd'hui » — la page d'entree.
+ *
+ * Un CRM est une file de travail, pas un referentiel. Afficher 85 494 lignes
+ * demande a l'utilisateur de decider quoi faire ; trois listes courtes le lui
+ * disent. L'ordre n'est pas esthetique : ce qui est en retard passe avant ce
+ * qui est du, et une reponse non traitee passe avant tout le reste.
+ */
+app.get('/api/aujourdhui', auth, async (req, res, next) => {
+  try {
+    const prop = req.query.proprietaire || null;
+    const mien = prop ? `AND PROPRIETAIRE = :prop` : '';
+    const b = prop ? { prop } : {};
+    const file = (cond, n = 40) => `SELECT * FROM (${crm.SQL_PIPELINE})
+      WHERE ${cond} ${mien} ORDER BY ACTION_LE NULLS LAST, LAST_NAME
+      FETCH FIRST ${n} ROWS ONLY`;
+
+    const [reponses, retard, dues] = await Promise.all([
+      // Une reponse qui attend est le seul evenement qui coute vraiment cher :
+      // elle est en tete, et sans condition de date.
+      q(file(`STATUT = 'a_repondu' AND OPT_OUT = 0`), b),
+      q(file(`ACTION_LE < TRUNC(SYSDATE) AND STATUT <> 'a_repondu'`), b),
+      q(file(`ACTION_LE = TRUNC(SYSDATE) AND STATUT <> 'a_repondu'`), b),
+    ]);
+    res.json({ reponses: reponses.rows, retard: retard.rows, dues: dues.rows });
+  } catch (e) { next(e); }
+});
+
+/*
+ * La fiche d'une personne : son etat, sa maison, et sa frise.
+ *
+ * La frise repond a la question qu'on se pose avant de decrocher — que s'est-il
+ * deja passe. Elle vaut mieux qu'un « dernier contact » sans contenu.
+ */
+app.get('/api/personne/:person_key', auth, async (req, res, next) => {
+  try {
+    const k = req.params.person_key;
+    const p = await q(`SELECT * FROM (${crm.SQL_PIPELINE}) WHERE PERSON_KEY = :k`, { k });
+    if (!p.rows.length) return res.status(404).json({ erreur: 'personne inconnue' });
+    const fiche = p.rows[0];
+
+    const [frise, org, voisins] = await Promise.all([
+      q(crm.SQL_FRISE, { k }),
+      fiche.ORG_KEY
+        ? q(`SELECT * FROM V_ORGANISATIONS WHERE ORG_KEY = :o`, { o: fiche.ORG_KEY })
+        : Promise.resolve({ rows: [] }),
+      // Les autres personnes de la meme maison : c'est ce qui evite d'ecrire
+      // deux fois au meme fonds sans le savoir.
+      fiche.ORG_KEY
+        ? q(`SELECT PERSON_KEY, FIRST_NAME, LAST_NAME, TITLE, EMAIL, STATUT
+               FROM (${crm.SQL_PIPELINE})
+              WHERE ORG_KEY = :o AND PERSON_KEY <> :k
+                AND (EMAIL IS NOT NULL OR LINKEDIN_URL IS NOT NULL)
+              ORDER BY LAST_NAME FETCH FIRST 12 ROWS ONLY`, { o: fiche.ORG_KEY, k })
+        : Promise.resolve({ rows: [] }),
+    ]);
+    res.json({ fiche, frise: frise.rows, organisation: org.rows[0] || null, voisins: voisins.rows });
+  } catch (e) { next(e); }
+});
+
+/*
+ * Saisie d'une interaction — POST /api/journal.
+ *
+ * Le nom evite la collision avec /api/interactions, qui journalise les appels
+ * d'entreprises depuis l'onglet Appels et attend un entreprise_id. Express sert
+ * la premiere route declaree : la collision passait silencieusement, et la
+ * saisie repondait « entreprise_id requis ».
+ *
+ * Reservee a ce qu'aucune machine ne voit : l'appel, la rencontre, la note.
+ * Les envois, ouvertures, clics, reponses et rebonds sont ingeres — les
+ * ressaisir a la main ferait deux verites.
+ */
+app.post('/api/journal', auth, async (req, res, next) => {
+  try {
+    const { person_key, canal, type, resume, quand, auteur } = req.body || {};
+    if (!person_key) return res.status(400).json({ erreur: 'person_key requis' });
+    if (!crm.CANAUX.includes(canal)) return res.status(400).json({ erreur: `canal inconnu : ${canal}` });
+    if (!crm.TYPES_INTER.includes(type)) return res.status(400).json({ erreur: `type inconnu : ${type}` });
+
+    const p = await q(`SELECT ORG_KEY FROM V_PERSONNES WHERE PERSON_KEY = :k`, { k: person_key });
+    if (!p.rows.length) return res.status(404).json({ erreur: 'personne inconnue' });
+
+    // SOURCE_REF horodate cote base : deux saisies identiques a la meme seconde
+    // resteraient distinctes, et l'unicite ne bloque que les rejeux d'ingestion.
+    await q(`INSERT INTO INTERACTION
+               (PERSON_KEY, ORG_KEY, QUAND, CANAL, TYPE, SENS, RESUME, ORIGINE, SOURCE_REF, AUTEUR)
+             VALUES (:k, :org, NVL(TO_TIMESTAMP(:quand,'YYYY-MM-DD"T"HH24:MI'), SYSTIMESTAMP),
+                     :canal, :type, 'sortant', :resume, 'saisie',
+                     'saisie:' || :k || ':' || TO_CHAR(SYSTIMESTAMP,'YYYYMMDDHH24MISSFF3'), :auteur)`,
+            { k: person_key, org: p.rows[0].ORG_KEY, quand: quand || null,
+              canal, type, resume: resume || null, auteur: auteur || null });
+
+    // Une interaction saisie fait avancer l'etat : sans cela il faudrait le
+    // resaisir, et personne ne le ferait.
+    await q(`MERGE INTO CONTACT_STATE c USING (SELECT :k PERSON_KEY FROM DUAL) s
+               ON (c.PERSON_KEY = s.PERSON_KEY)
+             WHEN MATCHED THEN UPDATE SET DERNIER_CONTACT_LE = SYSTIMESTAMP,
+                    DERNIER_CANAL = :canal, UPDATED_AT = SYSTIMESTAMP
+             WHEN NOT MATCHED THEN INSERT (PERSON_KEY, STATUT, DERNIER_CONTACT_LE,
+                    DERNIER_CANAL, ORIGINE_ETAT)
+               VALUES (:k, 'contacte', SYSTIMESTAMP, :canal, 'saisie')`,
+            { k: person_key, canal });
+
+    const f = await q(crm.SQL_FRISE, { k: person_key });
+    res.json({ ok: true, frise: f.rows });
+  } catch (e) { next(e); }
+});
+
+/* Les campagnes, avec ce qu'elles ont reellement produit. */
+app.get('/api/campagnes', auth, async (_req, res, next) => {
+  try {
+    const r = await q(`
+      SELECT c.ID, c.NOM, c.MOTEUR, c.CANAL, c.DEBUT, c.CIBLES,
+             COUNT(DISTINCT i.PERSON_KEY) TOUCHEES,
+             COUNT(CASE WHEN i.TYPE = 'envoi' THEN 1 END) ENVOIS,
+             COUNT(CASE WHEN i.TYPE = 'ouverture' THEN 1 END) OUVERTURES,
+             COUNT(CASE WHEN i.TYPE = 'clic' THEN 1 END) CLICS,
+             COUNT(CASE WHEN i.TYPE = 'reponse' THEN 1 END) REPONSES,
+             COUNT(CASE WHEN i.TYPE = 'rebond' THEN 1 END) REBONDS
+        FROM CAMPAGNE c LEFT JOIN INTERACTION i ON i.CAMPAGNE_ID = c.ID
+       GROUP BY c.ID, c.NOM, c.MOTEUR, c.CANAL, c.DEBUT, c.CIBLES
+       ORDER BY c.DEBUT DESC NULLS LAST`);
+    res.json({ total: r.rows.length, rows: r.rows });
+  } catch (e) { next(e); }
+});
+
+/*
+ * Les organisations, classees par ce qu'elles pesent en personnes joignables.
+ *
+ * Une maison ou l'on connait douze personnes ne se demarche pas comme une
+ * maison ou l'on en connait une.
+ */
+app.get('/api/organisations', auth, async (req, res, next) => {
+  try {
+    const w = [], b = { off: Number(req.query.page || 0) * 60 };
+    if (req.query.q) { w.push(`UPPER(o.NOM) LIKE :q`); b.q = `%${String(req.query.q).toUpperCase()}%`; }
+    if (req.query.source) { w.push(`o.SOURCE = :src`); b.src = req.query.source; }
+    const where = w.length ? 'WHERE ' + w.join(' AND ') : '';
+    // La requete est pilotee par les personnes joignables, pas par les 74 663
+    // organisations : compter les personnes maison par maison en sous-requete
+    // correlee prenait plus de deux minutes. Agreger d'abord les 3 879
+    // joignables, puis joindre, ramene la meme reponse a quelques dizaines de ms.
+    const base = `
+      WITH pers AS (
+        SELECT ORG_KEY, COUNT(*) JOIGNABLES
+          FROM V_PERSONNES
+         WHERE ORG_KEY IS NOT NULL AND (EMAIL IS NOT NULL OR LINKEDIN_URL IS NOT NULL)
+         GROUP BY ORG_KEY),
+      inter AS (
+        SELECT ORG_KEY, COUNT(*) N FROM INTERACTION WHERE ORG_KEY IS NOT NULL GROUP BY ORG_KEY)
+      SELECT o.ORG_KEY, o.NOM, o.SOURCE, o.TYPE, o.VILLE, o.PAYS, o.SITE_WEB, o.CA_EUR,
+             p.JOIGNABLES, NVL(i.N, 0) INTERACTIONS
+        FROM pers p
+        JOIN V_ORGANISATIONS o ON o.ORG_KEY = p.ORG_KEY
+        LEFT JOIN inter i ON i.ORG_KEY = o.ORG_KEY
+      ${where}`;
+    const r = await q(`SELECT * FROM (${base})
+                       ORDER BY JOIGNABLES DESC, NOM
+                       OFFSET :off ROWS FETCH NEXT 60 ROWS ONLY`, b);
+    const c = await q(`SELECT COUNT(*) N FROM (${base})`,
+                      Object.fromEntries(Object.entries(b).filter(([k]) => k !== 'off')));
+    res.json({ total: c.rows[0].N, rows: r.rows });
+  } catch (e) { next(e); }
 });
 
 app.get('/api/entreprises/:id', auth, async (req, res, next) => {
