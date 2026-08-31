@@ -32,12 +32,21 @@ async function main() {
   });
   const q = (sql, binds = {}) => cn.execute(sql, binds, { autoCommit: true });
 
-  const existe = (await q(`SELECT COUNT(*) N FROM ALL_TABLES
-                            WHERE OWNER='PROSPECTS' AND TABLE_NAME='CONTACT_STATE'`)).rows[0].N > 0;
+  // On est ADMIN pour les GRANT, mais les objets vivent chez PROSPECTS. Sans
+  // cette bascule, un nom non qualifie comme INTERACTION serait cherche dans
+  // le schema ADMIN, ou il n'existe pas.
+  await q(`ALTER SESSION SET CURRENT_SCHEMA = PROSPECTS`);
+
+  const existeT = async n => (await q(`SELECT COUNT(*) N FROM ALL_TABLES
+                                       WHERE OWNER='PROSPECTS' AND TABLE_NAME=:n`, { n })).rows[0].N > 0;
+  const existe = await existeT('CONTACT_STATE');
+  const existeCamp = await existeT('CAMPAGNE');
+  const existeInter = await existeT('INTERACTION');
 
   // Les faits d'envoi vivent chez INVESTORS : sans ce droit, la reconciliation
   // ne verrait que DEMARCHAGE, c'est-a-dire rien.
-  const grants = [`GRANT SELECT ON INVESTORS.MAILING_SENDS TO PROSPECTS`];
+  const grants = [`GRANT SELECT ON INVESTORS.MAILING_SENDS TO PROSPECTS`,
+                  `GRANT SELECT ON INVESTORS.MAILING_CAMPAIGNS TO PROSPECTS`];
 
   if (!APPLIQUER) {
     console.log(existe ? '-- CONTACT_STATE existe deja' : crm.DDL + ';');
@@ -60,8 +69,21 @@ async function main() {
     console.log('  table CONTACT_STATE deja presente, conservee');
   }
 
+  // CAMPAGNE avant INTERACTION : l'ingestion des interactions y resout le
+  // rattachement a la campagne.
+  if (!existeCamp) { await q(crm.DDL_CAMPAGNE); console.log('  ok table : PROSPECTS.CAMPAGNE'); }
+  if (!existeInter) {
+    await q(crm.DDL_INTERACTION);
+    console.log('  ok table : PROSPECTS.INTERACTION');
+    for (const i of crm.INDEX_CRM) { await q(i); console.log(`  ok index : ${i.split(' ')[2]}`); }
+  }
+
   const r = await crm.reconcilier(q, { appliquer: true });
   console.log(`  ok reconciliation : ${r.lignes} lignes`);
+  const rc = await crm.ingererCampagnes(q, { appliquer: true });
+  console.log(`  ok campagnes : ${rc.lignes} lignes`);
+  const ri = await crm.ingererInteractions(q, { appliquer: true });
+  console.log(`  ok interactions : ${ri.lignes} lignes`);
 
   // Une table creee n'est pas une table juste : on relit ce qu'elle contient.
   const etat = await q(`SELECT STATUT, COUNT(*) N, SUM(OPT_OUT) OPT_OUT,
@@ -73,6 +95,22 @@ async function main() {
   for (const l of etat.rows) {
     console.log(`  ${String(l.STATUT).padEnd(14)} ${String(l.N).padStart(5)} — ` +
                 `${l.OPT_OUT} opt-out, ${l.CONTACTES} contactes, ${l.REPONSES} reponses (${l.ORIGINE})`);
+  }
+  const inter = await q(`SELECT CANAL, TYPE, SENS, COUNT(*) N FROM PROSPECTS.INTERACTION
+                          GROUP BY CANAL, TYPE, SENS ORDER BY N DESC`);
+  console.log('\nINTERACTION :');
+  for (const l of inter.rows) {
+    console.log(`  ${String(l.CANAL).padEnd(11)} ${String(l.TYPE).padEnd(12)} ` +
+                `${String(l.SENS).padEnd(8)} ${l.N}`);
+  }
+  const camp = await q(`SELECT c.NOM, c.MOTEUR, c.CIBLES,
+                               (SELECT COUNT(*) FROM PROSPECTS.INTERACTION i
+                                 WHERE i.CAMPAGNE_ID = c.ID) EVENEMENTS
+                          FROM PROSPECTS.CAMPAGNE c ORDER BY c.DEBUT DESC`);
+  console.log('\nCAMPAGNE :');
+  for (const l of camp.rows) {
+    console.log(`  ${String(l.NOM).slice(0, 40).padEnd(42)} ${l.MOTEUR}  ` +
+                `${l.CIBLES} cibles, ${l.EVENEMENTS} evenements`);
   }
   await cn.close();
 }

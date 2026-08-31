@@ -57,7 +57,29 @@ const T = {
   // etre retape en termes de personnes : c'est le copier-coller que B1.4
   // supprime.
   ENTREPRISE_ID: 'NUMBER', TERRITOIRE: 'VARCHAR2(10)', SECTEUR: 'VARCHAR2(200)',
+  // Le lien vers l'organisation. Sans lui, « toutes les personnes de ce fonds »
+  // est une recherche de chaine de caracteres, et on ecrit deux fois a la meme
+  // maison sans le voir.
+  ORG_KEY: 'VARCHAR2(400)',
+  // Quand cette personne est entree dans le referentiel. C'est le point de
+  // depart de sa frise : sans lui, une inscription par formulaire n'a pas de
+  // date et ne peut pas devenir une interaction.
+  VU_LE: 'TIMESTAMP',
 };
+
+// Une adresse chez un fournisseur grand public ne dit rien de l'employeur :
+// regrouper sur « gmail.com » creerait une organisation de 38 personnes sans
+// aucun rapport entre elles.
+const DOMAINES_LIBRES = ['gmail.com', 'googlemail.com', 'yahoo.com', 'yahoo.fr',
+  'hotmail.com', 'hotmail.fr', 'outlook.com', 'outlook.fr', 'live.com', 'live.fr',
+  'free.fr', 'orange.fr', 'wanadoo.fr', 'sfr.fr', 'laposte.net', 'icloud.com',
+  'me.com', 'aol.com', 'protonmail.com', 'proton.me', 'gmx.com', 'yandex.com'];
+
+// Le domaine de l'adresse professionnelle est la cle de rapprochement la plus
+// sure dont on dispose sans referentiel commun.
+const cleDomaine = col => `CASE WHEN INSTR(${col}, '@') > 0
+        AND LOWER(SUBSTR(${col}, INSTR(${col}, '@') + 1)) NOT IN (${DOMAINES_LIBRES.map(d => `'${d}'`).join(', ')})
+      THEN 'dom:' || LOWER(SUBSTR(${col}, INSTR(${col}, '@') + 1)) END`;
 const COLS = Object.keys(T);
 const c = (expr, col) => `CAST(${expr} AS ${T[col]})`;
 
@@ -87,6 +109,9 @@ const INVESTORS = branche([
   `NULL`,
   `NULL`,
   `c.ORG_TYPE`,
+  // ORG_KEY existe deja chez INVESTORS : c'est la cle de ORGANIZATIONS.
+  `NVL('inv:' || c.ORG_KEY, ${cleDomaine('c.EMAIL')})`,
+  `c.LOADED_AT`,
 ]) + `
     FROM INVESTORS.CONTACTS c
     LEFT JOIN INVESTORS.DEMARCHAGE d ON d.CONTACT_ID = c.CONTACT_ID`;
@@ -113,6 +138,8 @@ const PROSPECTS_CONTACTS = branche([
   `c.ENTREPRISE_ID`,
   `e.TERRITOIRE`,
   `e.SECTEUR_LIBELLE`,
+  `NVL2(e.ID, 'ent:' || e.ID, ${cleDomaine('c.EMAIL')})`,
+  `NVL(CAST(c.DATE_COLLECTE AS TIMESTAMP), c.CREATED_AT)`,
 ]) + `
     FROM PROSPECTS.CONTACTS c
     LEFT JOIN PROSPECTS.ENTREPRISES e ON e.ID = c.ENTREPRISE_ID`;
@@ -135,6 +162,8 @@ const PROSPECTS_DIRIGEANTS = branche([
   `e.ID`,
   `e.TERRITOIRE`,
   `e.SECTEUR_LIBELLE`,
+  `'ent:' || e.ID`,
+  `NVL(CAST(e.DATE_COLLECTE AS TIMESTAMP), e.CREATED_AT)`,
 ]) + `
     FROM PROSPECTS.ENTREPRISES e
    WHERE e.DIRIGEANT IS NOT NULL AND TRIM(e.DIRIGEANT) IS NOT NULL`;
@@ -168,9 +197,61 @@ function brancheGate(owner) {
     // INTEREST est ce que la personne a coche en demandant l'acces : c'est le
     // seul equivalent de secteur cote formulaire, et il est declaratif.
     `p.INTEREST`,
+    // Cote formulaire il n'y a ni ORG_KEY ni entreprise du referentiel : le
+    // domaine professionnel est le seul rattachement possible.
+    cleDomaine('p.EMAIL'),
+    `p.CREATED_AT`,
   ]) + `
     FROM ${owner}.PROSPECTS p`;
 }
+
+/*
+ * V_ORGANISATIONS — la colonne vertebrale qui manquait.
+ *
+ * Une personne appartient a une maison. Tant que COMPANY etait une chaine de
+ * caracteres, « toutes les personnes de ce fonds » etait une recherche de
+ * texte, et rien n'empechait d'ecrire deux fois a la meme adresse.
+ *
+ * Comme V_PERSONNES : une vue, pas une copie. INVESTORS.ORGANIZATIONS porte
+ * deja 20 164 maisons, PROSPECTS.ENTREPRISES 54 499 societes ; les dupliquer
+ * dans une table creerait deux verites a synchroniser.
+ *
+ * Les personnes rattachees par le seul domaine de leur adresse (cle « dom: »)
+ * n'ont pas de ligne ici : l'organisation est alors deduite, pas connue. La
+ * requete de rapprochement les compte a part plutot que d'inventer une fiche.
+ */
+const VUE_ORGANISATIONS = `CREATE OR REPLACE VIEW PROSPECTS.V_ORGANISATIONS AS
+  SELECT CAST('inv:' || o.ORG_KEY AS VARCHAR2(400))     AS ORG_KEY,
+         CAST('investors' AS VARCHAR2(20))              AS SOURCE,
+         CAST(o.ORG_NAME AS VARCHAR2(600))              AS NOM,
+         CAST(o.ORG_TYPE AS VARCHAR2(200))              AS TYPE,
+         CAST(o.CITY AS VARCHAR2(160))                  AS VILLE,
+         CAST(o.COUNTRY AS VARCHAR2(64))                AS PAYS,
+         CAST(o.WEBSITE AS VARCHAR2(500))               AS SITE_WEB,
+         CAST(o.EMAIL AS VARCHAR2(320))                 AS EMAIL,
+         CAST(o.PHONE AS VARCHAR2(60))                  AS TELEPHONE,
+         CAST(o.LINKEDIN_URL AS VARCHAR2(500))          AS LINKEDIN_URL,
+         CAST(o.REVENUE_EUR AS NUMBER)                  AS CA_EUR,
+         CAST(o.HEADCOUNT_MIN AS NUMBER)                AS EFFECTIF,
+         CAST(NULL AS VARCHAR2(10))                     AS TERRITOIRE,
+         CAST(o.REGISTRATION_ID AS VARCHAR2(60))        AS IMMATRICULATION
+    FROM INVESTORS.ORGANIZATIONS o
+  UNION ALL
+  SELECT CAST('ent:' || e.ID AS VARCHAR2(400)),
+         CAST('prospects' AS VARCHAR2(20)),
+         CAST(e.RAISON_SOCIALE AS VARCHAR2(600)),
+         CAST(e.SECTEUR_LIBELLE AS VARCHAR2(200)),
+         CAST(e.VILLE AS VARCHAR2(160)),
+         CAST('FR' AS VARCHAR2(64)),
+         CAST(e.SITE_WEB AS VARCHAR2(500)),
+         CAST(NULL AS VARCHAR2(320)),
+         CAST(e.TELEPHONE AS VARCHAR2(60)),
+         CAST(NULL AS VARCHAR2(500)),
+         CAST(e.CA_EUR AS NUMBER),
+         CAST(e.EFFECTIF AS NUMBER),
+         CAST(e.TERRITOIRE AS VARCHAR2(10)),
+         CAST(e.SIREN AS VARCHAR2(60))
+    FROM PROSPECTS.ENTREPRISES e`;
 
 /*
  * LISTE stocke un filtre, jamais des lignes.
@@ -231,6 +312,7 @@ async function main() {
   const grants = [
     `GRANT SELECT ON INVESTORS.CONTACTS TO PROSPECTS`,
     `GRANT SELECT ON INVESTORS.DEMARCHAGE TO PROSPECTS`,
+    `GRANT SELECT ON INVESTORS.ORGANIZATIONS TO PROSPECTS`,
     ...gates.map(g => `GRANT SELECT ON ${g}.PROSPECTS TO PROSPECTS`),
   ];
 
@@ -244,6 +326,7 @@ async function main() {
   const etapes = [
     ...grants.map(sql => ['grant', sql]),
     ['vue', vue],
+    ['vue', VUE_ORGANISATIONS],
     // Pas de GRANT sur LISTE : la table nait dans le schema PROSPECTS, qui en
     // est donc proprietaire. Oracle refuse qu'un schema se donne un droit a
     // lui-meme (ORA-01749).
