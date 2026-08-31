@@ -21,6 +21,7 @@ const express = require('express');
 // interroge la meme base avec la meme connexion.
 const { q } = require('./lib/oracle');
 const pont = require('./lib/pont-linki');
+const crm = require('./lib/crm');
 
 // ---------- auth ----------
 const TOKEN = process.env.DASH_TOKEN || '';
@@ -374,6 +375,152 @@ app.post('/api/listes/envoyer', auth, async (req, res, next) => {
                crees: envoi.imported, mis_a_jour: envoi.updated, deja_dans_la_liste: envoi.skipped,
                refus: envoi.errors || [], avertissement });
   } catch (e) { next(e); }
+});
+
+/*
+ * CRM — le pipeline, toutes bases confondues.
+ *
+ * Une seule liste pour INVESTORS, PROSPECTS, les dirigeants de fiches et les
+ * 35 formulaires GATE_*. C'est le point : un prospect n'appartient pas a un
+ * ecran, il appartient a un etat.
+ *
+ * L'absence de ligne dans CONTACT_STATE vaut `a_contacter` — on ne materialise
+ * pas 85 494 lignes pour dire que rien ne s'est encore passe.
+ */
+const FILES = {
+  // Les trois questions qu'on se pose le matin, dans l'ordre.
+  retard:     `ACTION_LE < TRUNC(SYSDATE)`,
+  aujourdhui: `ACTION_LE <= TRUNC(SYSDATE)`,
+  semaine:    `ACTION_LE <= TRUNC(SYSDATE) + 7`,
+  actifs:     `STATUT NOT IN ('a_contacter', 'gagne', 'perdu')`,
+};
+
+function ouPipeline(req) {
+  const w = [], b = {};
+  if (req.query.source) {
+    // « gate » vaut pour les 35 formulaires d'un coup.
+    if (req.query.source === 'gate') w.push(`SOURCE LIKE 'gate:%'`);
+    else { w.push(`SOURCE = :source`); b.source = req.query.source; }
+  }
+  if (req.query.statut)       { w.push(`STATUT = :statut`); b.statut = req.query.statut; }
+  if (req.query.proprietaire) { w.push(`PROPRIETAIRE = :prop`); b.prop = req.query.proprietaire; }
+  if (req.query.canal === 'email')    w.push(`EMAIL IS NOT NULL`);
+  if (req.query.canal === 'linkedin') w.push(`LINKEDIN_URL IS NOT NULL`);
+  if (req.query.canal === 'joignable') w.push(`(EMAIL IS NOT NULL OR LINKEDIN_URL IS NOT NULL)`);
+  if (req.query.optout === '1')  w.push(`OPT_OUT = 1`);
+  if (req.query.optout === '0')  w.push(`OPT_OUT = 0`);
+  if (FILES[req.query.file])     w.push(FILES[req.query.file]);
+  if (req.query.q) {
+    w.push(`(UPPER(FIRST_NAME || ' ' || LAST_NAME) LIKE :q
+             OR UPPER(NVL(COMPANY,' ')) LIKE :q OR UPPER(NVL(TITLE,' ')) LIKE :q
+             OR UPPER(NVL(EMAIL,' ')) LIKE :q)`);
+    b.q = `%${String(req.query.q).toUpperCase()}%`;
+  }
+  return { where: w.length ? 'WHERE ' + w.join(' AND ') : '', binds: b };
+}
+
+app.get('/api/pipeline', auth, async (req, res, next) => {
+  try {
+    const { where, binds } = ouPipeline(req);
+    const b = { ...binds, off: Number(req.query.page || 0) * 60 };
+    // Les echeances d'abord, puis les fiches vivantes : une liste de CRM se lit
+    // par urgence, pas par ordre alphabetique.
+    const tri = { action: 'ACTION_LE NULLS LAST, LAST_NAME',
+                  nom: 'LAST_NAME, FIRST_NAME',
+                  recent: 'DERNIER_CONTACT_LE DESC NULLS LAST' }[req.query.tri]
+                || 'ACTION_LE NULLS LAST, LAST_NAME';
+    const r = await q(`SELECT * FROM (${crm.SQL_PIPELINE}) ${where}
+                       ORDER BY ${tri} OFFSET :off ROWS FETCH NEXT 60 ROWS ONLY`, b);
+    const c = await q(`SELECT COUNT(*) N FROM (${crm.SQL_PIPELINE}) ${where}`, binds);
+    res.json({ total: c.rows[0].N, rows: r.rows });
+  } catch (e) { next(e); }
+});
+
+/*
+ * Les compteurs du CRM : une ligne par base, une ligne par statut, et les
+ * echeances. C'est ce qui doit tenir en haut de l'ecran.
+ */
+app.get('/api/pipeline/stats', auth, async (_req, res, next) => {
+  try {
+    const [bases, statuts, echeances] = await Promise.all([
+      q(`SELECT SOURCE, COUNT(*) N,
+                COUNT(CASE WHEN EMAIL IS NOT NULL OR LINKEDIN_URL IS NOT NULL THEN 1 END) JOIGNABLES,
+                COUNT(CASE WHEN STATUT <> 'a_contacter' THEN 1 END) ENGAGES,
+                SUM(OPT_OUT) OPT_OUT
+           FROM (${crm.SQL_PIPELINE}) GROUP BY SOURCE ORDER BY N DESC`),
+      q(`SELECT STATUT, COUNT(*) N FROM (${crm.SQL_PIPELINE})
+          WHERE STATUT <> 'a_contacter' GROUP BY STATUT`),
+      q(`SELECT COUNT(CASE WHEN ${FILES.retard} THEN 1 END) RETARD,
+                COUNT(CASE WHEN ${FILES.aujourdhui} THEN 1 END) AUJOURDHUI,
+                COUNT(CASE WHEN ${FILES.semaine} THEN 1 END) SEMAINE,
+                COUNT(CASE WHEN ${FILES.actifs} THEN 1 END) ACTIFS
+           FROM (${crm.SQL_PIPELINE})`),
+    ]);
+    res.json({ bases: bases.rows, statuts: statuts.rows, echeances: echeances.rows[0],
+               vocabulaire: crm.STATUTS, motifs: crm.MOTIFS_PERTE,
+               types_action: crm.TYPES_ACTION, sans_action_due: crm.SANS_ACTION_DUE });
+  } catch (e) { next(e); }
+});
+
+/*
+ * Saisie d'un etat.
+ *
+ * MERGE : la ligne d'etat nait au premier geste, pas avant. Les colonnes
+ * absentes du corps ne sont pas touchees — un ecran qui envoie un champ ne doit
+ * pas effacer les autres.
+ */
+app.patch('/api/etat/:person_key', auth, async (req, res, next) => {
+  try {
+    const k = req.params.person_key;
+    const v = req.body || {};
+    if (v.statut && !crm.STATUTS.includes(v.statut))
+      return res.status(400).json({ erreur: `statut inconnu : ${v.statut}` });
+    if (v.action_type && !crm.TYPES_ACTION.includes(v.action_type))
+      return res.status(400).json({ erreur: `type d'action inconnu : ${v.action_type}` });
+    if (v.motif_perte && !crm.MOTIFS_PERTE.includes(v.motif_perte))
+      return res.status(400).json({ erreur: `motif de perte inconnu : ${v.motif_perte}` });
+
+    // La personne doit exister dans le referentiel : une cle inventee creerait
+    // un etat orphelin que plus rien ne rattacherait a quelqu'un.
+    const p = await q(`SELECT COUNT(*) N FROM V_PERSONNES WHERE PERSON_KEY = :k`, { k });
+    if (!p.rows[0].N) return res.status(404).json({ erreur: 'personne inconnue' });
+
+    await q(`MERGE INTO CONTACT_STATE c USING (SELECT :k PERSON_KEY FROM DUAL) s
+               ON (c.PERSON_KEY = s.PERSON_KEY)
+             WHEN MATCHED THEN UPDATE SET
+               STATUT = NVL(:statut, STATUT),
+               PROPRIETAIRE = NVL(:prop, PROPRIETAIRE),
+               ACTION_TYPE = NVL(:atype, ACTION_TYPE),
+               ACTION_LE = NVL(TO_DATE(:ale, 'YYYY-MM-DD'), ACTION_LE),
+               ACTION_NOTE = NVL(:anote, ACTION_NOTE),
+               NOTES = NVL(:notes, NOTES),
+               MOTIF_PERTE = NVL(:motif, MOTIF_PERTE),
+               OPT_OUT = NVL(:optout, OPT_OUT),
+               OPT_OUT_LE = CASE WHEN :optout = 1 AND OPT_OUT_LE IS NULL THEN SYSTIMESTAMP ELSE OPT_OUT_LE END,
+               UPDATED_AT = SYSTIMESTAMP
+             WHEN NOT MATCHED THEN INSERT
+               (PERSON_KEY, STATUT, PROPRIETAIRE, ACTION_TYPE, ACTION_LE, ACTION_NOTE,
+                NOTES, MOTIF_PERTE, OPT_OUT, OPT_OUT_LE, ORIGINE_ETAT)
+               VALUES (:k, NVL(:statut, 'a_contacter'), :prop, :atype,
+                       TO_DATE(:ale, 'YYYY-MM-DD'), :anote, :notes, :motif,
+                       NVL(:optout, 0), CASE WHEN :optout = 1 THEN SYSTIMESTAMP END, 'saisie')`,
+            { k, statut: v.statut || null, prop: v.proprietaire || null,
+              atype: v.action_type || null, ale: v.action_le || null,
+              anote: v.action_note || null, notes: v.notes || null,
+              motif: v.motif_perte || null,
+              optout: v.opt_out == null ? null : (v.opt_out ? 1 : 0) });
+
+    const r = await q(`SELECT * FROM (${crm.SQL_PIPELINE}) WHERE PERSON_KEY = :k`, { k });
+    res.json({ ok: true, fiche: r.rows[0] });
+  } catch (e) {
+    // La contrainte B4.2 est le coeur du CRM : son refus doit se lire, pas
+    // ressortir en ORA-02290 dans une boite de dialogue.
+    if (String(e.message).includes('CK_CS_ACTION_DUE')) {
+      return res.status(400).json({
+        erreur: 'Ce statut exige une prochaine action datee : renseignez le type et la date.' });
+    }
+    next(e);
+  }
 });
 
 app.get('/api/entreprises/:id', auth, async (req, res, next) => {
