@@ -37,7 +37,9 @@ const APPLIQUER = process.argv.includes('--appliquer');
 // colonnes et EMAIL contient parfois une localisation. Meme regex que le
 // serveur, pour que le filtre « avec e-mail » dise la meme chose partout.
 const RE_EMAIL = `'^[^[:space:]@]+@[^[:space:]@]+\\.[A-Za-z]{2,}$'`;
-const email = c => `LOWER(CASE WHEN REGEXP_LIKE(${c}, ${RE_EMAIL}) THEN ${c} END)`;
+const email = c => `LOWER(CASE WHEN REGEXP_LIKE(${c}, ${RE_EMAIL})
+  AND NOT REGEXP_LIKE(${c}, '\\.(png|webp|jpg|jpeg|svg|gif)($|\\?)', 'i')
+  AND NOT REGEXP_LIKE(${c}, '@(2x|3x|1x|[0-9]+w|[0-9]+h)', 'i') THEN ${c} END)`;
 // Linki refuse toute URL qui n'est pas un profil personnel : une page societe
 // ferait echouer la ligne a l'import. On ne la laisse pas sortir d'ici.
 const linkedin = c => `CASE WHEN ${c} LIKE '%linkedin.com/in/%' THEN ${c} END`;
@@ -57,6 +59,7 @@ const T = {
   // etre retape en termes de personnes : c'est le copier-coller que B1.4
   // supprime.
   ENTREPRISE_ID: 'NUMBER', TERRITOIRE: 'VARCHAR2(10)', SECTEUR: 'VARCHAR2(200)',
+  CODE_NAF: 'VARCHAR2(20)',
   // Le lien vers l'organisation. Sans lui, « toutes les personnes de ce fonds »
   // est une recherche de chaine de caracteres, et on ecrit deux fois a la meme
   // maison sans le voir.
@@ -65,6 +68,10 @@ const T = {
   // depart de sa frise : sans lui, une inscription par formulaire n'a pas de
   // date et ne peut pas devenir une interaction.
   VU_LE: 'TIMESTAMP',
+  // Les langues d'ecriture, en minuscules et separees par des virgules :
+  // « fr,en ». Normalisees ici plutot qu'a l'ecran, pour que le filtre et le
+  // choix du gabarit lisent la meme chose.
+  LANGUES: 'VARCHAR2(60)',
 };
 
 // Une adresse chez un fournisseur grand public ne dit rien de l'employeur :
@@ -109,9 +116,11 @@ const INVESTORS = branche([
   `NULL`,
   `NULL`,
   `c.ORG_TYPE`,
+  `NULL`,
   // ORG_KEY existe deja chez INVESTORS : c'est la cle de ORGANIZATIONS.
   `NVL('inv:' || c.ORG_KEY, ${cleDomaine('c.EMAIL')})`,
   `c.LOADED_AT`,
+  `LOWER(REPLACE(REPLACE(REPLACE(NVL(JSON_SERIALIZE(c.LANGUAGES), ''), '[', ''), ']', ''), '"', ''))`,
 ]) + `
     FROM INVESTORS.CONTACTS c
     LEFT JOIN INVESTORS.DEMARCHAGE d ON d.CONTACT_ID = c.CONTACT_ID`;
@@ -138,8 +147,12 @@ const PROSPECTS_CONTACTS = branche([
   `c.ENTREPRISE_ID`,
   `e.TERRITOIRE`,
   `e.SECTEUR_LIBELLE`,
+  `e.CODE_NAF`,
   `NVL2(e.ID, 'ent:' || e.ID, ${cleDomaine('c.EMAIL')})`,
   `NVL(CAST(c.DATE_COLLECTE AS TIMESTAMP), c.CREATED_AT)`,
+  // Registre francais, entreprises PACA : la langue n'est pas collectee mais
+  // elle n'est pas non plus douteuse.
+  `'fr'`,
 ]) + `
     FROM PROSPECTS.CONTACTS c
     LEFT JOIN PROSPECTS.ENTREPRISES e ON e.ID = c.ENTREPRISE_ID`;
@@ -162,8 +175,10 @@ const PROSPECTS_DIRIGEANTS = branche([
   `e.ID`,
   `e.TERRITOIRE`,
   `e.SECTEUR_LIBELLE`,
+  `e.CODE_NAF`,
   `'ent:' || e.ID`,
   `NVL(CAST(e.DATE_COLLECTE AS TIMESTAMP), e.CREATED_AT)`,
+  `'fr'`,
 ]) + `
     FROM PROSPECTS.ENTREPRISES e
    WHERE e.DIRIGEANT IS NOT NULL AND TRIM(e.DIRIGEANT) IS NOT NULL`;
@@ -197,10 +212,12 @@ function brancheGate(owner) {
     // INTEREST est ce que la personne a coche en demandant l'acces : c'est le
     // seul equivalent de secteur cote formulaire, et il est declaratif.
     `p.INTEREST`,
+    `NULL`,
     // Cote formulaire il n'y a ni ORG_KEY ni entreprise du referentiel : le
     // domaine professionnel est le seul rattachement possible.
     cleDomaine('p.EMAIL'),
     `p.CREATED_AT`,
+    `LOWER(SUBSTR(p.LANG, 1, 2))`,
   ]) + `
     FROM ${owner}.PROSPECTS p`;
 }
