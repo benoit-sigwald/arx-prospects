@@ -1,1152 +1,2645 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-<link rel="icon" type="image/png" href="favicon.png">
-<link rel="shortcut icon" href="favicon.ico">
-<base href="/prospects/" />
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex, nofollow">
-<title>Tissu Économique PACA</title>
-<style>
-/* Systeme visuel repris de l'Atlas des investisseurs : pile de polices systeme,
-   corps dense a 11 px, gris #F5F5F7, bleu #0071E3, pilules et hairlines.
-   Les deux outils se lisent ainsi de la meme facon. */
-:root{
-  --bg:#FFFFFF; --bg-alt:#F5F5F7; --card:#FFFFFF;
-  --ink:#1D1D1F; --ink-2:#6E6E73; --ink-3:#86868B;
-  --hair:#D2D2D7; --hair-soft:#E8E8ED;
-  --blue:#0071E3;
-  --ok:#248A3D; --warn:#B25000; --crit:#D70015;
-  --r:18px; --pill:980px; --shadow:0 4px 24px rgba(0,0,0,.06);
-}
-@media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]){
-    --bg:#000000; --bg-alt:#101012; --card:#1D1D1F;
-    --ink:#F5F5F7; --ink-2:#A1A1A6; --ink-3:#86868B;
-    --hair:#38383D; --hair-soft:#2A2A2E;
-    --blue:#2997FF;
-    --ok:#30D158; --warn:#FF9F0A; --crit:#FF453A;
-    --shadow:0 4px 24px rgba(0,0,0,.5);
-  }
-}
-:root[data-theme="dark"]{
-  --bg:#000000; --bg-alt:#101012; --card:#1D1D1F;
-  --ink:#F5F5F7; --ink-2:#A1A1A6; --ink-3:#86868B;
-  --hair:#38383D; --hair-soft:#2A2A2E;
-  --blue:#2997FF;
-  --ok:#30D158; --warn:#FF9F0A; --crit:#FF453A;
-  --shadow:0 4px 24px rgba(0,0,0,.5);
-}
-*{box-sizing:border-box}
-html{-webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale}
-body{
-  margin:0; background:var(--bg); color:var(--ink); font-size:11px; line-height:1.45;
-  letter-spacing:-.012em;
-  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display",
-    "Helvetica Neue",Helvetica,Arial,sans-serif;
-}
-h1,h2,h3{margin:0; font-weight:600; letter-spacing:-.022em; text-wrap:balance}
-.mono{font-family:ui-monospace,"SF Mono",SFMono-Regular,Menlo,monospace;
-  font-variant-numeric:tabular-nums; letter-spacing:0}
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Contact PACA — Décideurs & Tissu Économique Région Sud | Arx Consulting</title>
+  <meta name="description" content="Plateforme de recherche, filtrage multicritères et export de contacts et décideurs de la région Provence-Alpes-Côte d'Azur. Développé avec l'expertise Arx Consulting.">
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+  <link rel="apple-touch-icon" href="assets/favicon.png">
 
-header{background:var(--bg-alt); padding:14px 28px; position:relative;
-  display:flex; align-items:center; gap:20px;
-  border-bottom:1px solid var(--hair-soft)}
-header .brand{flex:0 0 auto; order:-1}
-header .brand img{display:block; height:46px; width:auto}
-header .titles{flex:1; min-width:0; display:flex; align-items:baseline; gap:14px; flex-wrap:wrap}
-header h1{font-size:14px; letter-spacing:-.02em; line-height:1.2; white-space:nowrap}
-header .sub{color:var(--ink-3); font-size:10px; margin:0; max-width:60ch; line-height:1.3}
-header .right{display:flex; align-items:center; gap:12px; flex:0 0 auto}
-.cta{font:inherit; font-size:10px; text-decoration:none; white-space:nowrap;
-  background:var(--blue); color:#fff; border-radius:var(--pill); padding:7px 16px}
-.cta:hover{opacity:.9}
-/* Le blason est bleu nuit : sur fond noir il s'efface. */
-@media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]) header .brand img{filter:brightness(1.95) saturate(.9)}
-}
-:root[data-theme="dark"] header .brand img{filter:brightness(1.95) saturate(.9)}
-@media (max-width:820px){
-  header{flex-wrap:wrap; padding:12px 18px}
-  header .sub{display:none}
-  header .brand img{height:38px}
-}
+  <!-- Apple Fonts & Icons styling -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&family=SF+Pro+Text:wght@300;400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-.theme{display:flex; gap:2px;
-  background:var(--card); border:1px solid var(--hair); border-radius:var(--pill); padding:3px}
-.theme button{font:inherit; font-size:10px; color:var(--ink-2); background:none; border:0;
-  cursor:pointer; padding:5px 12px; border-radius:var(--pill)}
-.theme button[aria-pressed="true"]{background:var(--blue); color:#fff}
-.theme button:focus-visible{outline:none; box-shadow:0 0 0 4px color-mix(in srgb,var(--blue) 25%,transparent)}
+  <style>
+    :root {
+      --apple-blue: #0071e3;
+      --apple-blue-hover: #0077ed;
+      --apple-blue-active: #005bb5;
+      --apple-blue-subtle: rgba(0, 113, 227, 0.08);
+      --apple-blue-badge: rgba(0, 113, 227, 0.12);
+      
+      --apple-green: #34c759;
+      --apple-green-subtle: rgba(52, 199, 89, 0.12);
+      --apple-orange: #ff9500;
+      --apple-orange-subtle: rgba(255, 149, 0, 0.12);
+      --apple-red: #ff3b30;
+      --apple-purple: #5856d6;
+      --apple-purple-subtle: rgba(88, 86, 214, 0.12);
 
-nav.tabs{position:sticky; top:0; z-index:20; display:flex; justify-content:center; gap:26px;
-  background:var(--bg);
-  backdrop-filter:saturate(180%) blur(20px); -webkit-backdrop-filter:saturate(180%) blur(20px);
-  border-bottom:1px solid var(--hair-soft); padding:0 24px}
-nav.tabs button{font:inherit; font-size:10px; color:var(--ink-2); background:none; border:0;
-  cursor:pointer; padding:14px 2px; border-bottom:2px solid transparent}
-nav.tabs button[aria-selected="true"]{color:var(--ink); border-bottom-color:var(--ink)}
-nav.tabs button:focus-visible{outline:2px solid var(--blue); outline-offset:-4px; border-radius:6px}
+      --bg-page: #f5f5f7;
+      --bg-card: #ffffff;
+      --bg-card-hover: #fafafa;
+      --bg-glass: rgba(255, 255, 255, 0.82);
+      --bg-glass-card: rgba(255, 255, 255, 0.65);
+      --bg-input: #ffffff;
+      --bg-subtle: #f0f0f2;
+      --bg-selection-bar: rgba(255, 255, 255, 0.92);
 
-.tiles{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px;
-  max-width:1760px; margin:0 auto; padding:28px 24px 10px}
-.tile{background:var(--bg-alt); border-radius:var(--r); padding:20px 22px}
-.tile .n{font-size:23px; font-weight:600; letter-spacing:-.03em; font-variant-numeric:tabular-nums}
-.tile .k{font-size:10px; color:var(--ink-2); margin-top:3px}
-.tile .bar{height:4px; background:var(--hair-soft); margin-top:12px;
-  border-radius:var(--pill); overflow:hidden}
-.tile .bar i{display:block; height:100%; background:var(--blue); border-radius:var(--pill)}
+      --text-primary: #1d1d1f;
+      --text-secondary: #6e6e73;
+      --text-tertiary: #86868b;
+      --border-subtle: rgba(0, 0, 0, 0.08);
+      --border-focus: #0071e3;
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+      --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.04);
+      --shadow-elevated: 0 12px 32px rgba(0, 0, 0, 0.08);
+      --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.12);
 
-.wrap{display:grid; grid-template-columns:270px 1fr; gap:24px;
-  max-width:1760px; margin:0 auto; padding:16px 24px 72px; align-items:start}
-@media (max-width:900px){.wrap{grid-template-columns:1fr}}
-aside.filtres{position:sticky; top:64px; max-height:calc(100vh - 84px); overflow-y:auto;
-  background:var(--bg-alt); border-radius:var(--r); padding:22px}
-@media (max-width:900px){aside.filtres{position:static; max-height:none}}
-aside.filtres h3{font-size:10px; font-weight:600; color:var(--ink-3); margin:22px 0 9px}
-aside.filtres h3:first-child{margin-top:0}
-input[type=search],select{width:100%; font:inherit; font-size:10px; color:var(--ink);
-  background:var(--card); border:1px solid var(--hair); border-radius:11px;
-  padding:9px 12px; appearance:none}
-input[type=search]:focus,select:focus{outline:none; border-color:var(--blue);
-  box-shadow:0 0 0 4px color-mix(in srgb,var(--blue) 20%,transparent)}
-.chips{display:flex; flex-wrap:wrap; gap:6px}
-.chip{font:inherit; font-size:10px; padding:6px 13px; border-radius:var(--pill);
-  border:1px solid var(--hair); background:var(--card); color:var(--ink-2); cursor:pointer}
-.chip[aria-pressed="true"]{background:var(--blue); border-color:var(--blue); color:#fff}
-.chip:focus-visible{outline:none; box-shadow:0 0 0 4px color-mix(in srgb,var(--blue) 25%,transparent)}
-.reset{margin-top:24px; width:100%; font:inherit; font-size:10px; cursor:pointer;
-  background:var(--card); border:1px solid var(--hair); border-radius:var(--pill);
-  padding:9px; color:var(--blue)}
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 18px;
+      --radius-xl: 24px;
+      --radius-pill: 9999px;
 
+      --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", sans-serif;
+      --font-text: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", sans-serif;
+      --transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
 
-/* --- CRM : file de travail, frise, cartes ---------------------------- */
-/* Palette et typographie inchangees : ce sont deja celles d'apple.com
-   (SF Pro, #F5F5F7, #1D1D1F, #0071E3, pilules a 980px). Ce bloc ne fait
-   qu'appliquer le meme systeme aux vues qui n'existaient pas. */
-.jour{max-width:980px; margin:0 auto; display:grid; gap:34px}
-.jour section h2{font-size:23px; letter-spacing:-.03em; margin-bottom:3px}
-.jour section .sous{color:var(--ink-3); font-size:11px; margin-bottom:14px}
-.cartes{display:grid; gap:10px}
-.carte{display:flex; align-items:center; gap:16px; background:var(--card);
-  border:1px solid var(--hair-soft); border-radius:var(--r); padding:16px 20px;
-  cursor:pointer; transition:transform .18s ease, box-shadow .18s ease}
-.carte:hover{transform:translateY(-1px); box-shadow:var(--shadow)}
-.carte .qui{flex:1; min-width:0}
-.carte .qui b{display:block; font-size:13px; letter-spacing:-.02em}
-.carte .qui span{color:var(--ink-2); display:block; margin-top:1px}
-.carte .quoi{flex:0 0 auto; text-align:right; color:var(--ink-3)}
-.vide{background:var(--bg-alt); border-radius:var(--r); padding:26px;
-  text-align:center; color:var(--ink-3)}
+    [data-theme="dark"] {
+      --bg-page: #000000;
+      --bg-card: #1c1c1e;
+      --bg-card-hover: #242426;
+      --bg-glass: rgba(28, 28, 30, 0.82);
+      --bg-glass-card: rgba(44, 44, 46, 0.65);
+      --bg-input: #1c1c1e;
+      --bg-subtle: #2c2c2e;
+      --bg-selection-bar: rgba(28, 28, 30, 0.94);
 
-.frise{list-style:none; margin:14px 0 0; padding:0; position:relative}
-.frise:before{content:""; position:absolute; left:5px; top:6px; bottom:6px;
-  width:1px; background:var(--hair-soft)}
-.frise li{position:relative; padding:0 0 14px 22px}
-.frise li:before{content:""; position:absolute; left:0; top:5px; width:11px; height:11px;
-  border-radius:50%; background:var(--card); border:2px solid var(--hair)}
-.frise li.entrant:before{border-color:var(--ok); background:var(--ok)}
-.frise li b{font-size:11px}
-.frise li .q{color:var(--ink-3); font-variant-numeric:tabular-nums}
-.frise li p{margin:2px 0 0; color:var(--ink-2)}
-.voisins{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px}
+      --text-primary: #f5f5f7;
+      --text-secondary: #a1a1a6;
+      --text-tertiary: #86868b;
+      --border-subtle: rgba(255, 255, 255, 0.12);
+      --border-focus: #2997ff;
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+      --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.4);
+      --shadow-elevated: 0 12px 32px rgba(0, 0, 0, 0.5);
+      --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
+    }
 
-main{min-width:0}
-.bar-top{display:flex; align-items:baseline; gap:14px; margin-bottom:14px; flex-wrap:wrap}
-.count{font-size:12px; font-weight:600; letter-spacing:-.02em; font-variant-numeric:tabular-nums}
-.count span{color:var(--ink-3); font-weight:400; font-size:10px}
-.hint{color:var(--ink-3); font-size:10px}
-.scroll{overflow-x:auto; background:var(--card); border-radius:var(--r);
-  border:1px solid var(--hair-soft); box-shadow:var(--shadow)}
-table{border-collapse:collapse; width:100%; min-width:max-content; font-size:11px}
-th{position:sticky; top:var(--nav-h,46px); z-index:5; background:var(--card); text-align:left;
-  white-space:nowrap; font-size:10px; font-weight:600; color:var(--ink-3);
-  padding:8px 10px; border-bottom:1px solid var(--hair-soft)}
-th.tri{cursor:pointer}
-th[aria-sort]{color:var(--ink)}
-td{padding:7px 10px; border-bottom:1px solid var(--hair-soft); vertical-align:top;
-  white-space:nowrap}
-tbody tr:last-child td{border-bottom:0}
-tbody tr{cursor:pointer}
-tbody tr:hover{background:var(--bg-alt)}
-td.name{font-weight:600; letter-spacing:-.015em; white-space:normal; min-width:170px}
-td.org{color:var(--ink-2); max-width:280px; white-space:normal; min-width:160px}
-td.num{text-align:right; font-variant-numeric:tabular-nums}
-a{color:var(--blue); text-decoration:none}
-a:hover{text-decoration:underline}
-.pill{display:inline-block; font-size:10px; padding:2px 9px; border-radius:var(--pill);
-  background:var(--bg-alt); color:var(--ink-2); white-space:nowrap}
-.pill.ok{color:var(--ok)} .pill.warn{color:var(--warn)} .pill.crit{color:var(--crit)}
-.flags{display:flex; gap:4px}
-.flag{width:8px; height:8px; border-radius:50%; background:var(--hair)}
-.flag.on{background:var(--blue)}
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
 
-/* Panneau de detail : la table ne peut pas montrer tous les champs d'une fiche. */
-.detail{position:fixed; top:0; right:0; bottom:0; width:min(430px,92vw); z-index:60;
-  background:var(--card); border-left:1px solid var(--hair); overflow-y:auto;
-  padding:26px 28px 40px; box-shadow:-8px 0 40px rgba(0,0,0,.12)}
-.detail[hidden]{display:none}
-.detail h2{font-size:18px; letter-spacing:-.025em}
-.detail .role{color:var(--ink-2); margin:4px 0 20px; font-size:11px}
-.detail dl{display:grid; grid-template-columns:124px 1fr; gap:8px 14px; margin:0; font-size:11px}
-.detail dt{color:var(--ink-3); font-size:10px}
-.detail dd{margin:0; word-break:break-word}
-.detail h4{margin:26px 0 10px; font-size:10px; font-weight:600; color:var(--ink-3)}
-.detail .close{position:absolute; top:18px; right:20px; font:inherit; font-size:15px;
-  line-height:1; cursor:pointer; background:none; border:0; color:var(--ink-3); padding:4px 8px}
-.detail .close:hover{color:var(--ink)}
-.detail .liens{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px}
-.detail .liens a{font-size:10px; background:var(--bg-alt); padding:5px 12px; border-radius:var(--pill)}
-.pers{padding:10px 0; border-top:1px solid var(--hair-soft)}
-.pers .n{font-weight:600}
-.pers .r{color:var(--ink-2); font-size:10px; margin-top:2px}
-.rgpd{margin-top:20px; padding:12px 14px; border-radius:12px; background:var(--bg-alt);
-  font-size:10px; color:var(--ink-3); line-height:1.5}
-@media (max-width:640px){.detail dl{grid-template-columns:104px 1fr}}
+    body {
+      font-family: var(--font-text);
+      background-color: var(--bg-page);
+      color: var(--text-primary);
+      line-height: 1.5;
+      font-size: 14px;
+      overflow-x: hidden;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
 
-.pager{display:flex; gap:10px; align-items:center; justify-content:center; margin-top:22px}
-.pager button{font:inherit; font-size:10px; cursor:pointer; background:var(--blue);
-  color:#fff; border:0; border-radius:var(--pill); padding:9px 20px}
-.pager button[disabled]{background:var(--hair); color:var(--ink-3); cursor:default}
-.pager .mono{color:var(--ink-2); font-size:10px}
-.empty{padding:56px; text-align:center; color:var(--ink-3)}
-[hidden]{display:none !important}
-footer{max-width:62ch; margin:0 auto; padding:8px 24px 90px; color:var(--ink-3);
-  font-size:10px; line-height:1.6}
-footer code{font-family:ui-monospace,"SF Mono",Menlo,monospace; font-size:10px}
-</style>
+    /* ---- Header / Navigation (Apple Frosted Glass) ---- */
+    header.apple-nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--bg-glass);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border-bottom: 1px solid var(--border-subtle);
+      transition: var(--transition);
+    }
+
+    .nav-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+      color: var(--text-primary);
+    }
+
+    .arx-logo-wrapper {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--apple-blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0, 113, 227, 0.28);
+      flex-shrink: 0;
+    }
+    .arx-logo-img {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+    }
+
+    .brand-title {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: baseline;
+      gap: 0.4rem;
+    }
+
+    .brand-title .badge-paca {
+      font-size: 0.68rem;
+      font-weight: 600;
+      padding: 2px 7px;
+      background: linear-gradient(135deg, #0071e3, #47a3ff);
+      color: #fff;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .nav-partner-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-decoration: none;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-subtle);
+      transition: var(--transition);
+    }
+
+    .nav-partner-link:hover {
+      color: var(--apple-blue);
+      border-color: var(--apple-blue);
+      background: var(--apple-blue-subtle);
+      text-decoration: none;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .theme-toggle-btn {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+    }
+
+    .theme-toggle-btn:hover {
+      background: var(--apple-blue-subtle);
+      color: var(--apple-blue);
+    }
+
+    .btn-export-quick {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: var(--apple-blue);
+      color: #fff;
+      border: none;
+      padding: 0.45rem 1rem;
+      border-radius: var(--radius-pill);
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      box-shadow: 0 2px 8px rgba(0, 113, 227, 0.25);
+    }
+
+    .btn-export-quick:hover {
+      background: var(--apple-blue-hover);
+      box-shadow: 0 4px 14px rgba(0, 113, 227, 0.35);
+      transform: translateY(-1px);
+    }
+
+    /* ---- Hero Banner (Apple Clean Subtlety) ---- */
+    .hero-banner {
+      width: 100%;
+      margin: 0.85rem 0 1.25rem 0;
+      padding: 0;
+    }
+
+    .hero-box {
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-xl);
+      padding: 1.4rem;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-card);
+    }
+
+    .hero-box::before {
+      content: "";
+      position: absolute;
+      top: -100px;
+      right: -60px;
+      width: 320px;
+      height: 320px;
+      background: radial-gradient(circle, rgba(0, 113, 227, 0.08) 0%, rgba(52, 199, 89, 0.03) 50%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      max-width: 100%;
+    }
+
+    .hero-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .hero-badge-top {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--apple-blue);
+      background: var(--apple-blue-subtle);
+      padding: 3px 10px;
+      border-radius: var(--radius-pill);
+      letter-spacing: 0.01em;
+    }
+
+    .campaign-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--apple-green);
+      background: var(--apple-green-subtle);
+      padding: 3px 10px;
+      border-radius: var(--radius-pill);
+      letter-spacing: 0.01em;
+    }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.35rem, 2.2vw, 1.8rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin-bottom: 0.2rem;
+      color: var(--text-primary);
+    }
+
+    .hero-subtitle {
+      font-size: 0.86rem;
+      color: var(--text-secondary);
+      line-height: 1.35;
+      font-weight: 400;
+      margin-bottom: 0.75rem;
+    }
+
+    /* KPI Highlights: Compact Bento Bar */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 0.55rem;
+      margin-top: 0.5rem;
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 0.75rem;
+    }
+
+    .kpi-item {
+      display: flex;
+      flex-direction: column;
+      background: rgba(0, 0, 0, 0.015);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 0.55rem 0.75rem;
+      cursor: default;
+      transition: all 0.15s ease;
+    }
+
+    .kpi-item:hover {
+      background: rgba(0, 113, 227, 0.03);
+      border-color: rgba(0, 113, 227, 0.2);
+      transform: translateY(-1px);
+    }
+
+    .kpi-item.clickable {
+      cursor: pointer;
+    }
+
+    .kpi-item.active-kpi {
+      background: var(--apple-blue-subtle);
+      border-color: var(--apple-blue);
+    }
+
+    .kpi-item-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2px;
+      color: var(--text-tertiary);
+    }
+
+    .kpi-tag {
+      font-size: 0.58rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: var(--apple-blue-subtle);
+      color: var(--apple-blue);
+    }
+
+    .kpi-tag.tag-green {
+      background: var(--apple-green-subtle);
+      color: var(--apple-green);
+    }
+
+    .kpi-tag.tag-orange {
+      background: var(--apple-orange-subtle);
+      color: var(--apple-orange);
+    }
+
+    .kpi-tag.tag-purple {
+      background: var(--apple-purple-subtle);
+      color: var(--apple-purple);
+    }
+
+    .kpi-value {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+
+    .kpi-label {
+      font-size: 0.66rem;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    /* ---- Main App Layout ---- */
+    .app-main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 1.5rem 6rem;
+      width: 100%;
+      flex: 1;
+    }
+
+    /* Search & Filter Toolbar */
+    .filter-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-xl);
+      padding: 1.4rem;
+      box-shadow: var(--shadow-card);
+      margin-bottom: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+    }
+
+    /* Primary Search Row */
+    .search-row {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .search-input-wrapper {
+      position: relative;
+      flex: 1;
+      min-width: 280px;
+    }
+
+    .search-input-wrapper svg {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-tertiary);
+      pointer-events: none;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 0.75rem 1rem 0.75rem 2.6rem;
+      background: var(--bg-subtle);
+      border: 1px solid transparent;
+      border-radius: var(--radius-md);
+      font-family: var(--font-text);
+      font-size: 0.95rem;
+      color: var(--text-primary);
+      outline: none;
+      transition: var(--transition);
+    }
+
+    .search-input:focus {
+      background: var(--bg-card);
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px var(--apple-blue-subtle);
+    }
+
+    .search-clear-btn {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-tertiary);
+      cursor: pointer;
+      display: none;
+      padding: 4px;
+      border-radius: 50%;
+    }
+
+    .search-clear-btn:hover {
+      color: var(--text-primary);
+    }
+
+    /* Segmented Controls (View Mode, Reachability) */
+    .segmented-control {
+      display: inline-flex;
+      background: var(--bg-subtle);
+      border-radius: var(--radius-md);
+      padding: 3px;
+      border: 1px solid var(--border-subtle);
+      gap: 2px;
+    }
+
+    .segmented-btn {
+      background: transparent;
+      border: none;
+      padding: 0.45rem 0.85rem;
+      border-radius: 8px;
+      font-family: var(--font-text);
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .segmented-btn.active {
+      background: var(--bg-card);
+      color: var(--text-primary);
+      font-weight: 600;
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* Department Pills Bar */
+    .dept-pills-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .dept-pill-label {
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-right: 0.4rem;
+    }
+
+    .dept-pill {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-pill);
+      padding: 0.35rem 0.75rem;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .dept-pill span.pill-count {
+      font-size: 0.7rem;
+      background: var(--border-subtle);
+      color: var(--text-primary);
+      padding: 1px 5px;
+      border-radius: var(--radius-pill);
+    }
+
+    .dept-pill:hover {
+      background: var(--apple-blue-subtle);
+      color: var(--apple-blue);
+      border-color: var(--apple-blue);
+    }
+
+    .dept-pill.active {
+      background: var(--apple-blue);
+      color: #fff;
+      border-color: var(--apple-blue);
+    }
+
+    .dept-pill.active span.pill-count {
+      background: rgba(255, 255, 255, 0.25);
+      color: #fff;
+    }
+
+    /* Detailed Filters Grid (Dropdowns & Checkboxes) */
+    .detailed-filters-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0.75rem;
+      padding-top: 0.5rem;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .filter-field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .filter-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .apple-select {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 0.55rem 0.75rem;
+      font-family: var(--font-text);
+      font-size: 0.85rem;
+      color: var(--text-primary);
+      outline: none;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .apple-select:focus {
+      border-color: var(--border-focus);
+      background: var(--bg-card);
+    }
+
+    /* Quick Filter Chips (Emails, Tels, LinkedIn) */
+    .channel-chips-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .channel-chip {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-pill);
+      padding: 0.35rem 0.8rem;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      user-select: none;
+    }
+
+    .channel-chip:hover {
+      border-color: var(--apple-blue);
+      color: var(--apple-blue);
+    }
+
+    .channel-chip.active {
+      background: var(--apple-blue-badge);
+      border-color: var(--apple-blue);
+      color: var(--apple-blue);
+      font-weight: 600;
+    }
+
+    .btn-reset-filters {
+      background: transparent;
+      border: none;
+      color: var(--apple-red);
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 0.35rem 0.6rem;
+      border-radius: var(--radius-sm);
+      margin-left: auto;
+      transition: var(--transition);
+    }
+
+    .btn-reset-filters:hover {
+      background: rgba(255, 59, 48, 0.08);
+    }
+
+    /* ---- Selection & Results Header ---- */
+    .results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.9rem;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .results-count {
+      font-size: 0.92rem;
+      color: var(--text-secondary);
+    }
+
+    .results-count strong {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    .selection-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .btn-select-all {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      padding: 0.4rem 0.8rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.8rem;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .btn-select-all:hover {
+      background: var(--bg-subtle);
+      border-color: var(--apple-blue);
+    }
+
+    /* ---- Table View (Apple Clean) ---- */
+    .table-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-xl);
+      overflow-x: auto;
+      box-shadow: var(--shadow-card);
+    }
+
+    table.apple-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.86rem;
+    }
+
+    table.apple-table th {
+      padding: 0.85rem 1rem;
+      background: var(--bg-subtle);
+      color: var(--text-tertiary);
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid var(--border-subtle);
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    table.apple-table td {
+      padding: 0.9rem 1rem;
+      border-bottom: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      vertical-align: middle;
+      transition: background 0.15s ease;
+    }
+
+    table.apple-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    table.apple-table tr:hover td {
+      background: var(--bg-card-hover);
+    }
+
+    table.apple-table tr.selected td {
+      background: var(--apple-blue-subtle);
+    }
+
+    .contact-cell {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .contact-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0071e3, #5856d6);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+
+    .contact-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .contact-name {
+      font-weight: 600;
+      color: var(--text-primary);
+      cursor: pointer;
+    }
+
+    .contact-name:hover {
+      color: var(--apple-blue);
+      text-decoration: underline;
+    }
+
+    .contact-title {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+    }
+
+    .company-cell {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .company-name {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .company-meta {
+      font-size: 0.76rem;
+      color: var(--text-tertiary);
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 2px 7px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .badge-dept {
+      background: var(--bg-subtle);
+      color: var(--text-primary);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .badge-mx {
+      background: var(--apple-green-subtle);
+      color: #1b873f;
+    }
+
+    [data-theme="dark"] .badge-mx {
+      color: #34c759;
+    }
+
+    .badge-sector {
+      background: var(--apple-blue-subtle);
+      color: var(--apple-blue);
+    }
+
+    .badge-source {
+      background: var(--apple-purple-subtle);
+      color: var(--apple-purple);
+    }
+
+    /* Action Links (Email, Phone, LinkedIn) */
+    .action-links-group {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .action-icon-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: var(--transition);
+    }
+
+    .action-icon-btn:hover {
+      background: var(--apple-blue);
+      color: #fff;
+      border-color: var(--apple-blue);
+      text-decoration: none;
+      transform: scale(1.08);
+    }
+
+    .action-icon-btn.disabled {
+      opacity: 0.25;
+      pointer-events: none;
+    }
+
+    /* Custom Apple Checkbox */
+    .apple-checkbox {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border: 1.5px solid var(--border-subtle);
+      border-radius: 5px;
+      background: var(--bg-card);
+      cursor: pointer;
+      display: inline-grid;
+      place-content: center;
+      transition: var(--transition);
+      vertical-align: middle;
+    }
+
+    .apple-checkbox:hover {
+      border-color: var(--apple-blue);
+    }
+
+    .apple-checkbox:checked {
+      background: var(--apple-blue);
+      border-color: var(--apple-blue);
+    }
+
+    .apple-checkbox:checked::before {
+      content: "";
+      width: 9px;
+      height: 5px;
+      border-left: 2px solid #fff;
+      border-bottom: 2px solid #fff;
+      transform: rotate(-45deg) translate(1px, -1px);
+    }
+
+    /* ---- Grid View (Cards) ---- */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.2rem;
+    }
+
+    .contact-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 1.3rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      box-shadow: var(--shadow-card);
+      transition: var(--transition);
+      position: relative;
+    }
+
+    .contact-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-elevated);
+      border-color: rgba(0, 113, 227, 0.3);
+    }
+
+    .contact-card.selected {
+      border-color: var(--apple-blue);
+      background: var(--apple-blue-subtle);
+    }
+
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.8rem;
+    }
+
+    .card-checkbox-wrap {
+      margin-top: 2px;
+    }
+
+    .card-header-info {
+      flex: 1;
+    }
+
+    .card-contact-name {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      cursor: pointer;
+    }
+
+    .card-contact-name:hover {
+      color: var(--apple-blue);
+    }
+
+    .card-contact-title {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      line-height: 1.3;
+    }
+
+    .card-company-box {
+      background: var(--bg-subtle);
+      border-radius: var(--radius-md);
+      padding: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .card-company-name {
+      font-weight: 600;
+      font-size: 0.88rem;
+      color: var(--text-primary);
+    }
+
+    .card-company-details {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .card-badges-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: auto;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    /* ---- Pagination ---- */
+    .pagination-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 1.5rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .pagination-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .page-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      min-width: 36px;
+      height: 36px;
+      padding: 0 0.5rem;
+      border-radius: var(--radius-sm);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: var(--transition);
+    }
+
+    .page-btn:hover:not(:disabled) {
+      background: var(--bg-subtle);
+      border-color: var(--apple-blue);
+    }
+
+    .page-btn.active {
+      background: var(--apple-blue);
+      color: #fff;
+      border-color: var(--apple-blue);
+    }
+
+    .page-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* ---- Floating Apple Selection Bar ---- */
+    .floating-action-bar {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(120px);
+      background: var(--bg-selection-bar);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-glass);
+      border-radius: var(--radius-pill);
+      padding: 0.6rem 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 1.2rem;
+      z-index: 900;
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .floating-action-bar.visible {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .selection-counter {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .selection-badge-count {
+      background: var(--apple-blue);
+      color: #fff;
+      font-size: 0.75rem;
+      padding: 2px 7px;
+      border-radius: var(--radius-pill);
+    }
+
+    .floating-buttons {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .btn-floating-export {
+      background: var(--apple-blue);
+      color: #fff;
+      border: none;
+      padding: 0.5rem 1.1rem;
+      border-radius: var(--radius-pill);
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: var(--transition);
+    }
+
+    .btn-floating-export:hover {
+      background: var(--apple-blue-hover);
+      box-shadow: 0 4px 14px rgba(0, 113, 227, 0.35);
+    }
+
+    .btn-floating-copy {
+      background: var(--bg-subtle);
+      color: var(--text-primary);
+      border: 1px solid var(--border-subtle);
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius-pill);
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: var(--transition);
+    }
+
+    .btn-floating-copy:hover {
+      background: var(--bg-card);
+      border-color: var(--apple-blue);
+      color: var(--apple-blue);
+    }
+
+    .btn-floating-clear {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      cursor: pointer;
+      padding: 0.4rem 0.6rem;
+      border-radius: var(--radius-pill);
+      transition: var(--transition);
+    }
+
+    .btn-floating-clear:hover {
+      color: var(--apple-red);
+    }
+
+    /* ---- Detail Drawer (Slide-Over Sheet) ---- */
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .drawer-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .drawer-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      max-width: 520px;
+      background: var(--bg-card);
+      border-left: 1px solid var(--border-subtle);
+      box-shadow: -8px 0 32px rgba(0, 0, 0, 0.15);
+      z-index: 1001;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      overflow-y: auto;
+    }
+
+    .drawer-overlay.active .drawer-panel {
+      transform: translateX(0);
+    }
+
+    .drawer-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      background: var(--bg-card);
+      z-index: 2;
+    }
+
+    .drawer-close-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--bg-subtle);
+      border: none;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .drawer-close-btn:hover {
+      background: var(--border-subtle);
+      color: var(--text-primary);
+    }
+
+    .drawer-body {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .drawer-hero {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .drawer-avatar {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0071e3, #5856d6);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .drawer-actions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 0.6rem;
+    }
+
+    .drawer-action-btn {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 0.65rem 0.75rem;
+      text-decoration: none;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.82rem;
+      font-weight: 500;
+      transition: var(--transition);
+    }
+
+    .drawer-action-btn:hover {
+      background: var(--apple-blue);
+      color: #fff;
+      border-color: var(--apple-blue);
+      text-decoration: none;
+    }
+
+    .drawer-section {
+      background: var(--bg-subtle);
+      border-radius: var(--radius-lg);
+      padding: 1.1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .drawer-section-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-tertiary);
+      font-weight: 600;
+    }
+
+    .drawer-meta-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .drawer-meta-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .drawer-meta-key {
+      color: var(--text-secondary);
+    }
+
+    .drawer-meta-val {
+      font-weight: 500;
+      color: var(--text-primary);
+      text-align: right;
+    }
+
+    /* ---- Footer ---- */
+    footer.apple-footer {
+      background: var(--bg-card);
+      border-top: 1px solid var(--border-subtle);
+      padding: 2.5rem 1.5rem;
+      margin-top: auto;
+    }
+
+    .footer-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+
+    .footer-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      color: var(--text-primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .footer-links {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      font-size: 0.82rem;
+    }
+
+    .footer-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: var(--transition);
+    }
+
+    .footer-links a:hover {
+      color: var(--apple-blue);
+    }
+
+    .footer-bottom {
+      font-size: 0.76rem;
+      color: var(--text-tertiary);
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 1.2rem;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    /* Toast Notification */
+    .toast-msg {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: var(--text-primary);
+      color: var(--bg-card);
+      padding: 0.65rem 1.2rem;
+      border-radius: var(--radius-pill);
+      font-size: 0.85rem;
+      font-weight: 500;
+      box-shadow: var(--shadow-elevated);
+      z-index: 2000;
+      transform: translateY(-50px);
+      opacity: 0;
+      transition: var(--transition);
+      pointer-events: none;
+    }
+
+    .toast-msg.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .hero-box {
+        padding: 1.5rem;
+      }
+      .nav-container {
+        padding: 0.75rem 1rem;
+      }
+      .app-main {
+        padding: 0 1rem 6rem;
+      }
+      .floating-action-bar {
+        width: calc(100% - 2rem);
+        flex-direction: column;
+        border-radius: var(--radius-lg);
+        gap: 0.6rem;
+      }
+      .floating-buttons {
+        width: 100%;
+        justify-content: space-between;
+      }
+    }
+  </style>
 </head>
 <body>
 
-<header>
-  <div class="brand"><img src="arx-logo.png" alt="ArX Consulting"></div>
-  <div class="titles">
-    <h1>Tissu Économique PACA</h1>
-    <p class="sub">Alpes-Maritimes, PACA et Monaco. Entreprises, dirigeants et contacts
-       consolidés depuis sept sources.</p>
-  </div>
-  <div class="right">
-    <div class="theme" role="group" aria-label="Apparence">
-      <button data-t="auto" aria-pressed="true">Auto</button>
-      <button data-t="light" aria-pressed="false">Clair</button>
-      <button data-t="dark" aria-pressed="false">Sombre</button>
+  <!-- ================= HEADER / APPLE NAV ================= -->
+  <header class="apple-nav">
+    <div class="nav-container">
+      <div class="nav-left">
+        <a href="#" class="brand-group" onclick="window.scrollTo({top:0, behavior:'smooth'}); return false;">
+          <div class="arx-logo-wrapper"><img src="assets/arx-logo-blanc.png" alt="Arx Consulting" class="arx-logo-img"></div>
+          <div class="brand-title">
+            Contact PACA
+            <span class="badge-paca">Région Sud</span>
+          </div>
+        </a>
+
+        <!-- Arx Consulting link & icon -->
+        <a href="https://arxcapital.duckdns.org" target="_blank" rel="noopener noreferrer" class="nav-partner-link" title="Visiter Arx Consulting">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+          Arx Consulting
+        </a>
+      </div>
+
+      <div class="nav-right">
+        <!-- View mode toggle -->
+        <div class="segmented-control">
+          <button class="segmented-btn active" id="btnViewTable" onclick="setViewMode('table')" title="Vue Tableau">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+            Tableau
+          </button>
+          <button class="segmented-btn" id="btnViewGrid" onclick="setViewMode('grid')" title="Vue Cartes">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            Cartes
+          </button>
+        </div>
+
+                <!-- Lock session button -->
+        <button class="theme-toggle-btn" onclick="logoutToken()" title="Verrouiller l'accès">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        </button>
+        <!-- Theme toggle -->
+        <button class="theme-toggle-btn" id="btnThemeToggle" onclick="toggleTheme()" title="Basculer Mode Clair / Sombre">
+          <svg id="themeIconSun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+          <svg id="themeIconMoon" style="display:none" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
+
+        <!-- Quick Export CSV -->
+        <button class="btn-export-quick" onclick="exportSelectionOrAllCSV()" title="Exporter en CSV">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Export CSV
+        </button>
+      </div>
     </div>
-    <a class="cta" href="https://arx-consulting.com/" target="_blank" rel="noopener noreferrer">ArX Consulting</a>
-  </div>
-</header>
+  </header>
 
-<nav class="tabs" role="tablist">
-  <button id="ongletJour" role="tab" aria-selected="true">Aujourd'hui</button>
-  <button id="ongletEnt" role="tab" aria-selected="false">Entreprises</button>
-  <button id="ongletPers" role="tab" aria-selected="false">Personnes</button>
-  <button id="ongletAppels" role="tab" aria-selected="false">Appels</button>
-  <button id="ongletCrm" role="tab" aria-selected="false">Pipeline</button>
-  <button id="ongletCamp" role="tab" aria-selected="false">Campagnes</button>
-  <button id="ongletOrg" role="tab" aria-selected="false">Organisations</button>
-</nav>
+  <!-- ================= MAIN APP AREA ================= -->
+  <main class="app-main">
 
-<section class="tiles" id="tiles"></section>
+    <!-- ================= HERO BANNER ================= -->
+    <section class="hero-banner">
+      <div class="hero-box">
+        <div class="hero-content">
+          <div class="hero-top-row">
+            <div class="hero-badge-top"><svg width="10" height="10" viewBox="0 0 24 24" fill="#34c759"><circle cx="12" cy="12" r="8"></circle></svg> Oracle ATP 23ai (Live OCI) &bull; Région Sud</div>
+            <span class="campaign-badge">⚡ Pipeline Outbound &amp; Prospection B2B Active</span>
+          </div>
+          <h1 class="hero-title">Contact PACA &mdash; Intelligence Décideurs</h1>
+          <p class="hero-subtitle">
+            Référentiel qualifié de 102 133 décideurs et 188 838 entreprises pour prospection téléphonique et emailing B2B.
+          </p>
 
-<div class="wrap">
-  <aside class="filtres">
-    <h3>Recherche</h3>
-    <input type="search" id="q" placeholder="Nom, ville, secteur…">
+          <!-- Live KPI Stats (Compact Bento Grid 8 Cards) -->
+          <div class="kpi-grid">
+            <div class="kpi-item clickable" onclick="setDeptFilter('')" title="Afficher tous les décideurs PACA">
+              <div class="kpi-item-top">
+                <span class="kpi-tag">Total</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+              </div>
+              <span class="kpi-value" id="kpiTotalContacts">102 133</span>
+              <span class="kpi-label">Décideurs Totaux</span>
+            </div>
 
-    <h3>Territoire</h3><div class="chips" id="fTerr"></div>
+            <div class="kpi-item clickable" onclick="toggleChannelFilter('c_level')" id="kpiCardCLevel" title="Filtrer Présidents, DG, Gérants">
+              <div class="kpi-item-top">
+                <span class="kpi-tag tag-purple">Pouvoir Décision</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              </div>
+              <span class="kpi-value" id="kpiCLevel">73 286</span>
+              <span class="kpi-label">Dirigeants C-Level</span>
+            </div>
 
-    <div id="filtresEnt">
-      <h3>Secteur</h3>
-      <select id="secteur"><option value="">Tous secteurs</option></select>
-      <h3>Effectif</h3><div class="chips" id="fEff"></div>
+            <div class="kpi-item clickable" onclick="toggleChannelFilter('actionable')" id="kpiCardActionable" title="Filtrer contacts joignables (Email ou Téléphone direct)">
+              <div class="kpi-item-top">
+                <span class="kpi-tag tag-green">Prêts Campagne</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </div>
+              <span class="kpi-value" id="kpiActionable">7 780</span>
+              <span class="kpi-label">Cibles Actionnables</span>
+            </div>
+
+            <div class="kpi-item clickable" onclick="toggleChannelFilter('email')" id="kpiCardEmail" title="Filtrer contacts avec email professionnel nominatif">
+              <div class="kpi-item-top">
+                <span class="kpi-tag">Cold Email</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+              </div>
+              <span class="kpi-value" id="kpiWithEmail">4 179</span>
+              <span class="kpi-label">Emails Vérifiés MX</span>
+            </div>
+
+            <div class="kpi-item clickable" onclick="toggleChannelFilter('phone')" id="kpiCardPhone" title="Filtrer contacts avec téléphone direct">
+              <div class="kpi-item-top">
+                <span class="kpi-tag tag-orange">Cold Call</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+              </div>
+              <span class="kpi-value" id="kpiWithPhone">6 422</span>
+              <span class="kpi-label">Lignes Directes</span>
+            </div>
+
+            <div class="kpi-item clickable" onclick="toggleChannelFilter('mobile')" id="kpiCardMobile" title="Filtrer téléphones portables (+33 6 / +33 7)">
+              <div class="kpi-item-top">
+                <span class="kpi-tag tag-green">Mobiles 06/07</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+              </div>
+              <span class="kpi-value" id="kpiWithMobile">889</span>
+              <span class="kpi-label">Portables Directs</span>
+            </div>
+
+            <div class="kpi-item clickable" onclick="toggleChannelFilter('linkedin')" id="kpiCardLinkedin" title="Profils LinkedIn qualifiés">
+              <div class="kpi-item-top">
+                <span class="kpi-tag">Multi-Canal</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+              </div>
+              <span class="kpi-value" id="kpiWithLinkedin">5 726</span>
+              <span class="kpi-label">Profils LinkedIn</span>
+            </div>
+
+            <div class="kpi-item" title="Organisations économiques consolidées en base">
+              <div class="kpi-item-top">
+                <span class="kpi-tag">Référentiel</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+              </div>
+              <span class="kpi-value" id="kpiTotalEntreprises">188 838</span>
+              <span class="kpi-label">Entreprises</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SEARCH & MULTI-CRITERIA FILTERS PANEL -->
+    <div class="filter-panel">
+      <!-- Search Input -->
+      <div class="search-row">
+        <div class="search-input-wrapper">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" id="globalSearch" class="search-input" placeholder="Rechercher par nom, entreprise, poste, email, téléphone, ville, SIREN, code NAF..." oninput="handleSearchInput(this.value)">
+          <button id="searchClearBtn" class="search-clear-btn" onclick="clearSearch()" title="Effacer la recherche">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+
+        <!-- Reachability Quick Filters -->
+        <div class="channel-chips-row">
+          <div class="channel-chip" id="chipActionable" onclick="toggleChannelFilter('actionable')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            ⚡ Actionnables (Email/Tél)
+          </div>
+          <div class="channel-chip" id="chipEmail" onclick="toggleChannelFilter('email')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+            Avec Email Pro
+          </div>
+          <div class="channel-chip" id="chipPhone" onclick="toggleChannelFilter('phone')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+            Avec Téléphone
+          </div>
+          <div class="channel-chip" id="chipMobile" onclick="toggleChannelFilter('mobile')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+            📱 Portables Directs (06/07)
+          </div>
+          <div class="channel-chip" id="chipCLevel" onclick="toggleChannelFilter('c_level')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            👔 Dirigeants C-Level
+          </div>
+          <div class="channel-chip" id="chipWebsite" onclick="toggleChannelFilter('website')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+            Avec Site Web
+          </div>
+          <button class="btn-reset-filters" onclick="resetAllFilters()">
+            Réinitialiser les filtres
+          </button>
+        </div>
+      </div>
+
+      <!-- Department Pills -->
+      <div class="dept-pills-row">
+        <span class="dept-pill-label">Département :</span>
+        <button class="dept-pill active" data-dept="" onclick="setDeptFilter('')">
+          Tous PACA <span class="pill-count" id="countDeptAll">102 105</span>
+        </button>
+        <button class="dept-pill" data-dept="06" onclick="setDeptFilter('06')">
+          06 Alpes-Maritimes <span class="pill-count" id="countDept06">21 069</span>
+        </button>
+        <button class="dept-pill" data-dept="13" onclick="setDeptFilter('13')">
+          13 Bouches-du-Rhône <span class="pill-count" id="countDept13">26 012</span>
+        </button>
+        <button class="dept-pill" data-dept="83" onclick="setDeptFilter('83')">
+          83 Var <span class="pill-count" id="countDept83">15 336</span>
+        </button>
+        <button class="dept-pill" data-dept="84" onclick="setDeptFilter('84')">
+          84 Vaucluse <span class="pill-count" id="countDept84">6 195</span>
+        </button>
+        <button class="dept-pill" data-dept="05" onclick="setDeptFilter('05')">
+          05 Hautes-Alpes <span class="pill-count" id="countDept05">2 468</span>
+        </button>
+        <button class="dept-pill" data-dept="04" onclick="setDeptFilter('04')">
+          04 Alpes-de-Haute-Provence <span class="pill-count" id="countDept04">1 370</span>
+        </button>
+      </div>
+
+      <!-- Detailed Dropdown Filters -->
+      <div class="detailed-filters-grid">
+        <!-- Secteur -->
+        <div class="filter-field">
+          <label class="filter-label">Secteur d'activité</label>
+          <select id="selectSecteur" class="apple-select" onchange="handleFilterChange()">
+            <option value="">Tous les secteurs d'activité</option>
+          </select>
+        </div>
+
+        <!-- Ville -->
+        <div class="filter-field">
+          <label class="filter-label">Ville / Commune</label>
+          <select id="selectVille" class="apple-select" onchange="handleFilterChange()">
+            <option value="">Toutes les villes</option>
+          </select>
+        </div>
+
+        <!-- Tranche Effectif -->
+        <div class="filter-field">
+          <label class="filter-label">Tranche d'effectif</label>
+          <select id="selectEffectif" class="apple-select" onchange="handleFilterChange()">
+            <option value="">Tous les effectifs</option>
+          </select>
+        </div>
+
+        <!-- Rôle / Fonction -->
+        <div class="filter-field">
+          <label class="filter-label">Niveau de fonction</label>
+          <select id="selectFonction" class="apple-select" onchange="handleFilterChange()">
+            <option value="">Toutes les fonctions</option>
+            <option value="direction">Direction Générale / Présidence</option>
+            <option value="conseil">Conseil / Administration / Surveillance</option>
+            <option value="gerant">Gérant / Fondateur</option>
+            <option value="rh">Ressources Humaines / Recrutement</option>
+            <option value="finance">Finance / Comptabilité / DAF</option>
+          </select>
+        </div>
+
+        <!-- Chiffre d'Affaires -->
+        <div class="filter-field">
+          <label class="filter-label">Chiffre d'Affaires</label>
+          <select id="selectCA" class="apple-select" onchange="handleFilterChange()">
+            <option value="">Tous montants de CA</option>
+            <option value="1m">CA &ge; 1 000 000 &euro;</option>
+            <option value="5m">CA &ge; 5 000 000 &euro;</option>
+            <option value="20m">CA &ge; 20 000 000 &euro;</option>
+            <option value="50m">CA &ge; 50 000 000 &euro;</option>
+          </select>
+        </div>
+
+        <!-- Source / Base -->
+        <div class="filter-field">
+          <label class="filter-label">Type de contact</label>
+          <select id="selectSource" class="apple-select" onchange="handleFilterChange()">
+            <option value="">Tous les contacts</option>
+            <option value="decideur">Décideurs qualifiés (Emails &amp; Tels)</option>
+            <option value="repertoire">Répertoire Dirigeants (5+ Salariés)</option>
+          </select>
+        </div>
+      </div>
     </div>
 
-    <div id="filtresPers" hidden>
-      <h3>Provenance</h3><div class="chips" id="fOrig"></div>
-      <h3>Canal disponible</h3><div class="chips" id="fCanal"></div>
+    <!-- RESULTS BAR & SELECTION ACTIONS -->
+    <div class="results-header">
+      <div class="results-count">
+        Affichage de <strong id="lblShowingCount">0</strong> contact(s) sur <strong id="lblTotalFiltered">0</strong> filtrés (<span id="lblGrandTotal">4 048</span> au total)
+      </div>
+
+      <div class="selection-controls">
+        <button class="btn-select-all" onclick="selectAllFiltered()">
+          Sélectionner tous les filtrés (<span id="lblSelectFilteredCount">0</span>)
+        </button>
+        <button class="btn-select-all" onclick="selectCurrentPage()">
+          Sélectionner la page
+        </button>
+        <button class="btn-select-all" onclick="clearSelection()" id="btnClearSel" style="display:none;">
+          Désélectionner tout
+        </button>
+      </div>
     </div>
 
-    <div id="filtresCrm" hidden>
-      <h3>Base</h3><div class="chips" id="fBase"></div>
-      <h3>Échéance</h3><div class="chips" id="fFile2"></div>
-      <h3>Statut</h3><div class="chips" id="fStatut"></div>
-      <h3>Canal disponible</h3><div class="chips" id="fCanal2"></div>
-    </div>
-
-    <div id="filtresAppels" hidden>
-      <h3>File</h3><div class="chips" id="fFile"></div>
-      <h3>Statut</h3>
-      <select id="statut">
-        <option value="">Tous statuts</option>
-        <option value="a_qualifier">À qualifier</option>
-        <option value="a_verifier">À vérifier</option>
-        <option value="qualifie">Qualifié</option>
-        <option value="contacte">Contacté</option>
-        <option value="rdv">Rendez-vous</option>
-        <option value="proposition">Proposition</option>
-        <option value="client">Client</option>
-        <option value="hors_cible">Hors cible</option>
-        <option value="perdu">Perdu</option>
-        <option value="cessee">Cessée</option>
-      </select>
-      <h3>Chiffre d'affaires</h3><div class="chips" id="fCa"></div>
-    </div>
-
-    <button class="reset" id="reset">Réinitialiser les filtres</button>
-  </aside>
-
-  <main>
-    <div class="bar-top">
-      <div class="count" id="count"></div>
-      <div class="hint">Cliquer une ligne pour ouvrir la fiche. Les en-têtes soulignables trient.</div>
-      <button class="reset" id="versLinki" style="margin-left:auto; width:auto">Envoyer vers Linki</button>
-    </div>
-    <div class="jour" id="vueJour" hidden></div>
-
-    <div class="scroll" id="vueTable">
-      <table>
-        <thead><tr id="head"></tr></thead>
-        <tbody id="rows"></tbody>
+    <!-- ================= TABLE VIEW ================= -->
+    <div id="tableViewContainer" class="table-container">
+      <table class="apple-table">
+        <thead>
+          <tr>
+            <th style="width: 40px; text-align: center;">
+              <input type="checkbox" id="masterCheckbox" class="apple-checkbox" onchange="toggleSelectAllPage(this.checked)">
+            </th>
+            <th>Contact / Décideur</th>
+            <th>Entreprise &amp; SIREN</th>
+            <th>Localisation</th>
+            <th>Secteur &amp; NAF</th>
+            <th>Effectif</th>
+            <th>Coordonnées</th>
+            <th style="text-align: right;">Fiche</th>
+          </tr>
+        </thead>
+        <tbody id="contactsTableBody">
+          <!-- Rendered by JS -->
+        </tbody>
       </table>
     </div>
-    <div class="pager">
-      <button id="prev">Précédent</button>
-      <span class="mono" id="pos"></span>
-      <button id="next">Suivant</button>
+
+    <!-- ================= GRID VIEW ================= -->
+    <div id="gridViewContainer" class="cards-grid" style="display:none;">
+      <!-- Rendered by JS -->
     </div>
+
+    <!-- PAGINATION -->
+    <div class="pagination-bar">
+      <div style="font-size: 0.85rem; color: var(--text-secondary);">
+        Page <span id="lblCurrentPage">1</span> sur <span id="lblTotalPages">1</span>
+      </div>
+      <div class="pagination-controls" id="paginationButtons">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
   </main>
-</div>
 
-<aside class="detail" id="detail" hidden></aside>
-
-<footer>
-  Données internes — accès restreint. Contient des données à caractère personnel :
-  base légale intérêt légitime, conservation 36 mois après le dernier contact,
-  droit d'opposition via le champ <code>OPPOSITION</code>. Ne pas diffuser.
-</footer>
-
-<script>
-// Chemins relatifs : Coolify sert l'app sous /prospects/ et Traefik retire le préfixe.
-const KEY = new URLSearchParams(location.search).get('key');
-const api = p => fetch(p + (p.includes('?') ? '&' : '?') + (KEY ? 'key=' + encodeURIComponent(KEY) : ''))
-                  .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
-
-const nf  = new Intl.NumberFormat('fr-FR');
-const eur = v => v == null ? '—'
-  : v >= 1e9 ? (v / 1e9).toFixed(2).replace('.', ',') + ' Md€'
-  : v >= 1e6 ? (v / 1e6).toFixed(1).replace('.', ',') + ' M€'
-  : nf.format(v) + ' €';
-const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
-const TERR = { '06': 'Alpes-Maritimes', 'PACA': 'PACA', 'MC': 'Monaco' };
-// Provenance d'une personne : libelle et teinte de la pastille. Le registre
-// est opposable, LinkedIn est declaratif, la fiche est une saisie interne.
-const ORIG = {
-  registre: ['Registre (RNE)', 'ok'],
-  linkedin: ['LinkedIn', ''],
-  fiche:    ['Fiche entreprise', 'warn'],
-};
-const $ = id => document.getElementById(id);
-
-/* ---------------------------- apparence ---------------------------- */
-// L'Atlas laisse le choix explicite : « auto » suit le systeme, les deux
-// autres forcent, via l'attribut data-theme que la CSS lit en priorite.
-document.querySelectorAll('.theme button').forEach(b => b.onclick = () => {
-  const t = b.dataset.t;
-  document.querySelectorAll('.theme button').forEach(x =>
-    x.setAttribute('aria-pressed', String(x === b)));
-  if (t === 'auto') document.documentElement.removeAttribute('data-theme');
-  else document.documentElement.setAttribute('data-theme', t);
-});
-
-// La barre d'onglets est collante : les en-têtes de table doivent s'arrêter
-// juste dessous. On mesure sa hauteur réelle plutôt que de la coder en dur.
-const barre = document.querySelector('nav.tabs');
-const calerEntete = () => document.documentElement.style.setProperty(
-  '--nav-h', (barre ? barre.getBoundingClientRect().height : 46) + 'px');
-calerEntete();
-addEventListener('resize', calerEntete);
-
-/* ------------------------------ etat ------------------------------- */
-let mode = 'jour', page = 0, total = 0;
-const etat = {
-  entreprises: { q: '', territoire: '', secteur: '', effmin: '', tri: 'ca' },
-  personnes:   { q: '', territoire: '', origine: '', canal: '', tri: 'joignable' },
-  appels:      { q: '', territoire: '', statut: '', camin: '', file: 'todo', tri: '' },
-  // Le CRM ne filtre pas par territoire : une base d'investisseurs n'en a pas.
-  // Le pipeline s'ouvre sur les personnes joignables. Sans ce filtre par
-  // defaut, les 70 009 fiches de registre sans canal — un nom, jamais une
-  // adresse — occupent les premieres pages et masquent les 3 828 investisseurs
-  // qu'on peut reellement demarcher. L'annuaire complet reste sous « Personnes ».
-  crm:         { q: '', source: '', statut: '', file: '', canal: 'joignable', tri: 'action' },
-  // La file de travail n'a pas de filtre, mais elle a besoin d'une entree :
-  // la bascule d'onglet lit etat[mode] sans condition.
-  jour:        { q: '', tri: '' },
-  campagnes:   { q: '', tri: '' },
-  organisations: { q: '', source: '', tri: '' },
-};
-// La file de travail n'a pas de filtre : c'est tout son interet.
-const MODES_TABLE = ['entreprises', 'personnes', 'appels', 'crm', 'campagnes', 'organisations'];
-
-/* Vocabulaire du pipeline, cote ecran. Les libelles sont ici, les valeurs
-   viennent du serveur : si le vocabulaire bouge en base, il bouge ici seul. */
-const ETATS = {
-  a_contacter:   ['À contacter', ''],
-  en_sequence:   ['En séquence', ''],
-  contacte:      ['Contacté', 'ok'],
-  a_reveiller:   ['À réveiller', 'warn'],
-  a_repondu:     ['A répondu', 'ok'],
-  en_discussion: ['En discussion', 'ok'],
-  rdv:           ['Rendez-vous', 'ok'],
-  perdu:         ['Perdu', 'crit'],
-  gagne:         ['Gagné', 'ok'],
-};
-const BASES = { investors: 'Investisseurs', prospects: 'Prospects PACA',
-                prospects_dirigeant: 'Dirigeants', gate: 'Formulaires' };
-const nomBase = s => BASES[s] || (String(s).startsWith('gate:') ? 'Gate ' + String(s).slice(5) : s);
-const STATUTS = {
-  a_qualifier: ['À qualifier', ''], a_verifier: ['À vérifier', ''],
-  qualifie: ['Qualifié', 'ok'], contacte: ['Contacté', 'ok'],
-  rdv: ['Rendez-vous', 'ok'], proposition: ['Proposition', 'ok'],
-  client: ['Client', 'ok'], hors_cible: ['Hors cible', 'warn'],
-  perdu: ['Perdu', 'crit'], cessee: ['Cessée', 'crit'],
-};
-const jour = v => v ? new Date(v).toLocaleDateString('fr-FR') : '—';
-const heure = v => v ? new Date(v).toLocaleString('fr-FR',
-  { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—';
-// Un pourcentage sans son effectif ment : 1 clic sur 2 envois n'est pas « 50 % ».
-const taux = (n, d) => !d ? '—' : `${n} <span style="color:var(--ink-3)">(${Math.round(100 * n / d)} %)</span>`;
-
-const COLS = {
-  entreprises: [
-    { t: 'Raison sociale', c: 'name', tri: 'nom',  v: r => esc(r.RAISON_SOCIALE) },
-    { t: 'Secteur',        c: 'org',            v: r => esc(r.SECTEUR_LIBELLE || '—') },
-    { t: 'Ville',          c: '',               v: r => esc(r.VILLE || '—') },
-    { t: 'Territoire',     c: '',               v: r => `<span class="pill">${TERR[r.TERRITOIRE] || esc(r.TERRITOIRE || '—')}</span>` },
-    { t: 'CA',             c: 'num', tri: 'ca',       v: r => eur(r.CA_EUR) },
-    { t: 'Résultat',       c: 'num',                  v: r => r.RESULTAT_EUR == null ? '—'
-        : `<span class="${r.RESULTAT_EUR < 0 ? 'pill crit' : ''}">${eur(r.RESULTAT_EUR)}</span>` },
-    { t: 'Effectif',       c: 'num', tri: 'effectif', v: r => r.EFFECTIF != null ? nf.format(r.EFFECTIF) : '—' },
-    { t: 'Dirigeant',      c: '',                     v: r => esc(r.DIRIGEANT || '—') },
-    { t: 'SIREN',          c: 'mono',                 v: r => esc(r.SIREN || '—') },
-    { t: 'Source',         c: '', tri: 'recent',      v: r => esc(r.SOURCE || '—') + (r.ANNEE_SOURCE ? ' (' + r.ANNEE_SOURCE + ')' : '') },
-  ],
-  personnes: [
-    { t: 'Nom',        c: 'name', tri: 'nom', v: r => esc(r.NOM_COMPLET || '—') },
-    { t: 'Rôle',       c: '',                 v: r => esc(r.ROLE || '—') },
-    { t: 'Entreprise / intitulé', c: 'org',   v: r => esc(r.DETAIL || '—') },
-    { t: 'Lieu',       c: '',                 v: r => esc(r.LIEU || '—') },
-    { t: 'Provenance', c: '',                 v: r => `<span class="pill ${ORIG[r.ORIGINE]?.[1] || ''}">${ORIG[r.ORIGINE]?.[0] || esc(r.ORIGINE)}</span>` },
-    { t: 'Rattachée',  c: '',                 v: r => r.ENTREPRISE_ID
-        ? '<span class="pill ok">oui</span>' : '<span class="pill warn">non</span>' },
-    { t: 'Canaux', c: '', tri: 'joignable', v: r =>
-        `<div class="flags" title="e-mail · téléphone · LinkedIn">
-           <i class="flag ${r.EMAIL ? 'on' : ''}"></i>
-           <i class="flag ${r.TELEPHONE ? 'on' : ''}"></i>
-           <i class="flag ${r.LINKEDIN_URL ? 'on' : ''}"></i></div>` },
-  ],
-  crm: [
-    { t: 'Nom', c: 'name', tri: 'nom', v: r =>
-        esc([r.FIRST_NAME, r.LAST_NAME].filter(Boolean).join(' ') || '—') },
-    { t: 'Société / titre', c: 'org', v: r =>
-        esc(r.COMPANY || '—') + (r.TITLE ? ` <span style="color:var(--ink-3)">· ${esc(r.TITLE)}</span>` : '') },
-    { t: 'Base', c: '', v: r => `<span class="pill">${esc(nomBase(r.SOURCE))}</span>` },
-    { t: 'Statut', c: '', v: r => {
-        const [lib, cl] = ETATS[r.STATUT] || [r.STATUT, ''];
-        return `<span class="pill ${cl}">${esc(lib)}</span>`
-             + (r.OPT_OUT ? ' <span class="pill crit">opt-out</span>' : ''); } },
-    // Le retard est la seule information qu'on lit vraiment dans une liste de
-    // CRM : il est donc chiffre, pas seulement colore.
-    { t: 'Prochaine action', c: '', tri: 'action', v: r => {
-        if (!r.ACTION_LE) return '—';
-        const j = r.JOURS;
-        const cl = j < 0 ? 'crit' : j === 0 ? 'warn' : '';
-        const quand = j < 0 ? `en retard de ${-j} j` : j === 0 ? "aujourd'hui" : `dans ${j} j`;
-        return `<span class="pill ${cl}">${esc(r.ACTION_TYPE || 'action')} · ${quand}</span>`; } },
-    { t: 'Propriétaire', c: '', v: r => esc(r.PROPRIETAIRE || '—') },
-    { t: 'Dernier contact', c: '', tri: 'recent', v: r => jour(r.DERNIER_CONTACT_LE) },
-    { t: 'Canaux', c: '', v: r =>
-        `<div class="flags" title="e-mail · téléphone · LinkedIn">
-           <i class="flag ${r.EMAIL ? 'on' : ''}"></i>
-           <i class="flag ${r.PHONE ? 'on' : ''}"></i>
-           <i class="flag ${r.LINKEDIN_URL ? 'on' : ''}"></i></div>` },
-  ],
-  campagnes: [
-    { t: 'Campagne', c: 'name', v: r => esc(r.NOM) },
-    { t: 'Moteur', c: '', v: r => `<span class="pill">${esc(r.MOTEUR)}</span>` },
-    { t: 'Lancée', c: '', v: r => jour(r.DEBUT) },
-    { t: 'Ciblées', c: 'num', v: r => nf.format(r.CIBLES || 0) },
-    { t: 'Touchées', c: 'num', v: r => nf.format(r.TOUCHEES || 0) },
-    { t: 'Envois', c: 'num', v: r => nf.format(r.ENVOIS || 0) },
-    // Les taux se lisent sur les envois, jamais sur les cibles : une cible qui
-    // n'a rien recu fausserait le denominateur.
-    { t: 'Ouvertures', c: 'num', v: r => taux(r.OUVERTURES, r.ENVOIS) },
-    { t: 'Clics', c: 'num', v: r => taux(r.CLICS, r.ENVOIS) },
-    { t: 'Réponses', c: 'num', v: r => taux(r.REPONSES, r.ENVOIS) },
-    { t: 'Rebonds', c: 'num', v: r => r.REBONDS
-        ? `<span class="pill crit">${taux(r.REBONDS, r.ENVOIS)}</span>` : '—' },
-  ],
-  organisations: [
-    { t: 'Maison', c: 'name', v: r => esc(r.NOM || '—') },
-    { t: 'Type', c: '', v: r => esc(r.TYPE || '—') },
-    { t: 'Lieu', c: '', v: r => esc([r.VILLE, r.PAYS].filter(Boolean).join(', ') || '—') },
-    { t: 'Base', c: '', v: r => `<span class="pill">${esc(nomBase(r.SOURCE))}</span>` },
-    { t: 'Joignables', c: 'num', v: r => nf.format(r.JOIGNABLES) },
-    { t: 'Interactions', c: 'num', v: r => r.INTERACTIONS ? nf.format(r.INTERACTIONS) : '—' },
-    { t: 'Site', c: '', v: r => r.SITE_WEB
-        ? `<a href="${esc(r.SITE_WEB.startsWith('http') ? r.SITE_WEB : 'https://' + r.SITE_WEB)}"
-             target="_blank" rel="noopener noreferrer"
-             onclick="event.stopPropagation()">${esc(r.SITE_WEB)}</a>` : '—' },
-  ],
-  appels: [
-    { t: 'Société',    c: 'name', tri: 'nom', v: r => esc(r.RAISON_SOCIALE) },
-    { t: 'Téléphone',  c: 'mono',             v: r => r.TELEPHONE
-        ? `<a href="tel:${esc(r.TELEPHONE)}" onclick="event.stopPropagation()">${esc(r.TELEPHONE)}</a>` : '—' },
-    { t: 'Interlocuteurs', c: 'org',          v: r => esc(r.DIRIGEANTS || '—') },
-    { t: 'Ville',      c: '',                 v: r => esc(r.VILLE || '—') },
-    { t: 'CA',         c: 'num', tri: 'ca',   v: r => eur(r.CA_EUR) },
-    { t: 'Statut',     c: '',                 v: r => `<span class="pill ${(STATUTS[r.STATUT] || ['', ''])[1]}">${(STATUTS[r.STATUT] || [r.STATUT])[0]}</span>` },
-    { t: 'Appels',     c: 'num',              v: r => r.NB_APPELS || 0 },
-    { t: 'Dernier',    c: '',                 v: r => jour(r.DERNIER) },
-    { t: 'Relance',    c: '', tri: 'relance', v: r => r.RELANCE_LE
-        ? `<span class="pill ${new Date(r.RELANCE_LE) <= new Date() ? 'crit' : 'warn'}">${jour(r.RELANCE_LE)}</span>` : '—' },
-  ],
-};
-
-/* ----------------------------- filtres ----------------------------- */
-function chips(hote, options, champ) {
-  $(hote).innerHTML = options.map(o =>
-    `<button class="chip" data-v="${esc(o.v)}" aria-pressed="false">${esc(o.t)}</button>`).join('');
-  $(hote).querySelectorAll('.chip').forEach(b => b.onclick = () => {
-    const actif = b.getAttribute('aria-pressed') === 'true';
-    // Filtres exclusifs : recliquer la puce active la desactive.
-    $(hote).querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', 'false'));
-    b.setAttribute('aria-pressed', String(!actif));
-    etat[mode][champ] = actif ? '' : b.dataset.v;
-    charger(true);
-  });
-}
-
-chips('fEff', [{ t: '10+', v: '10' }, { t: '50+', v: '50' }, { t: '250+', v: '250' }], 'effmin');
-chips('fOrig', [{ t: 'Registre (RNE)', v: 'registre' }, { t: 'LinkedIn', v: 'linkedin' },
-                { t: 'Fiche entreprise', v: 'fiche' }], 'origine');
-chips('fCanal', [{ t: 'E-mail', v: 'email' }, { t: 'Téléphone', v: 'tel' }, { t: 'LinkedIn', v: 'linkedin' }], 'canal');
-
-chips('fFile', [{ t: 'À appeler', v: 'todo' }, { t: 'Relances dues', v: 'relance' }], 'file');
-chips('fCa', [{ t: '1 M€+', v: '1000000' }, { t: '10 M€+', v: '10000000' },
-              { t: '20 M€+', v: '20000000' }], 'camin');
-
-$('secteur').onchange = () => { etat.entreprises.secteur = $('secteur').value; charger(true); };
-$('statut').onchange = () => { etat.appels.statut = $('statut').value; charger(true); };
-let tq; $('q').oninput = () => { clearTimeout(tq); tq = setTimeout(() => {
-  etat[mode].q = $('q').value; charger(true); }, 280); };
-$('reset').onclick = () => {
-  Object.assign(etat[mode],
-    mode === 'entreprises' ? { q: '', territoire: '', secteur: '', effmin: '' }
-    : mode === 'crm'       ? { q: '', source: '', statut: '', file: '', canal: '' }
-    : { q: '', territoire: '', origine: '', canal: '' });
-  $('q').value = ''; $('secteur').value = '';
-  document.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', 'false'));
-  charger(true);
-};
-
-/* --------------------------- envoi vers Linki ----------------------- */
-/*
- * Le bouton reprend le filtre affiche, sans rien redemander. C'est tout
- * l'objet du pont : ce qu'on voit est ce qu'on demarche.
- *
- * L'apercu passe toujours avant l'envoi. Un ciblage vide ou ampute par les
- * exclusions doit se voir avant que quiconque soit sollicite, pas apres.
- */
-const poster = (p, corps, methode = 'POST') =>
-  fetch(p + (KEY ? '?key=' + encodeURIComponent(KEY) : ''),
-        { method: methode, headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(corps) })
-    .then(r => r.json().then(d => r.ok ? d : Promise.reject(new Error(d.erreur || r.status))));
-
-// Les ecrans parlent d'entreprises et de provenances ; V_PERSONNES parle de
-// personnes et de gisements. La traduction se fait ici, en un seul endroit.
-const SOURCE_DE_LORIGINE = { fiche: 'prospects_dirigeant', registre: 'prospects', linkedin: 'prospects' };
-
-function filtreCourant() {
-  const e = etat[mode];
-  const f = {};
-  if (e.q) f.q = e.q;
-  if (e.territoire) f.territoire = e.territoire;
-  if (mode === 'entreprises') {
-    if (e.secteur) f.secteur = e.secteur;
-  } else {
-    if (e.origine) f.source = SOURCE_DE_LORIGINE[e.origine] || e.origine;
-    // « Telephone » n'est pas un canal Linki : le laisser passer promettrait un
-    // envoi que l'import refuserait ligne par ligne.
-    if (e.canal === 'email' || e.canal === 'linkedin') f.canal = e.canal;
-  }
-  return f;
-}
-
-$('versLinki').onclick = async () => {
-  const b = $('versLinki'), libelle = b.textContent;
-  const filtre = filtreCourant();
-  b.disabled = true; b.textContent = 'Aperçu…';
-  try {
-    const a = await poster('api/listes/apercu', { filtre });
-    if (a.avertissement) alert('Attention : ' + a.avertissement);
-    if (!a.lignes) {
-      alert(`Rien à envoyer.\n${a.candidats} personne(s) dans ce ciblage, ` +
-            `${a.ecartes_demarches} déjà démarchée(s).\n\n` +
-            `Linki exige un e-mail ou un profil LinkedIn par ligne.`);
-      return;
-    }
-    const nom = prompt(
-      `${a.lignes} personne(s) à envoyer` +
-      (a.ecartes_demarches ? ` (${a.ecartes_demarches} déjà démarchée(s) écartée(s))` : '') +
-      `.\n\nNom de la liste dans Linki :`,
-      `Ciblage ${mode} ${new Date().toISOString().slice(0, 10)}`);
-    if (!nom) return;
-
-    b.textContent = 'Envoi…';
-    const r = await poster('api/listes/envoyer', { nom, filtre });
-    if (!r.ok) { alert('Envoi refusé : ' + (r.raison || 'raison inconnue')); return; }
-    alert(`Liste « ${r.liste} » : ${r.crees} créé(s), ${r.mis_a_jour} mis à jour, ` +
-          `${r.deja_dans_la_liste} déjà présent(s)` +
-          (r.refus.length ? `, ${r.refus.length} refus` : '') + '.');
-  } catch (e) {
-    alert('Échec : ' + e.message);
-  } finally {
-    b.disabled = false; b.textContent = libelle;
-  }
-};
-
-
-/* -------------------------- Aujourd'hui ----------------------------- */
-/*
- * La page d'entree du CRM.
- *
- * Trois listes courtes, dans l'ordre du cout d'un oubli : une reponse qui
- * attend coute une affaire, un retard coute une relance, une echeance du jour
- * ne coute encore rien. Afficher 85 494 lignes demandait a l'utilisateur de
- * decider quoi faire ; ces trois listes le lui disent.
- */
-const SECTIONS_JOUR = [
-  ['reponses', 'Réponses à traiter', 'Quelqu’un a répondu et personne n’a repris la main.'],
-  ['retard', 'En retard', 'L’échéance est passée.'],
-  ['dues', 'Pour aujourd’hui', 'Ce qui tombe à date.'],
-];
-
-function carteJour(r) {
-  const nom = [r.FIRST_NAME, r.LAST_NAME].filter(Boolean).join(' ') || '—';
-  const [lib, cl] = ETATS[r.STATUT] || [r.STATUT, ''];
-  const j = r.JOURS;
-  const quand = r.ACTION_LE == null ? ''
-    : j < 0 ? `<span class="pill crit">en retard de ${-j} j</span>`
-    : j === 0 ? `<span class="pill warn">aujourd’hui</span>`
-    : `<span class="pill">dans ${j} j</span>`;
-  return `<div class="carte" data-k="${esc(r.PERSON_KEY)}">
-    <div class="qui">
-      <b>${esc(nom)}</b>
-      <span>${esc(r.COMPANY || '—')}${r.TITLE ? ' · ' + esc(r.TITLE) : ''}</span>
+  <!-- ================= FLOATING SELECTION BAR ================= -->
+  <div class="floating-action-bar" id="floatingActionBar">
+    <div class="selection-counter">
+      <span class="selection-badge-count" id="floatingSelCount">0</span>
+      <span>contact(s) sélectionné(s)</span>
     </div>
-    <div class="quoi">
-      <span class="pill ${cl}">${esc(lib)}</span> ${quand}
-      <div style="margin-top:4px">${esc(r.ACTION_TYPE || '')}${
-        r.PROPRIETAIRE ? ' · ' + esc(r.PROPRIETAIRE) : ''}</div>
-    </div>
-  </div>`;
-}
 
-function chargerJour() {
-  $('count').innerHTML = '';
-  $('pos').textContent = '';
-  api('api/aujourdhui').then(d => {
-    const total = SECTIONS_JOUR.reduce((n, [k]) => n + d[k].length, 0);
-    $('count').innerHTML = nf.format(total) + ' <span>à traiter</span>';
-    $('vueJour').innerHTML = SECTIONS_JOUR.map(([k, titre, sous]) => `
-      <section>
-        <h2>${titre}${d[k].length ? ` <span style="color:var(--ink-3)">${d[k].length}</span>` : ''}</h2>
-        <div class="sous">${sous}</div>
-        ${d[k].length
-          ? `<div class="cartes">${d[k].map(carteJour).join('')}</div>`
-          : `<div class="vide">Rien ici.</div>`}
-      </section>`).join('');
-    // Les cartes ouvrent la meme fiche que le pipeline : une seule fiche, un
-    // seul endroit ou l'etat se change.
-    $('vueJour').querySelectorAll('.carte').forEach(c => {
-      c.onclick = () => ficheCrm({ PERSON_KEY: c.dataset.k });
+    <div class="floating-buttons">
+      <button class="btn-floating-export" onclick="exportSelectionOrAllCSV()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Exporter en CSV
+      </button>
+
+      <button class="btn-floating-copy" onclick="copySelectedEmails()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+        Copier les emails
+      </button>
+
+      <button class="btn-floating-clear" onclick="clearSelection()">
+        Annuler
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= DETAIL DRAWER (SHEET) ================= -->
+  <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer(event)">
+    <div class="drawer-panel" onclick="event.stopPropagation()">
+      <div class="drawer-header">
+        <div>
+          <span class="badge badge-source" id="drawerSource">Décideur Qualifié</span>
+          <h2 style="font-size: 1.35rem; font-weight: 700; margin-top: 0.3rem;" id="drawerName">Nom Décideur</h2>
+          <p style="color: var(--text-secondary); font-size: 0.88rem;" id="drawerTitle">Poste</p>
+        </div>
+        <button class="drawer-close-btn" onclick="closeDrawer()" title="Fermer">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div class="drawer-body">
+        <!-- Quick Action Buttons -->
+        <div class="drawer-actions-grid" id="drawerActions">
+          <!-- Rendered by JS -->
+        </div>
+
+        <!-- Contact Section -->
+        <div class="drawer-section">
+          <div class="drawer-section-title">Coordonnées Personnelles / Directes</div>
+          <div class="drawer-meta-row">
+            <span class="drawer-meta-key">Email Pro</span>
+            <span class="drawer-meta-val" id="drawerEmail">—</span>
+          </div>
+          <div class="drawer-meta-row">
+            <span class="drawer-meta-key">Statut MX</span>
+            <span class="drawer-meta-val" id="drawerMx">—</span>
+          </div>
+          <div class="drawer-meta-row">
+            <span class="drawer-meta-key">Téléphone</span>
+            <span class="drawer-meta-val" id="drawerPhone">—</span>
+          </div>
+          <div class="drawer-meta-row">
+            <span class="drawer-meta-key">Profil LinkedIn</span>
+            <span class="drawer-meta-val" id="drawerLinkedin">—</span>
+          </div>
+        </div>
+
+        <!-- Company Section -->
+        <div class="drawer-section">
+          <div class="drawer-section-title">Informations Entreprise</div>
+          <div class="drawer-meta-row">
+            <span class="drawer-meta-key">Raison Sociale</span>
+            <span class="drawer-meta-val" id="drawerCompany">—</span>
+          </div>
+          <div class="drawer-meta-row">
+            <span class="drawer-meta-key">Numéro SIREN</span>
+            <span class="drawer-meta-val" id="drawerSiren">—</span>
+          </div>
+          <div class="drawer-meta-row">
+            <span class="drawer-meta-key">Code NAF &amp; Activité</span>
+            <span class="drawer-meta-val" id="drawerNaf">—</span>
+          </div>
+          <div class="drawer-meta-row">
+            <span class="drawer-meta-key">Secteur</span>
+            <span class="drawer-meta-val" id="drawerSecteur">—</span>
+          </div>
+          <div class="drawer-meta-row">
+            <span class="drawer-meta-key">Tranche Effectif</span>
+            <span class="drawer-meta-val" id="drawerEffectif">—</span>
+          </div>
+          <div class="drawer-meta-row">
+            <span class="drawer-meta-key">Chiffre d'Affaires</span>
+            <span class="drawer-meta-val" id="drawerCA">—</span>
+          </div>
+          <div class="drawer-meta-row">
+            <span class="drawer-meta-key">Forme Juridique</span>
+            <span class="drawer-meta-val" id="drawerLegal">—</span>
+          </div>
+          <div class="drawer-meta-row">
+            <span class="drawer-meta-key">Site Internet</span>
+            <span class="drawer-meta-val" id="drawerWebsite">—</span>
+          </div>
+        </div>
+
+        <!-- Location Section -->
+        <div class="drawer-section">
+          <div class="drawer-section-title">Localisation Siège / Établissement</div>
+          <div class="drawer-meta-row">
+            <span class="drawer-meta-key">Adresse</span>
+            <span class="drawer-meta-val" id="drawerAddress">—</span>
+          </div>
+          <div class="drawer-meta-row">
+            <span class="drawer-meta-key">Ville &amp; Code Postal</span>
+            <span class="drawer-meta-val" id="drawerCityCp">—</span>
+          </div>
+          <div class="drawer-meta-row">
+            <span class="drawer-meta-key">Département</span>
+            <span class="drawer-meta-val" id="drawerDept">—</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="apple-footer">
+    <div class="footer-container">
+      <div class="footer-top">
+        <a href="https://arxcapital.duckdns.org" target="_blank" rel="noopener noreferrer" class="footer-brand">
+          <div class="arx-logo-wrapper" style="width:26px; height:26px; border-radius:6px;"><img src="assets/arx-logo-blanc.png" alt="Arx Consulting" style="width:16px; height:16px; object-fit:contain;"></div>
+          <span>Arx Consulting &mdash; Conseil &amp; Solutions IA</span>
+        </a>
+
+        <div class="footer-links">
+          <a href="https://arxcapital.duckdns.org" target="_blank" rel="noopener noreferrer">Site officiel Arx Consulting</a>
+          <a href="#" onclick="exportSelectionOrAllCSV(); return false;">Export Données CSV</a>
+          <a href="#" onclick="window.scrollTo({top:0, behavior:'smooth'}); return false;">Haut de page</a>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>&copy; 2026 Contact PACA &bull; Partenaire technologique <a href="https://arxcapital.duckdns.org" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">Arx Consulting</a>. Tous droits réservés.</div>
+        <div>Données issues des registres légaux RNE, INSEE, SIRENE et annuaires économiques de la Région Provence-Alpes-Côte d'Azur.</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast Element -->
+  <div class="toast-msg" id="toastMsg">Action effectuée</div>
+
+        <!-- APPLICATION LOGIC: DIRECT ORACLE AUTONOMOUS DATABASE 23ai CLIENT -->
+  <script>
+    const API_BASE = window.location.pathname.includes('/contact-paca') ? '/contact-paca/api' : '/api';
+
+    // State variables
+    let currentRows = [];
+    let selectedIds = new Set();
+    let currentPage = 1;
+    let pageSize = 50;
+    let totalRows = 0;
+    let totalPages = 1;
+    let currentViewMode = 'table';
+    let searchDebounceTimer = null;
+
+    let filters = {
+      q: '',
+      dept: '',
+      secteur: '',
+      ville: '',
+      effectif: '',
+      fonction: '',
+      ca: '',
+      hasEmail: false,
+      hasPhone: false,
+      hasMobile: false,
+      hasActionable: false,
+      hasCLevel: false,
+      hasWebsite: false
+    };
+
+    const DEPT_NAMES = {
+      '04': '04 - Alpes-de-Haute-Provence',
+      '05': '05 - Hautes-Alpes',
+      '06': '06 - Alpes-Maritimes',
+      '13': '13 - Bouches-du-Rhône',
+      '83': '83 - Var',
+      '84': '84 - Vaucluse'
+    };
+
+    // Initialize application: Fetch directly from Oracle ATP
+    document.addEventListener('DOMContentLoaded', () => {
+      loadStats();
+      loadFilterOptions();
+      loadContacts();
     });
-  }).catch(err => {
-    $('vueJour').innerHTML = `<div class="vide">Chargement impossible (${esc(err.message)}).</div>`;
-  });
-}
 
-/* ------------------------------- CRM -------------------------------- */
-chips('fFile2', [{ t: 'En retard', v: 'retard' }, { t: "Aujourd'hui", v: 'aujourdhui' },
-                 { t: 'Cette semaine', v: 'semaine' }, { t: 'Fiches actives', v: 'actifs' }], 'file');
-chips('fCanal2', [{ t: 'Joignable', v: 'joignable' }, { t: 'E-mail', v: 'email' },
-                  { t: 'LinkedIn', v: 'linkedin' }], 'canal');
+    // 1. Fetch live KPIs from Oracle
+    async function loadStats() {
+      try {
+        const res = await fetch(`${API_BASE}/stats`);
+        if (!res.ok) throw new Error('Auth or DB error');
+        const d = await res.json();
 
-// Les bases et les statuts viennent du serveur avec leurs effectifs : une puce
-// qui annonce un compte faux est pire que pas de puce.
-let PIPE = null;
-api('api/pipeline/stats').then(d => {
-  PIPE = d;
-  const gate = d.bases.filter(b => String(b.SOURCE).startsWith('gate:'))
-                      .reduce((n, b) => n + Number(b.N), 0);
-  const bases = d.bases.filter(b => !String(b.SOURCE).startsWith('gate:'))
-                       .map(b => ({ t: `${nomBase(b.SOURCE)} · ${nf.format(b.N)}`, v: b.SOURCE }));
-  if (gate) bases.push({ t: `Formulaires · ${gate}`, v: 'gate' });
-  chips('fBase', bases, 'source');
-  chips('fStatut', d.statuts.map(x => ({
-    t: `${(ETATS[x.STATUT] || [x.STATUT])[0]} · ${x.N}`, v: x.STATUT })), 'statut');
-  // Les compteurs arrivent apres le premier rendu : sans ce rappel, les tuiles
-  // de la page d'entree restent vides au chargement.
-  tuiles();
-}).catch(() => {});
+        if (document.getElementById('kpiTotalContacts')) document.getElementById('kpiTotalContacts').textContent = Number(d.TOTAL || 0).toLocaleString('fr-FR');
+        if (document.getElementById('kpiCLevel')) document.getElementById('kpiCLevel').textContent = Number(d.C_LEVEL || 0).toLocaleString('fr-FR');
+        if (document.getElementById('kpiActionable')) document.getElementById('kpiActionable').textContent = Number(d.ACTIONABLE || 0).toLocaleString('fr-FR');
+        if (document.getElementById('kpiWithEmail')) document.getElementById('kpiWithEmail').textContent = Number(d.WITH_EMAIL || 0).toLocaleString('fr-FR');
+        if (document.getElementById('kpiWithPhone')) document.getElementById('kpiWithPhone').textContent = Number(d.WITH_PHONE || 0).toLocaleString('fr-FR');
+        if (document.getElementById('kpiWithMobile')) document.getElementById('kpiWithMobile').textContent = Number(d.WITH_MOBILE || 0).toLocaleString('fr-FR');
+        if (document.getElementById('kpiWithLinkedin')) document.getElementById('kpiWithLinkedin').textContent = Number(d.WITH_LINKEDIN || 0).toLocaleString('fr-FR');
+        if (document.getElementById('kpiTotalEntreprises')) document.getElementById('kpiTotalEntreprises').textContent = Number(d.TOTAL_ENTREPRISES || 188838).toLocaleString('fr-FR');
 
-/* ------------------------------ chiffres ---------------------------- */
-let STATS = null;
-api('api/stats').then(d => {
-  STATS = d;
-  chips('fTerr', d.territoires.map(r => ({ t: (TERR[r.TERRITOIRE] || r.TERRITOIRE) + ' · ' + r.N, v: r.TERRITOIRE })), 'territoire');
-  d.secteurs.forEach(r => $('secteur').insertAdjacentHTML('beforeend',
-    `<option value="${esc(r.S)}">${esc(r.S)} (${r.N})</option>`));
-  tuiles();
-});
+        if (document.getElementById('lblGrandTotal')) document.getElementById('lblGrandTotal').textContent = Number(d.TOTAL || 0).toLocaleString('fr-FR');
+        if (document.getElementById('countDeptAll')) document.getElementById('countDeptAll').textContent = Number(d.TOTAL || 0).toLocaleString('fr-FR');
+        if (d.DEPT_06 && document.getElementById('countDept06')) document.getElementById('countDept06').textContent = Number(d.DEPT_06).toLocaleString('fr-FR');
+        if (d.DEPT_13 && document.getElementById('countDept13')) document.getElementById('countDept13').textContent = Number(d.DEPT_13).toLocaleString('fr-FR');
+        if (d.DEPT_83 && document.getElementById('countDept83')) document.getElementById('countDept83').textContent = Number(d.DEPT_83).toLocaleString('fr-FR');
+        if (d.DEPT_84 && document.getElementById('countDept84')) document.getElementById('countDept84').textContent = Number(d.DEPT_84).toLocaleString('fr-FR');
+        if (d.DEPT_05 && document.getElementById('countDept05')) document.getElementById('countDept05').textContent = Number(d.DEPT_05).toLocaleString('fr-FR');
+        if (d.DEPT_04 && document.getElementById('countDept04')) document.getElementById('countDept04').textContent = Number(d.DEPT_04).toLocaleString('fr-FR');
+      } catch (err) {
+        console.error('Erreur chargement stats Oracle:', err);
+      }
+    }
 
-function tuile(n, k, pct) {
-  return `<div class="tile"><div class="n">${n}</div><div class="k">${k}</div>` +
-         (pct != null ? `<div class="bar"><i style="width:${pct}%"></i></div>` : '') + '</div>';
-}
-function tuiles() {
-  if (!STATS) return;
-  const t = STATS.totaux;
-  const vues = {
-    entreprises: () =>
-      tuile(nf.format(t.ENTREPRISES), 'entreprises')
-      + tuile(nf.format(t.ACTIVES), 'cibles actives', Math.round(100 * t.ACTIVES / t.ENTREPRISES))
-      + tuile(eur(t.CA_CUMULE), 'chiffre d\'affaires cumulé')
-      + tuile(nf.format(t.AVEC_SITE), 'sites web connus'),
-    personnes: () =>
-      tuile(nf.format(t.PERSONNES), 'personnes')
-      + tuile(nf.format(t.AU_REGISTRE), 'dirigeants au registre')
-      + tuile(nf.format(t.AVEC_LINKEDIN), 'profils LinkedIn')
-      + tuile(nf.format(t.CONTACTS_LIES) + ' / ' + nf.format(t.CONTACTS), 'rattachés à une société',
-              Math.round(100 * t.CONTACTS_LIES / (t.CONTACTS || 1))),
-    appels: () =>
-      tuile(nf.format(t.APPELABLES), 'sociétés joignables')
-      + tuile(nf.format(t.APPELS_FAITS), 'appels enregistrés')
-      + tuile(nf.format(t.RELANCES_DUES), 'relances dues')
-      + tuile(nf.format(t.AVEC_SITE), 'sites web connus'),
-    // Les quatre chiffres du matin : ce qui est en retard, ce qui tombe
-    // aujourd'hui, ce qui vit encore, et la reserve joignable.
-    jour: () => vues.crm(),
-    campagnes: () => '',
-    organisations: () => '',
-    crm: () => {
-      if (!PIPE) return '';
-      const e = PIPE.echeances;
-      const joignables = PIPE.bases.reduce((n, b) => n + Number(b.JOIGNABLES), 0);
-      return tuile(nf.format(e.RETARD), 'en retard')
-           + tuile(nf.format(e.AUJOURDHUI), "à faire aujourd'hui")
-           + tuile(nf.format(e.ACTIFS), 'fiches actives')
-           + tuile(nf.format(joignables), 'personnes joignables');
-    },
-  };
-  $('tiles').innerHTML = vues[mode]();
-}
+    // 2. Fetch Filter Options from Oracle
+    async function loadFilterOptions() {
+      try {
+        const res = await fetch(`${API_BASE}/filter-options`);
+        if (!res.ok) return;
+        const d = await res.json();
 
-/* ------------------------------- table ------------------------------ */
-function entetes() {
-  $('head').innerHTML = COLS[mode].map((c, i) => {
-    const actif = c.tri && etat[mode].tri === c.tri;
-    return `<th class="${c.tri ? 'tri' : ''}" data-i="${i}"${actif ? ' aria-sort="descending"' : ''}>`
-         + esc(c.t) + (c.tri ? ' ↕' : '') + '</th>';
-  }).join('');
-  $('head').querySelectorAll('th.tri').forEach(th => th.onclick = () => {
-    etat[mode].tri = COLS[mode][+th.dataset.i].tri;
-    charger(true);
-  });
-}
+        // Secteurs
+        const selSecteur = document.getElementById('selectSecteur');
+        selSecteur.innerHTML = '<option value="">Tous les secteurs d\'activité</option>';
+        (d.secteurs || []).forEach(s => {
+          if (!s) return;
+          const opt = document.createElement('option');
+          opt.value = s;
+          opt.textContent = s;
+          selSecteur.appendChild(opt);
+        });
 
-const lignes = new Map();   // cle -> enregistrement, pour la fiche sans re-requete
+        // Top Villes
+        const selVille = document.getElementById('selectVille');
+        selVille.innerHTML = '<option value="">Toutes les villes</option>';
+        (d.villes || []).forEach(v => {
+          if (!v.ville) return;
+          const opt = document.createElement('option');
+          opt.value = v.ville;
+          opt.textContent = `${v.ville} (${v.count})`;
+          selVille.appendChild(opt);
+        });
+      } catch (err) {
+        console.error('Erreur filtres Oracle:', err);
+      }
+    }
 
-function charger(reset) {
-  if (mode === 'jour') return chargerJour();
-  if (reset) page = 0;
-  const e = etat[mode];
-  const URLS = {
-    personnes: () => `api/personnes?q=${encodeURIComponent(e.q)}&origine=${e.origine}`
-      + `&territoire=${e.territoire}&canal=${e.canal}&tri=${e.tri}`,
-    appels: () => `api/appels?q=${encodeURIComponent(e.q)}&territoire=${e.territoire}`
-      + `&statut=${e.statut}&camin=${e.camin}&file=${e.file}&tri=${e.tri}`,
-    entreprises: () => `api/entreprises?q=${encodeURIComponent(e.q)}&territoire=${e.territoire}`
-      + `&secteur=${encodeURIComponent(e.secteur)}&effmin=${e.effmin}&tri=${e.tri}`,
-    crm: () => `api/pipeline?q=${encodeURIComponent(e.q)}&source=${encodeURIComponent(e.source)}`
-      + `&statut=${e.statut}&file=${e.file}&canal=${e.canal}&tri=${e.tri}`,
-    campagnes: () => `api/campagnes?`,
-    organisations: () => `api/organisations?q=${encodeURIComponent(e.q)}&source=${e.source}`,
-  };
-  const url = URLS[mode]();
+    // 3. Main Query: Search & Filter Contacts in Oracle ATP
+    async function loadContacts() {
+      const tbody = document.getElementById('contactsTableBody');
+      const grid = document.getElementById('gridViewContainer');
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:3rem; color:var(--text-secondary);">Requête en direct vers Oracle Autonomous Database...</td></tr>';
 
-  entetes();
-  api(`${url}&page=${page}`).then(d => {
-    total = d.total;
-    const cols = COLS[mode];
-    lignes.clear();
-    $('rows').innerHTML = d.rows.length ? d.rows.map((r, i) => {
-      const k = mode === 'crm' ? r.PERSON_KEY
-              : mode === 'organisations' ? r.ORG_KEY
-              : mode === 'campagnes' ? 'c:' + r.ID
-              : mode === 'personnes' ? r.ORIGINE + ':' + r.PID : 'e:' + r.ID;
-      lignes.set(k, r);
-      return `<tr data-k="${esc(k)}">` + cols.map(c =>
-        `<td class="${c.c}">${c.v(r)}</td>`).join('') + '</tr>';
-    }).join('') : `<tr><td class="empty" colspan="${cols.length}">Aucun résultat.</td></tr>`;
+      const params = new URLSearchParams({
+        page: currentPage,
+        pageSize: pageSize,
+        q: filters.q,
+        dept: filters.dept,
+        secteur: filters.secteur,
+        ville: filters.ville,
+        effectif: filters.effectif,
+        fonction: filters.fonction,
+        ca: filters.ca,
+        has_email: filters.hasEmail,
+        has_phone: filters.hasPhone,
+        has_mobile: filters.hasMobile,
+        has_actionable: filters.hasActionable,
+        has_c_level: filters.hasCLevel,
+        has_website: filters.hasWebsite
+      });
 
-    const deb = total ? page * 60 + 1 : 0, fin = Math.min((page + 1) * 60, total);
-    // Le pluriel ne se met pas toujours en fin de libelle : « societes a appeler ».
-    const [un, plusieurs] = { personnes: ['personne', 'personnes'],
-                              appels: ['société à appeler', 'sociétés à appeler'],
-                              crm: ['fiche', 'fiches'],
-                              campagnes: ['campagne', 'campagnes'],
-                              organisations: ['maison', 'maisons'],
-                              entreprises: ['entreprise', 'entreprises'] }[mode];
-    $('count').innerHTML = nf.format(total) + ' <span>' + (total > 1 ? plusieurs : un) + '</span>';
-    $('pos').textContent = total ? `${deb}–${fin} sur ${nf.format(total)}` : '—';
-    $('prev').disabled = page === 0;
-    $('next').disabled = (page + 1) * 60 >= total;
-  }).catch(err => {
-    $('rows').innerHTML = `<tr><td class="empty" colspan="${COLS[mode].length}">`
-      + `Chargement impossible (${esc(err.message)}). Vérifiez la clé d'accès.</td></tr>`;
-  });
-}
+      try {
+        const res = await fetch(`${API_BASE}/contacts?${params.toString()}`);
+        if (res.status === 401) {
+          window.location.reload();
+          return;
+        }
+        const data = await res.json();
 
-$('prev').onclick = () => { if (page > 0) { page--; charger(false); scrollTo({ top: 0, behavior: 'smooth' }); } };
-$('next').onclick = () => { if ((page + 1) * 60 < total) { page++; charger(false); scrollTo({ top: 0, behavior: 'smooth' }); } };
+        currentRows = data.rows || [];
+        totalRows = data.total || 0;
+        totalPages = Math.max(1, data.totalPages || 1);
 
-/* ------------------------------ onglets ----------------------------- */
-const PLACEHOLDER = { personnes: 'Nom, poste, ville…', appels: 'Société ou ville…',
-                      crm: 'Nom, société, e-mail…', jour: '',
-                      campagnes: 'Nom de campagne…', organisations: 'Nom de maison…',
-                      entreprises: 'Nom, ville, secteur…' };
-const CHAMP_PUCE = { fTerr: 'territoire', fEff: 'effmin', fOrig: 'origine',
-                     fCanal: 'canal', fFile: 'file', fCa: 'camin',
-                     // Les puces du CRM : sans elles, le filtre par defaut
-                     // « joignable » s'applique sans qu'aucune puce ne s'allume,
-                     // et l'ecran ment sur ce qu'il montre.
-                     fBase: 'source', fFile2: 'file', fStatut: 'statut',
-                     fCanal2: 'canal' };
+        document.getElementById('lblTotalFiltered').textContent = totalRows.toLocaleString('fr-FR');
+        document.getElementById('lblSelectFilteredCount').textContent = totalRows.toLocaleString('fr-FR');
+        document.getElementById('lblCurrentPage').textContent = currentPage;
+        document.getElementById('lblTotalPages').textContent = totalPages;
 
-function basculer(m) {
-  mode = m;
-  [['ongletJour', 'jour'], ['ongletEnt', 'entreprises'], ['ongletPers', 'personnes'],
-   ['ongletAppels', 'appels'], ['ongletCrm', 'crm'],
-   ['ongletCamp', 'campagnes'], ['ongletOrg', 'organisations']]
-    .forEach(([id, k]) => $(id).setAttribute('aria-selected', String(m === k)));
-  $('filtresEnt').hidden = m !== 'entreprises';
-  $('filtresPers').hidden = m !== 'personnes';
-  $('filtresAppels').hidden = m !== 'appels';
-  $('filtresCrm').hidden = m !== 'crm';
-  // La file de travail n'a ni filtre, ni tableau, ni pagination : elle a trois
-  // listes courtes. Tout le reste de la page s'efface.
-  const table = MODES_TABLE.includes(m);
-  $('vueTable').hidden = !table;
-  $('vueJour').hidden = table;
-  document.querySelector('.pager').hidden = !table;
-  document.querySelector('aside.filtres').hidden = m === 'jour';
-  document.querySelector('.wrap').style.gridTemplateColumns = m === 'jour' ? '1fr' : '';
-  // La file d'appel n'a pas de canal ecrit : rien a envoyer a un sequenceur.
-  $('versLinki').hidden = !['entreprises', 'personnes', 'crm'].includes(m);
-  $('q').placeholder = PLACEHOLDER[m];
-  $('q').value = etat[m].q;
-  $('statut').value = etat.appels.statut;
-  // Les puces sont partagees entre les modes : on les realigne sur l'etat du
-  // mode courant, sinon un filtre invisible resterait actif.
-  document.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', 'false'));
-  Object.entries(CHAMP_PUCE).forEach(([h, champ]) => {
-    const v = etat[m][champ];
-    if (v) { const b = $(h).querySelector(`.chip[data-v="${CSS.escape(v)}"]`);
-             if (b) b.setAttribute('aria-pressed', 'true'); }
-  });
-  tuiles();
-  fermer();
-  charger(true);
-}
-$('ongletEnt').onclick = () => basculer('entreprises');
-$('ongletPers').onclick = () => basculer('personnes');
-$('ongletAppels').onclick = () => basculer('appels');
-$('ongletCrm').onclick = () => basculer('crm');
-$('ongletJour').onclick = () => basculer('jour');
-$('ongletCamp').onclick = () => basculer('campagnes');
-$('ongletOrg').onclick = () => basculer('organisations');
+        const startIdx = totalRows > 0 ? (currentPage - 1) * pageSize + 1 : 0;
+        const endIdx = Math.min(startIdx + currentRows.length - 1, totalRows);
+        document.getElementById('lblShowingCount').textContent = `${startIdx} à ${endIdx}`;
 
-/* ------------------------------- fiche ------------------------------ */
-const det = $('detail');
-function fermer() { det.hidden = true; }
-addEventListener('keydown', e => e.key === 'Escape' && fermer());
-$('rows').addEventListener('click', ev => {
-  const tr = ev.target.closest('tr[data-k]');
-  if (!tr) return;
-  const r = lignes.get(tr.dataset.k);
-  if (!r) return;
-  if (mode === 'crm') ficheCrm(r);
-  else if (mode === 'organisations' || mode === 'campagnes') return;
-  else if (mode === 'appels') ficheAppel(r);
-  else if (mode === 'entreprises') ficheEntreprise(r.ID);
-  else if (r.ORIGINE === 'fiche' || r.ENTREPRISE_ID) ficheEntreprise(r.ENTREPRISE_ID);
-  else fichePersonne(r);
-});
+        if (currentViewMode === 'table') {
+          renderTableView(currentRows);
+        } else {
+          renderGridView(currentRows);
+        }
+        renderPagination(totalPages);
+        updateSelectionUI();
+      } catch (err) {
+        console.error('Erreur query Oracle:', err);
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:3rem; color:var(--apple-red);">Erreur de connexion à la base Oracle ATP. Veuillez réessayer.</td></tr>';
+      }
+    }
 
-/*
- * Fiche CRM : l'etat, la frise, la maison.
- *
- * Elle se recharge depuis le serveur au lieu de se contenter de la ligne du
- * tableau : la frise et les voisins n'y sont pas, et ce sont eux qui repondent
- * a la question qu'on se pose avant de decrocher — que s'est-il deja passe, et
- * qui d'autre connait-on dans cette maison.
- *
- * Le formulaire n'impose pas la prochaine action : c'est la base qui la refuse
- * (CK_CS_ACTION_DUE). Le message du serveur est donc affiche tel quel — une
- * seule regle, un seul endroit ou elle est ecrite.
- */
-function ficheCrm(ligne) {
-  det.hidden = false;
-  det.innerHTML = cadre('…', '', '<div class="hint">Chargement…</div>');
+    // Search input debouncer
+    function handleSearchInput(val) {
+      filters.q = val.trim();
+      document.getElementById('searchClearBtn').style.display = filters.q ? 'block' : 'none';
+      clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(() => {
+        currentPage = 1;
+        loadContacts();
+      }, 250);
+    }
 
-  api('api/personne/' + encodeURIComponent(ligne.PERSON_KEY)).then(d => {
-    const r = d.fiche, o = d.organisation;
-    const nom = [r.FIRST_NAME, r.LAST_NAME].filter(Boolean).join(' ') || '—';
-    const iso = v => v ? new Date(v).toISOString().slice(0, 10) : '';
-    const opt = (liste, choisi) => liste.map(v =>
-      `<option value="${esc(v)}"${v === choisi ? ' selected' : ''}>${esc((ETATS[v] || [v])[0])}</option>`).join('');
+    function clearSearch() {
+      document.getElementById('globalSearch').value = '';
+      filters.q = '';
+      document.getElementById('searchClearBtn').style.display = 'none';
+      currentPage = 1;
+      loadContacts();
+    }
 
-    const frise = d.frise.length ? `<ul class="frise">${d.frise.map(i => `
-      <li class="${i.SENS === 'entrant' ? 'entrant' : ''}">
-        <b>${esc(i.TYPE)}</b> <span class="q">· ${esc(i.CANAL)} · ${heure(i.QUAND)}</span>
-        ${i.CAMPAGNE ? `<span class="pill">${esc(i.CAMPAGNE)}</span>` : ''}
-        ${i.RESUME ? `<p>${esc(i.RESUME)}</p>` : ''}
-      </li>`).join('')}</ul>` : '<div class="hint">Aucune interaction enregistrée.</div>';
+    function setDeptFilter(dept) {
+      filters.dept = dept;
+      document.querySelectorAll('.dept-pill').forEach(btn => {
+        if (btn.getAttribute('data-dept') === dept) btn.classList.add('active');
+        else btn.classList.remove('active');
+      });
+      currentPage = 1;
+      loadContacts();
+    }
 
-    const voisins = d.voisins.length ? `
-      <h3 style="margin-top:18px; font-size:10px; color:var(--ink-3)">
-        ${d.voisins.length} autre${d.voisins.length > 1 ? 's' : ''} contact${d.voisins.length > 1 ? 's' : ''}
-        chez ${esc(o ? o.NOM : r.COMPANY)}</h3>
-      <div class="voisins">${d.voisins.map(v =>
-        `<button class="chip" data-k="${esc(v.PERSON_KEY)}">${
-          esc([v.FIRST_NAME, v.LAST_NAME].filter(Boolean).join(' '))}</button>`).join('')}</div>` : '';
+    function toggleChannelFilter(channel) {
+      if (channel === 'email') {
+        filters.hasEmail = !filters.hasEmail;
+        document.getElementById('chipEmail')?.classList.toggle('active', filters.hasEmail);
+        document.getElementById('kpiCardEmail')?.classList.toggle('active-kpi', filters.hasEmail);
+      } else if (channel === 'phone') {
+        filters.hasPhone = !filters.hasPhone;
+        document.getElementById('chipPhone')?.classList.toggle('active', filters.hasPhone);
+        document.getElementById('kpiCardPhone')?.classList.toggle('active-kpi', filters.hasPhone);
+      } else if (channel === 'mobile') {
+        filters.hasMobile = !filters.hasMobile;
+        document.getElementById('chipMobile')?.classList.toggle('active', filters.hasMobile);
+        document.getElementById('kpiCardMobile')?.classList.toggle('active-kpi', filters.hasMobile);
+      } else if (channel === 'actionable') {
+        filters.hasActionable = !filters.hasActionable;
+        document.getElementById('chipActionable')?.classList.toggle('active', filters.hasActionable);
+        document.getElementById('kpiCardActionable')?.classList.toggle('active-kpi', filters.hasActionable);
+      } else if (channel === 'c_level') {
+        filters.hasCLevel = !filters.hasCLevel;
+        document.getElementById('chipCLevel')?.classList.toggle('active', filters.hasCLevel);
+        document.getElementById('kpiCardCLevel')?.classList.toggle('active-kpi', filters.hasCLevel);
+      } else if (channel === 'website') {
+        filters.hasWebsite = !filters.hasWebsite;
+        document.getElementById('chipWebsite')?.classList.toggle('active', filters.hasWebsite);
+      }
+      currentPage = 1;
+      loadContacts();
+    }
 
-    det.innerHTML = cadre(nom, `${esc(r.COMPANY || '—')}${r.TITLE ? ' · ' + esc(r.TITLE) : ''}`, `
-      <dl>
-        ${dd('Base', nomBase(r.SOURCE))}
-        ${dd('E-mail', r.EMAIL)}
-        ${dd('Téléphone', r.PHONE)}
-        ${r.LINKEDIN_URL ? `<dt>LinkedIn</dt><dd><a href="${esc(r.LINKEDIN_URL)}" target="_blank"
-           rel="noopener noreferrer">profil</a></dd>` : ''}
-        ${dd('Ville', [r.CITY, r.COUNTRY].filter(Boolean).join(', '))}
-        ${o && o.SITE_WEB ? `<dt>Site</dt><dd><a href="${
-          esc(o.SITE_WEB.startsWith('http') ? o.SITE_WEB : 'https://' + o.SITE_WEB)}"
-          target="_blank" rel="noopener noreferrer">${esc(o.SITE_WEB)}</a></dd>` : ''}
-        ${dd('Origine de l’état', r.ORIGINE_ETAT)}
-        ${r.MOTIF_PERTE ? dd('Motif', r.MOTIF_PERTE) : ''}
-      </dl>
-      ${voisins}
+    function handleFilterChange() {
+      filters.secteur = document.getElementById('selectSecteur').value;
+      filters.ville = document.getElementById('selectVille').value;
+      filters.effectif = document.getElementById('selectEffectif').value;
+      filters.fonction = document.getElementById('selectFonction').value;
+      filters.ca = document.getElementById('selectCA').value;
+      currentPage = 1;
+      loadContacts();
+    }
 
-      <h3 style="margin-top:18px; font-size:10px; color:var(--ink-3)">État</h3>
-      <div style="display:grid; gap:8px">
-        <label class="hint">Statut
-          <select id="csStatut">${opt(PIPE ? PIPE.vocabulaire : Object.keys(ETATS), r.STATUT)}</select></label>
-        <label class="hint">Propriétaire
-          <input type="search" id="csProp" value="${esc(r.PROPRIETAIRE || '')}"
-                 placeholder="qui suit cette fiche"></label>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px">
-          <label class="hint">Prochaine action
-            <select id="csType"><option value="">—</option>${
-              (PIPE ? PIPE.types_action : []).map(v =>
-                `<option value="${esc(v)}"${v === r.ACTION_TYPE ? ' selected' : ''}>${esc(v)}</option>`).join('')
-            }</select></label>
-          <label class="hint">Le
-            <input type="date" id="csDate" value="${iso(r.ACTION_LE)}"></label>
-        </div>
-        <label class="hint">Note d’action
-          <input type="search" id="csNote" value="${esc(r.ACTION_NOTE || '')}"
-                 placeholder="ce qu’il faut faire"></label>
-        <button id="csOk" class="reset" style="margin-top:2px; background:var(--blue);
-                border-color:var(--blue); color:#fff">Enregistrer l’état</button>
-        <span id="csMsg" class="hint"></span>
-      </div>
+    function resetAllFilters() {
+      filters = {
+        q: '',
+        dept: '',
+        secteur: '',
+        ville: '',
+        effectif: '',
+        fonction: '',
+        ca: '',
+        hasEmail: false,
+        hasPhone: false,
+        hasMobile: false,
+        hasActionable: false,
+        hasCLevel: false,
+        hasWebsite: false
+      };
+      document.getElementById('globalSearch').value = '';
+      document.getElementById('searchClearBtn').style.display = 'none';
+      document.getElementById('selectSecteur').value = '';
+      document.getElementById('selectVille').value = '';
+      document.getElementById('selectEffectif').value = '';
+      document.getElementById('selectFonction').value = '';
+      document.getElementById('selectCA').value = '';
+      document.querySelectorAll('.channel-chip').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.kpi-item').forEach(c => c.classList.remove('active-kpi'));
+      document.querySelectorAll('.dept-pill').forEach(btn => {
+        if (btn.getAttribute('data-dept') === '') btn.classList.add('active');
+        else btn.classList.remove('active');
+      });
+      currentPage = 1;
+      loadContacts();
+      showToast("Filtres réinitialisés");
+    }
 
-      <h3 style="margin-top:22px; font-size:10px; color:var(--ink-3)">Journal</h3>
-      <div style="display:grid; gap:8px">
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px">
-          <label class="hint">Canal
-            <select id="inCanal">${(PIPE ? PIPE.canaux : ['appel']).map(v =>
-              `<option value="${esc(v)}"${v === 'appel' ? ' selected' : ''}>${esc(v)}</option>`).join('')}</select></label>
-          <label class="hint">Type
-            <select id="inType">${(PIPE ? PIPE.types_interaction : ['appel']).map(v =>
-              `<option value="${esc(v)}"${v === 'appel' ? ' selected' : ''}>${esc(v)}</option>`).join('')}</select></label>
-        </div>
-        <label class="hint">Ce qui s’est dit
-          <input type="search" id="inResume" placeholder="compte rendu, objection, suite"></label>
-        <button id="inOk" class="reset">Journaliser</button>
-        <span id="inMsg" class="hint"></span>
-      </div>
-      ${frise}`);
+    // Render Table
+    function renderTableView(items) {
+      const tbody = document.getElementById('contactsTableBody');
+      tbody.innerHTML = '';
 
-    det.querySelectorAll('.voisins .chip').forEach(b =>
-      b.onclick = () => ficheCrm({ PERSON_KEY: b.dataset.k }));
+      if (items.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:3rem; color:var(--text-tertiary);">Aucun contact ne correspond à vos critères dans la base Oracle.</td></tr>';
+        return;
+      }
 
-    $('csOk').onclick = () => {
-      $('csMsg').textContent = 'Enregistrement…';
-      poster('api/etat/' + encodeURIComponent(r.PERSON_KEY), {
-        statut: $('csStatut').value,
-        proprietaire: $('csProp').value || null,
-        action_type: $('csType').value || null,
-        action_le: $('csDate').value || null,
-        action_note: $('csNote').value || null,
-      }, 'PATCH').then(() => {
-        $('csMsg').textContent = 'Enregistré.';
-        charger(false);
-        setTimeout(fermer, 600);
-      }).catch(e => { $('csMsg').textContent = e.message; });
-    };
+      items.forEach(c => {
+        const id = String(c.ID);
+        const isSelected = selectedIds.has(id);
+        const fullName = `${c.PRENOM || ''} ${c.NOM || ''}`.trim() || 'Contact';
+        const initials = getInitials(fullName);
+        const tr = document.createElement('tr');
+        if (isSelected) tr.classList.add('selected');
 
-    // La saisie est reservee a ce qu'aucune machine ne voit : l'appel, la
-    // rencontre, la note. Les envois et les reponses sont deja ingeres.
-    $('inOk').onclick = () => {
-      if (!$('inResume').value.trim()) { $('inMsg').textContent = 'Dites ce qui s’est passé.'; return; }
-      $('inMsg').textContent = 'Enregistrement…';
-      poster('api/journal', {
-        person_key: r.PERSON_KEY, canal: $('inCanal').value,
-        type: $('inType').value, resume: $('inResume').value,
-      }).then(() => { ficheCrm({ PERSON_KEY: r.PERSON_KEY }); charger(false); })
-        .catch(e => { $('inMsg').textContent = e.message; });
-    };
-  }).catch(e => {
-    det.innerHTML = cadre('Erreur', '', `<div class="hint">${esc(e.message)}</div>`);
-  });
-}
+        const phoneVal = c.TELEPHONE || c.ENT_PHONE || '';
+        const deptCode = c.DEPARTEMENT ? String(c.DEPARTEMENT).padStart(2, '0') : '';
 
-function ficheAppel(r) {
-  det.hidden = false;
-  const opts = Object.entries(STATUTS)
-    .map(([v, [l]]) => `<option value="${v}"${v === r.STATUT ? ' selected' : ''}>${l}</option>`).join('');
-  det.innerHTML = cadre(r.RAISON_SOCIALE,
-    [r.SECTEUR_LIBELLE, r.VILLE, eur(r.CA_EUR)].filter(Boolean).join(' · '),
-    `<div class="liens" style="margin-bottom:18px">
-       ${r.TELEPHONE ? `<a href="tel:${esc(r.TELEPHONE)}" style="background:var(--blue);color:#fff;padding:8px 16px">Appeler ${esc(r.TELEPHONE)}</a>` : ''}
-       ${r.SITE_WEB ? `<a href="${esc(r.SITE_WEB)}" target="_blank" rel="noopener noreferrer">Site</a>` : ''}
-     </div>
-     <dl>
-       ${dd('Interlocuteurs', r.DIRIGEANTS)}
-       ${dd('SIREN', r.SIREN)}
-       ${dd('Effectif', r.EFFECTIF != null ? nf.format(r.EFFECTIF) : null)}
-       ${dd('Appels passés', r.NB_APPELS || 0)}
-       ${dd('Dernier appel', r.DERNIER ? jour(r.DERNIER) : null)}
-       ${dd('Relance prévue', r.RELANCE_LE ? jour(r.RELANCE_LE) : null)}
-       ${dd('Notes', r.NOTES)}
-     </dl>
-     <h4>Compte rendu d'appel</h4>
-     <div style="display:grid; gap:9px">
-       <select id="apStatut">${opts}</select>
-       <textarea id="apResume" rows="4" placeholder="Ce qui s'est dit, qui a répondu, objections…"
-         style="font:inherit;font-size:10px;color:var(--ink);background:var(--card);
-                border:1px solid var(--hair);border-radius:11px;padding:9px 12px;resize:vertical"></textarea>
-       <input id="apEtape" type="text" placeholder="Prochaine étape"
-         style="font:inherit;font-size:10px;color:var(--ink);background:var(--card);
-                border:1px solid var(--hair);border-radius:11px;padding:9px 12px">
-       <label style="font-size:10px;color:var(--ink-3)">Relancer le
-         <input id="apRelance" type="date"
-           style="font:inherit;font-size:10px;color:var(--ink);background:var(--card);
-                  border:1px solid var(--hair);border-radius:11px;padding:7px 10px;margin-left:6px"></label>
-       <button id="apOk" class="reset" style="margin-top:4px;background:var(--blue);
-               border-color:var(--blue);color:#fff">Enregistrer l'appel</button>
-       <span id="apMsg" class="hint"></span>
-     </div>`);
+        tr.innerHTML = `
+          <td style="text-align: center;">
+            <input type="checkbox" class="apple-checkbox" ${isSelected ? 'checked' : ''} onchange="toggleSelectContact('${id}', this.checked)">
+          </td>
+          <td>
+            <div class="contact-cell">
+              <div class="contact-avatar">${initials}</div>
+              <div class="contact-info">
+                <span class="contact-name" onclick="openDrawerById('${id}')">${escapeHtml(fullName)}</span>
+                <span class="contact-title">${escapeHtml(c.FONCTION || 'Dirigeant')}</span>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="company-cell">
+              <span class="company-name">${escapeHtml(c.RAISON_SOCIALE || 'Entreprise PACA')}</span>
+              <span class="company-meta">${c.SIREN ? 'SIREN ' + c.SIREN : ''} ${c.FORME_JURIDIQUE ? '• ' + c.FORME_JURIDIQUE : ''}</span>
+            </div>
+          </td>
+          <td>
+            <div>
+              <span style="font-weight: 500;">${escapeHtml(c.VILLE || 'PACA')}</span>
+              <span class="badge badge-dept" style="margin-left: 4px;">${deptCode || 'PACA'}</span>
+            </div>
+          </td>
+          <td>
+            <div style="display:flex; flex-direction:column; gap:2px;">
+              <span style="font-size:0.8rem; font-weight:500;">${escapeHtml(c.SECTEUR || 'Économie PACA')}</span>
+              <span style="font-size:0.72rem; color:var(--text-tertiary);">${c.CODE_NAF ? 'NAF ' + c.CODE_NAF : ''}</span>
+            </div>
+          </td>
+          <td>
+            <span style="font-weight: 500;">${c.EFFECTIF_ESTIME ? c.EFFECTIF_ESTIME + ' sal.' : '5+ sal.'}</span>
+            ${c.CA_EUR ? `<div style="font-size:0.72rem; color:var(--text-tertiary);">${formatEuros(c.CA_EUR)}</div>` : ''}
+          </td>
+          <td>
+            <div class="action-links-group">
+              ${c.EMAIL ? `
+                <a href="mailto:${c.EMAIL}" class="action-icon-btn" title="Envoyer email: ${c.EMAIL}">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                </a>
+              ` : `<span class="action-icon-btn disabled"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></span>`}
 
-  $('apOk').onclick = () => {
-    $('apOk').disabled = true;
-    $('apMsg').textContent = 'Enregistrement…';
-    fetch('api/interactions' + (KEY ? '?key=' + encodeURIComponent(KEY) : ''), {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        entreprise_id: r.ID, canal: 'telephone',
-        resume: $('apResume').value.trim(), prochaine_etape: $('apEtape').value.trim(),
-        relance_le: $('apRelance').value || null, statut: $('apStatut').value,
-      }),
-    }).then(x => { if (!x.ok) throw new Error(x.status); return x.json(); })
-      .then(() => { $('apMsg').textContent = 'Enregistré.'; charger(false); setTimeout(fermer, 600); })
-      .catch(e => { $('apOk').disabled = false; $('apMsg').textContent = 'Échec : ' + e.message; });
-  };
-}
+              ${phoneVal ? `
+                <a href="tel:${phoneVal.replace(/\s+/g,'')}" class="action-icon-btn" title="Appeler: ${phoneVal}">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                </a>
+              ` : `<span class="action-icon-btn disabled"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg></span>`}
 
-const dd = (l, v) => v == null || v === '' ? '' : `<dt>${l}</dt><dd>${esc(v)}</dd>`;
-const cadre = (titre, sous, corps) => `<button class="close" onclick="fermer()">×</button>
-  <h2>${esc(titre)}</h2><p class="role">${esc(sous)}</p>${corps}`;
+              ${c.LINKEDIN_URL ? `
+                <a href="${c.LINKEDIN_URL}" target="_blank" rel="noopener noreferrer" class="action-icon-btn" title="Voir profil LinkedIn">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+                </a>
+              ` : ''}
 
-function ficheEntreprise(id) {
-  det.hidden = false;
-  det.innerHTML = '<p class="empty">Chargement…</p>';
-  api('api/entreprises/' + id).then(d => {
-    const e = d.entreprise;
-    const site = e.SITE_WEB ? (e.SITE_WEB.startsWith('http') ? e.SITE_WEB : 'https://' + e.SITE_WEB) : '';
-    det.innerHTML = cadre(e.RAISON_SOCIALE,
-      [e.SECTEUR_LIBELLE || 'Secteur non renseigné', TERR[e.TERRITOIRE] || e.TERRITOIRE, e.VILLE]
-        .filter(Boolean).join(' · '),
-      `<dl>
-         ${dd('Chiffre d\'affaires', e.CA_EUR != null ? eur(e.CA_EUR) : null)}
-         ${dd('Résultat', e.RESULTAT_EUR != null ? eur(e.RESULTAT_EUR) : null)}
-         ${dd('Effectif', e.EFFECTIF != null ? nf.format(e.EFFECTIF) : e.EFFECTIF_ESTIME)}
-         ${dd('Dirigeant', e.DIRIGEANT)}
-         ${dd('Téléphone', e.TELEPHONE)}
-         ${dd('SIREN', e.SIREN)}
-         ${dd('Code NAF', e.CODE_NAF)}
-         ${dd('Adresse', [e.ADRESSE, e.CODE_POSTAL, e.VILLE].filter(Boolean).join(' '))}
-         ${dd('Statut', e.STATUT)}
-         ${dd('Source', e.SOURCE + (e.ANNEE_SOURCE ? ' (' + e.ANNEE_SOURCE + ')' : ''))}
-       </dl>
-       ${site ? `<div class="liens"><a href="${esc(site)}" target="_blank" rel="noopener noreferrer">${esc(e.SITE_WEB)} →</a></div>` : ''}
-       ${e.ACTIVITE ? `<p class="role" style="margin-top:16px">${esc(e.ACTIVITE)}</p>` : ''}
-       ${e.DOUBLON_POTENTIEL ? `<div class="rgpd">Doublon potentiel à arbitrer : « ${esc(e.DOUBLON_POTENTIEL)} ».</div>` : ''}
-       <h4>Contacts (${d.contacts.length})</h4>
-       ${d.contacts.length ? d.contacts.map(p => `
-         <div class="pers">
-           <div class="n">${esc([p.PRENOM, p.NOM].filter(Boolean).join(' '))}${p.OPPOSITION === 'O' ? ' — opposition' : ''}</div>
-           <div class="r">${esc(p.FONCTION || p.INTITULE_POSTE || '')}${p.LOCALISATION ? ' · ' + esc(p.LOCALISATION) : ''}</div>
-           <div class="liens">
-             ${p.EMAIL ? `<a href="mailto:${esc(p.EMAIL)}">${esc(p.EMAIL)}</a>` : ''}
-             ${p.TELEPHONE ? `<a href="tel:${esc(p.TELEPHONE)}">${esc(p.TELEPHONE)}</a>` : ''}
-             ${p.LINKEDIN_URL ? `<a href="${esc(p.LINKEDIN_URL)}" target="_blank" rel="noopener noreferrer">LinkedIn</a>` : ''}
-           </div>
-         </div>`).join('') : '<p class="hint">Aucun contact rattaché.</p>'}
-       ${d.contacts.length ? '<div class="rgpd">Données personnelles. Purge automatique 36 mois après collecte. Ne pas exporter hors de cet outil.</div>' : ''}`);
-  }).catch(err => det.innerHTML = cadre('Erreur', String(err.message), ''));
-}
+              <!-- 1-Click DRH Hunting Button -->
+              <a href="https://www.linkedin.com/search/results/all/?keywords=${encodeURIComponent('DRH ' + (c.RAISON_SOCIALE || ''))}" target="_blank" rel="noopener noreferrer" class="action-icon-btn" title="Chasser le DRH sur LinkedIn" style="color:var(--apple-purple);">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+              </a>
 
-function fichePersonne(r) {
-  det.hidden = false;
-  det.innerHTML = cadre(r.NOM_COMPLET || 'Sans nom',
-    [r.ROLE, r.LIEU].filter(Boolean).join(' · '),
-    `<dl>
-       ${dd('Intitulé', r.DETAIL)}
-       ${dd('Provenance', (ORIG[r.ORIGINE] || [r.ORIGINE])[0])}
-       ${dd('Rattachement', r.ENTREPRISE_ID ? 'lié à une entreprise' : 'aucun — société absente de la base')}
-       ${dd('Source', r.SOURCE)}
-     </dl>
-     <h4>Canaux</h4>
-     <div class="liens">
-       ${r.EMAIL ? `<a href="mailto:${esc(r.EMAIL)}">${esc(r.EMAIL)}</a>` : ''}
-       ${r.TELEPHONE ? `<a href="tel:${esc(r.TELEPHONE)}">${esc(r.TELEPHONE)}</a>` : ''}
-       ${r.LINKEDIN_URL ? `<a href="${esc(r.LINKEDIN_URL)}" target="_blank" rel="noopener noreferrer">LinkedIn</a>` : ''}
-       ${!r.EMAIL && !r.TELEPHONE && !r.LINKEDIN_URL ? '<span class="hint">Aucun canal direct.</span>' : ''}
-     </div>
-     ${r.OPPOSITION === 'O'
-       ? '<div class="rgpd">Opposition enregistrée : cette personne ne doit pas être démarchée.</div>'
-       : '<div class="rgpd">Données personnelles. Purge automatique 36 mois après collecte. Ne pas exporter hors de cet outil.</div>'}`);
-}
+              ${c.SITE_WEB ? `
+                <a href="${c.SITE_WEB.startsWith('http') ? c.SITE_WEB : 'https://' + c.SITE_WEB}" target="_blank" rel="noopener noreferrer" class="action-icon-btn" title="Site Web: ${c.SITE_WEB}">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                </a>
+              ` : ''}
+            </div>
+          </td>
+          <td style="text-align: right;">
+            <button class="btn-select-all" style="padding: 3px 8px; font-size: 0.75rem;" onclick="openDrawerById('${id}')">
+              Détails &rarr;
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
 
-window.fermer = fermer;
-// La file de travail est la page d'entree : un CRM s'ouvre sur ce qu'il y a a
-// faire, pas sur son annuaire.
-basculer('jour');
-</script>
-<script defer src="https://arx-apps.duckdns.org/gate/t.js" data-site="prospects"></script>
+    // Render Grid Cards
+    function renderGridView(items) {
+      const container = document.getElementById('gridViewContainer');
+      container.innerHTML = '';
+
+      if (items.length === 0) {
+        container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-tertiary);">Aucun contact ne correspond à vos critères dans la base Oracle.</div>';
+        return;
+      }
+
+      items.forEach(c => {
+        const id = String(c.ID);
+        const isSelected = selectedIds.has(id);
+        const fullName = `${c.PRENOM || ''} ${c.NOM || ''}`.trim() || 'Contact';
+        const phoneVal = c.TELEPHONE || c.ENT_PHONE || '';
+        const deptCode = c.DEPARTEMENT ? String(c.DEPARTEMENT).padStart(2, '0') : '';
+
+        const card = document.createElement('div');
+        card.className = `contact-card ${isSelected ? 'selected' : ''}`;
+
+        card.innerHTML = `
+          <div class="card-top">
+            <div class="card-checkbox-wrap">
+              <input type="checkbox" class="apple-checkbox" ${isSelected ? 'checked' : ''} onchange="toggleSelectContact('${id}', this.checked)">
+            </div>
+            <div class="contact-avatar">${getInitials(fullName)}</div>
+            <div class="card-header-info">
+              <div class="card-contact-name" onclick="openDrawerById('${id}')">${escapeHtml(fullName)}</div>
+              <div class="card-contact-title">${escapeHtml(c.FONCTION || 'Dirigeant')}</div>
+            </div>
+          </div>
+
+          <div class="card-company-box">
+            <div class="card-company-name">${escapeHtml(c.RAISON_SOCIALE)}</div>
+            <div class="card-company-details">
+              <span>📍 ${escapeHtml(c.VILLE || 'PACA')} (${deptCode || 'Sud'})</span>
+              ${c.SIREN ? `<span>• SIREN ${c.SIREN}</span>` : ''}
+              <span>• ${c.EFFECTIF_ESTIME || '5+'} sal.</span>
+              ${c.CA_EUR ? `<span>• CA ${formatEuros(c.CA_EUR)}</span>` : ''}
+            </div>
+          </div>
+
+          <div class="card-badges-row">
+            <span class="badge badge-sector">${escapeHtml(c.SECTEUR || 'Économie PACA')}</span>
+            ${c.EMAIL ? `<span class="badge badge-mx">✓ Email Vérifié</span>` : ''}
+            <span class="badge badge-dept">${deptCode ? DEPT_NAMES[deptCode] || deptCode : 'Région Sud'}</span>
+          </div>
+
+          <div class="card-footer">
+            <div class="action-links-group">
+              ${c.EMAIL ? `<a href="mailto:${c.EMAIL}" class="action-icon-btn" title="Envoyer email"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></a>` : ''}
+              ${phoneVal ? `<a href="tel:${phoneVal.replace(/\s+/g,'')}" class="action-icon-btn" title="Appeler"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg></a>` : ''}
+              ${c.LINKEDIN_URL ? `<a href="${c.LINKEDIN_URL}" target="_blank" rel="noopener noreferrer" class="action-icon-btn" title="Profil LinkedIn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg></a>` : ''}
+              <a href="https://www.linkedin.com/search/results/all/?keywords=${encodeURIComponent('DRH ' + (c.RAISON_SOCIALE || ''))}" target="_blank" rel="noopener noreferrer" class="action-icon-btn" title="Chasser le DRH sur LinkedIn" style="color:var(--apple-purple);"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></a>
+            </div>
+
+            <button class="btn-select-all" style="padding: 3px 10px; font-size: 0.78rem;" onclick="openDrawerById('${id}')">
+              Voir la fiche
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // Pagination render
+    function renderPagination(totalPages) {
+      const container = document.getElementById('paginationButtons');
+      container.innerHTML = '';
+
+      const btnPrev = document.createElement('button');
+      btnPrev.className = 'page-btn';
+      btnPrev.innerHTML = '&larr;';
+      btnPrev.disabled = currentPage === 1;
+      btnPrev.onclick = () => { currentPage--; loadContacts(); window.scrollTo({top: 400, behavior: 'smooth'}); };
+      container.appendChild(btnPrev);
+
+      let pages = [];
+      if (totalPages <= 7) {
+        pages = Array.from({length: totalPages}, (_, i) => i + 1);
+      } else {
+        if (currentPage <= 4) {
+          pages = [1, 2, 3, 4, 5, '...', totalPages];
+        } else if (currentPage >= totalPages - 3) {
+          pages = [1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+        } else {
+          pages = [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages];
+        }
+      }
+
+      pages.forEach(p => {
+        const btn = document.createElement('button');
+        btn.className = `page-btn ${p === currentPage ? 'active' : ''}`;
+        btn.textContent = p;
+        if (p === '...') {
+          btn.disabled = true;
+        } else {
+          btn.onclick = () => { currentPage = p; loadContacts(); window.scrollTo({top: 400, behavior: 'smooth'}); };
+        }
+        container.appendChild(btn);
+      });
+
+      const btnNext = document.createElement('button');
+      btnNext.className = 'page-btn';
+      btnNext.innerHTML = '&rarr;';
+      btnNext.disabled = currentPage === totalPages;
+      btnNext.onclick = () => { currentPage++; loadContacts(); window.scrollTo({top: 400, behavior: 'smooth'}); };
+      container.appendChild(btnNext);
+    }
+
+    function setViewMode(mode) {
+      currentViewMode = mode;
+      document.getElementById('btnViewTable').classList.toggle('active', mode === 'table');
+      document.getElementById('btnViewGrid').classList.toggle('active', mode === 'grid');
+      document.getElementById('tableViewContainer').style.display = mode === 'table' ? 'block' : 'none';
+      document.getElementById('gridViewContainer').style.display = mode === 'grid' ? 'grid' : 'none';
+      if (mode === 'table') renderTableView(currentRows);
+      else renderGridView(currentRows);
+    }
+
+    // Selection handlers
+    function toggleSelectContact(id, checked) {
+      if (checked) selectedIds.add(id);
+      else selectedIds.delete(id);
+      updateSelectionUI();
+    }
+
+    function toggleSelectAllPage(checked) {
+      currentRows.forEach(c => {
+        const id = String(c.ID);
+        if (checked) selectedIds.add(id);
+        else selectedIds.delete(id);
+      });
+      if (currentViewMode === 'table') renderTableView(currentRows);
+      else renderGridView(currentRows);
+      updateSelectionUI();
+    }
+
+    function selectCurrentPage() {
+      toggleSelectAllPage(true);
+      showToast("Page courante sélectionnée");
+    }
+
+    function selectAllFiltered() {
+      currentRows.forEach(c => selectedIds.add(String(c.ID)));
+      updateSelectionUI();
+      showToast(`${selectedIds.size} contact(s) sélectionné(s)`);
+    }
+
+    function clearSelection() {
+      selectedIds.clear();
+      if (currentViewMode === 'table') renderTableView(currentRows);
+      else renderGridView(currentRows);
+      updateSelectionUI();
+      showToast("Sélection réinitialisée");
+    }
+
+    function updateSelectionUI() {
+      const count = selectedIds.size;
+      const bar = document.getElementById('floatingActionBar');
+      const counter = document.getElementById('floatingSelCount');
+      const clearBtn = document.getElementById('btnClearSel');
+
+      counter.textContent = count.toLocaleString('fr-FR');
+      if (count > 0) {
+        bar.classList.add('visible');
+        clearBtn.style.display = 'inline-block';
+      } else {
+        bar.classList.remove('visible');
+        clearBtn.style.display = 'none';
+      }
+
+      const master = document.getElementById('masterCheckbox');
+      if (master) {
+        master.checked = currentRows.length > 0 && currentRows.every(c => selectedIds.has(String(c.ID)));
+      }
+    }
+
+    // Direct Oracle Streaming CSV Export
+    function exportSelectionOrAllCSV() {
+      const params = new URLSearchParams({
+        q: filters.q,
+        dept: filters.dept
+      });
+      if (selectedIds.size > 0) {
+        params.set('ids', Array.from(selectedIds).join(','));
+      }
+      showToast("Génération du fichier CSV depuis Oracle...");
+      window.location.href = `${API_BASE}/export?${params.toString()}`;
+    }
+
+    // Copy selected emails
+    function copySelectedEmails() {
+      const emails = currentRows
+        .filter(c => selectedIds.size === 0 || selectedIds.has(String(c.ID)))
+        .map(c => c.EMAIL)
+        .filter(e => e && e.includes('@'));
+
+      if (emails.length === 0) {
+        showToast("Aucun email disponible parmi les contacts sélectionnés");
+        return;
+      }
+
+      const uniqueEmails = [...new Set(emails)].join(', ');
+      navigator.clipboard.writeText(uniqueEmails).then(() => {
+        showToast(`${emails.length} email(s) copié(s) dans le presse-papier !`);
+      }).catch(err => {
+        console.error(err);
+        showToast("Erreur lors de la copie");
+      });
+    }
+
+    // Detail Drawer
+    function openDrawerById(id) {
+      const c = currentRows.find(x => String(x.ID) === String(id));
+      if (!c) return;
+
+      const fullName = `${c.PRENOM || ''} ${c.NOM || ''}`.trim() || 'Contact';
+      const phoneVal = c.TELEPHONE || c.ENT_PHONE || '';
+      const deptCode = c.DEPARTEMENT ? String(c.DEPARTEMENT).padStart(2, '0') : '';
+
+      document.getElementById('drawerName').textContent = fullName;
+      document.getElementById('drawerTitle').textContent = c.FONCTION || 'Dirigeant';
+      document.getElementById('drawerSource').textContent = 'Oracle Database (PROSPECTS)';
+
+      document.getElementById('drawerEmail').innerHTML = c.EMAIL ? `<a href="mailto:${c.EMAIL}" style="color:var(--apple-blue); font-weight:600;">${c.EMAIL}</a>` : '—';
+      document.getElementById('drawerMx').innerHTML = c.EMAIL ? '<span class="badge badge-mx">✓ MX Validé</span>' : '—';
+      document.getElementById('drawerPhone').innerHTML = phoneVal ? `<a href="tel:${phoneVal.replace(/\s+/g,'')}" style="color:var(--apple-blue);">${phoneVal}</a>` : '—';
+      document.getElementById('drawerLinkedin').innerHTML = c.LINKEDIN_URL ? `<a href="${c.LINKEDIN_URL}" target="_blank" rel="noopener noreferrer" style="color:var(--apple-blue); display:inline-flex; align-items:center; gap:4px;">Voir profil &nearr;</a>` : '—';
+
+      document.getElementById('drawerCompany').textContent = c.RAISON_SOCIALE || '—';
+      document.getElementById('drawerSiren').innerHTML = c.SIREN ? `<a href="https://annuaire-entreprises.data.gouv.fr/entreprise/${c.SIREN}" target="_blank" rel="noopener noreferrer" style="color:var(--apple-blue);">${c.SIREN} &nearr;</a>` : '—';
+      document.getElementById('drawerNaf').textContent = c.CODE_NAF || '—';
+      document.getElementById('drawerSecteur').textContent = c.SECTEUR || '—';
+      document.getElementById('drawerEffectif').textContent = c.EFFECTIF_ESTIME ? `${c.EFFECTIF_ESTIME} salariés` : '5+ salariés';
+      document.getElementById('drawerCA').textContent = c.CA_EUR ? formatEuros(c.CA_EUR) : 'Non communiqué';
+      document.getElementById('drawerLegal').textContent = c.FORME_JURIDIQUE || 'Société commerciale';
+      document.getElementById('drawerWebsite').innerHTML = c.SITE_WEB ? `<a href="${c.SITE_WEB.startsWith('http') ? c.SITE_WEB : 'https://' + c.SITE_WEB}" target="_blank" rel="noopener noreferrer" style="color:var(--apple-blue);">${c.SITE_WEB} &nearr;</a>` : '—';
+
+      document.getElementById('drawerAddress').textContent = c.ADRESSE || 'Région PACA';
+      document.getElementById('drawerCityCp').textContent = `${c.CODE_POSTAL ? c.CODE_POSTAL + ' ' : ''}${c.VILLE || 'PACA'}`;
+      document.getElementById('drawerDept').textContent = deptCode ? (DEPT_NAMES[deptCode] || deptCode) : 'Région Sud';
+
+      const actionsDiv = document.getElementById('drawerActions');
+      actionsDiv.innerHTML = '';
+
+      if (c.EMAIL) {
+        actionsDiv.innerHTML += `<a href="mailto:${c.EMAIL}" class="drawer-action-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg> Écrire email</a>`;
+      }
+      if (phoneVal) {
+        actionsDiv.innerHTML += `<a href="tel:${phoneVal.replace(/\s+/g,'')}" class="drawer-action-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg> Appeler</a>`;
+      }
+      if (c.LINKEDIN_URL) {
+        actionsDiv.innerHTML += `<a href="${c.LINKEDIN_URL}" target="_blank" rel="noopener noreferrer" class="drawer-action-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg> LinkedIn</a>`;
+      }
+      if (c.RAISON_SOCIALE) {
+        const qDrh = encodeURIComponent("DRH " + c.RAISON_SOCIALE);
+        actionsDiv.innerHTML += `<a href="https://www.linkedin.com/search/results/all/?keywords=${qDrh}" target="_blank" rel="noopener noreferrer" class="drawer-action-btn" style="border-color: rgba(88,86,214,0.3); color: var(--apple-purple);" title="Rechercher le DRH de cette entreprise sur LinkedIn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg> Chasser DRH</a>`;
+      }
+
+      document.getElementById('drawerOverlay').classList.add('active');
+    }
+
+    function closeDrawer(e) {
+      if (e && e.target !== document.getElementById('drawerOverlay') && !e.target.closest('.drawer-close-btn')) return;
+      document.getElementById('drawerOverlay').classList.remove('active');
+    }
+
+    function logoutToken() {
+      document.cookie = "paca_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+      localStorage.removeItem("paca_token");
+      window.location.reload();
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toastMsg');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => { toast.classList.remove('show'); }, 2600);
+    }
+
+    function toggleTheme() {
+      const isDark = document.body.getAttribute('data-theme') === 'dark';
+      const newTheme = isDark ? 'light' : 'dark';
+      document.body.setAttribute('data-theme', newTheme);
+      document.getElementById('themeIconSun').style.display = newTheme === 'dark' ? 'none' : 'block';
+      document.getElementById('themeIconMoon').style.display = newTheme === 'dark' ? 'block' : 'none';
+      localStorage.setItem('theme', newTheme);
+    }
+
+    if (localStorage.getItem('theme') === 'dark' || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches && !localStorage.getItem('theme'))) {
+      document.body.setAttribute('data-theme', 'dark');
+      document.getElementById('themeIconSun').style.display = 'none';
+      document.getElementById('themeIconMoon').style.display = 'block';
+    }
+
+    function getInitials(name) {
+      if (!name) return 'CP';
+      const parts = name.trim().split(/\s+/);
+      if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+
+    function formatEuros(val) {
+      if (val === null || val === undefined) return '';
+      if (val >= 1000000) return (val / 1000000).toLocaleString('fr-FR', {maximumFractionDigits: 1}) + ' M€';
+      if (val >= 1000) return (val / 1000).toLocaleString('fr-FR', {maximumFractionDigits: 0}) + ' k€';
+      return val.toLocaleString('fr-FR') + ' €';
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+
 </body>
 </html>
