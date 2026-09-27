@@ -183,6 +183,53 @@
       background-color: rgba(0, 113, 227, 0.14);
     }
 
+    /* Cross-Platform Navigation Buttons (Apple Style) */
+    .nav-link-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.42rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      text-decoration: none;
+      color: #1d1d1f;
+      background: rgba(0, 0, 0, 0.04);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      white-space: nowrap;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .nav-link-btn:hover {
+      background: rgba(0, 0, 0, 0.08);
+      color: #0071e3;
+      transform: translateY(-1px);
+    }
+    .nav-link-btn.btn-nav-radar {
+      border-color: rgba(16, 185, 129, 0.4);
+      color: #059669;
+      background: rgba(16, 185, 129, 0.05);
+    }
+    .nav-link-btn.btn-nav-radar:hover {
+      background: rgba(16, 185, 129, 0.12);
+      color: #047857;
+    }
+    .nav-link-btn.btn-nav-asebc {
+      border-color: rgba(0, 113, 227, 0.35);
+      color: #0071e3;
+      background: rgba(0, 113, 227, 0.05);
+    }
+    .nav-link-btn.btn-nav-asebc:hover {
+      background: rgba(0, 113, 227, 0.12);
+      color: #005bb5;
+    }
+    .nav-link-btn.active {
+      background: #ffffff;
+      color: #0071e3;
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      border-color: rgba(0, 113, 227, 0.3);
+    }
+
     /* Apple iOS Segmented Control */
     .ios-segmented {
       background-color: #e5e5ea;
@@ -239,24 +286,39 @@
 
   <!-- APPLE STICKY LOCAL NAVIGATION -->
   <header class="sticky top-0 z-50 apple-glass">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
       
-      <!-- NAV ANCHORS -->
-      <nav class="flex items-center space-x-5 sm:space-x-8 text-[13px] text-apple-secondary font-medium overflow-x-auto py-1">
-        <a href="#valeur-ajoutee" class="hover:text-apple-text transition-colors whitespace-nowrap">Valeur Ajoutée</a>
-        <a href="#simulateur" class="hover:text-apple-text transition-colors whitespace-nowrap">Simulateur</a>
-        <a href="#methode" class="hover:text-apple-text transition-colors whitespace-nowrap">Méthode</a>
-        <a href="#benevoles" class="hover:text-apple-text transition-colors whitespace-nowrap">Bénévolat</a>
-        <a href="#faq" class="hover:text-apple-text transition-colors whitespace-nowrap">FAQ</a>
-        <a href="#specs" class="hover:text-apple-text transition-colors whitespace-nowrap">Fiche Officielle</a>
-      </nav>
-
-      <!-- CTA -->
-      <div class="flex items-center gap-2 sm:gap-3 shrink-0">
-        <a href="https://arx-consulting.com/contact-paca/jobs.html" target="_blank" rel="noopener noreferrer" class="apple-btn-secondary !py-1.5 !px-3 sm:!px-3.5 !text-[12px] whitespace-nowrap inline-flex items-center gap-1.5 font-medium hover:scale-[1.02] transition-transform" title="Consulter les offres d'emploi (nouvelle page)">
-          <span>Offres d'Emploi</span>
-          <svg class="w-3 h-3 text-apple-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+      <!-- LEFT: Cross-Platform Navigation Buttons -->
+      <div class="flex items-center gap-1.5 overflow-x-auto py-1 shrink-0">
+        <a href="https://arx-consulting.com/candidatures/" class="nav-link-btn" title="Pipeline Candidatures Exécutif">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+          <span>Candidatures</span>
         </a>
+        <a href="https://arx-consulting.com/contact-paca/jobs.html" class="nav-link-btn btn-nav-radar" title="AI Job radar (767+ offres vectorisées)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+          <span>AI Job radar</span>
+        </a>
+        <a href="https://arx-consulting.com/contact-paca/" class="nav-link-btn" title="Répertoire Décideurs Région Sud">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          <span>Réseau de décideurs</span>
+        </a>
+        <a href="https://arx-consulting.com/contact-paca/monitor.html" class="nav-link-btn" title="Supervision Scraper Oracle ATP">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+          <span>Scraper Monitor</span>
+        </a>
+        <a href="https://arx-consulting.com/asebc" class="nav-link-btn btn-nav-asebc active" title="Association Solidarité Emploi du Bassin Cannois (A.S.E.B.C.)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          <span>Solidarité Emploi</span>
+        </a>
+      </div>
+
+      <!-- RIGHT: Page Nav & CTA -->
+      <div class="flex items-center gap-3 shrink-0">
+        <nav class="hidden md:flex items-center space-x-4 text-[12px] text-apple-secondary font-medium">
+          <a href="#valeur-ajoutee" class="hover:text-apple-text transition-colors whitespace-nowrap">Valeur Ajoutée</a>
+          <a href="#simulateur" class="hover:text-apple-text transition-colors whitespace-nowrap">Simulateur</a>
+          <a href="#faq" class="hover:text-apple-text transition-colors whitespace-nowrap">FAQ</a>
+        </nav>
         <button onclick="openModal('candidat')" class="apple-btn-primary !py-1.5 !px-3 sm:!px-3.5 !text-[12px] shadow-sm shadow-blue-500/20 whitespace-nowrap">
           Être Accompagné
         </button>
