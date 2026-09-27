@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 160" width="100%" height="100%">
+  <defs>
+    <!-- Dynamic linear gradients -->
+    <linearGradient id="asebcBlueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0284c7">
+        <animate attributeName="stop-color" values="#0284c7;#2563eb;#0ea5e9;#0284c7" dur="8s" repeatCount="indefinite" />
+      </stop>
+      <stop offset="100%" stop-color="#1d4ed8">
+        <animate attributeName="stop-color" values="#1d4ed8;#0284c7;#1e40af;#1d4ed8" dur="8s" repeatCount="indefinite" />
+      </stop>
+    </linearGradient>
+
+    <linearGradient id="asebcSunGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f59e0b">
+        <animate attributeName="stop-color" values="#f59e0b;#fbbf24;#d97706;#f59e0b" dur="6s" repeatCount="indefinite" />
+      </stop>
+      <stop offset="100%" stop-color="#10b981">
+        <animate attributeName="stop-color" values="#10b981;#059669;#34d399;#10b981" dur="6s" repeatCount="indefinite" />
+      </stop>
+    </linearGradient>
+
+    <linearGradient id="asebcGlowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#818cf8" stop-opacity="0.2"/>
+    </linearGradient>
+
+    <!-- Filters for dynamic glow -->
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <style>
+    @keyframes pulseOrb {
+      0%, 100% { transform: scale(1); opacity: 0.9; }
+      50% { transform: scale(1.18); opacity: 1; filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.8)); }
+    }
+    @keyframes floatWing {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-3px); }
+    }
+    @keyframes orbitPulse {
+      0% { stroke-dashoffset: 0; }
+      100% { stroke-dashoffset: 200; }
+    }
+    .wing-blue {
+      animation: floatWing 5s ease-in-out infinite;
+      transform-origin: 80px 80px;
+    }
+    .sun-orb {
+      animation: pulseOrb 3.5s ease-in-out infinite;
+      transform-origin: 104px 52px;
+    }
+    .orbit-ring {
+      stroke-dasharray: 8 6;
+      animation: orbitPulse 12s linear infinite;
+    }
+    .logo-title {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .logo-sub {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .logo-badge-txt {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+  </style>
+
+  <!-- ICON GRAPHIC (Left side: 0 to 160) -->
+  <g id="icon-mark" transform="translate(15, 10)">
+    <!-- Ambient aura ring -->
+    <circle cx="70" cy="70" r="58" fill="none" stroke="url(#asebcGlowGrad)" stroke-width="1.5" class="orbit-ring" opacity="0.6"/>
+
+    <!-- Left Solidarité Wing / Holding Hand (Blue) -->
+    <path class="wing-blue" d="M 45 110 C 25 90, 20 50, 48 30 C 58 23, 72 26, 75 38 C 77 46, 70 55, 62 60 C 48 68, 48 88, 65 100 C 72 105, 78 114, 70 120 C 62 125, 52 118, 45 110 Z" 
+          fill="url(#asebcBlueGrad)" filter="url(#softGlow)" />
+
+    <!-- Right Emploi Wing / Ascending Path (Gold & Green Emeraude) -->
+    <path d="M 68 122 C 85 125, 105 112, 114 92 C 124 70, 115 45, 96 36 C 88 32, 80 38, 82 46 C 84 55, 94 62, 96 74 C 98 88, 86 102, 72 106 C 65 108, 62 118, 68 122 Z" 
+          fill="url(#asebcSunGrad)" filter="url(#softGlow)" />
+
+    <!-- Dynamic Central Spark / Human Connection Orb -->
+    <g class="sun-orb">
+      <circle cx="104" cy="52" r="10" fill="#f59e0b" />
+      <circle cx="104" cy="52" r="6" fill="#fef3c7" />
+      <!-- Star rays -->
+      <path d="M 104 36 L 104 42 M 104 62 L 104 68 M 88 52 L 94 52 M 114 52 L 120 52" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"/>
+    </g>
+
+    <!-- Upward Momentum Arrow / Stepping Stone -->
+    <path d="M 62 78 L 74 65 L 86 78" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.95" />
+    <path d="M 74 66 L 74 94" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" opacity="0.95" />
+  </g>
+
+  <!-- TYPOGRAPHY (Right side: 165 to 580) -->
+  <g transform="translate(170, 0)">
+    <!-- Acronym Badge -->
+    <rect x="0" y="24" width="94" height="24" rx="12" fill="#0284c7" fill-opacity="0.12" stroke="#0284c7" stroke-width="1.2"/>
+    <text x="47" y="40" text-anchor="middle" fill="#0284c7" font-size="11" class="logo-badge-txt">A.S.E.B.C.</text>
+
+    <rect x="102" y="24" width="138" height="24" rx="12" fill="#10b981" fill-opacity="0.12" stroke="#10b981" stroke-width="1.2"/>
+    <text x="171" y="40" text-anchor="middle" fill="#059669" font-size="10.5" class="logo-badge-txt">ASSOCIATION LOI 1901</text>
+
+    <!-- Main Title -->
+    <text x="0" y="82" fill="#0f172a" font-size="32" class="logo-title">
+      SOLIDARITÉ <tspan fill="#0284c7">EMPLOI</tspan>
+    </text>
+
+    <!-- Subtitle / Territory -->
+    <text x="0" y="112" fill="#64748b" font-size="13" class="logo-sub">
+      BASSIN CANNOIS <tspan fill="#f59e0b">&bull;</tspan> PAYS DE GRASSE
+    </text>
+
+    <!-- Micro Baseline -->
+    <text x="0" y="132" fill="#94a3b8" font-size="11" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-weight="500">
+      Accompagnement bénévole &amp; personnalisé vers le retour à l'emploi
+    </text>
+  </g>
+</svg>

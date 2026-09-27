@@ -106,8 +106,9 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // Static public assets allowed without auth (for lock screen logo)
-  const isPublicAsset = pathname.startsWith('/assets/') || pathname === '/favicon.png';
+  // Static public assets allowed without auth (for lock screen logo & public pages like /asebc)
+  const isAsebc = pathname === '/asebc' || pathname.startsWith('/asebc/');
+  const isPublicAsset = pathname.startsWith('/assets/') || pathname === '/favicon.png' || isAsebc;
 
   // If not authenticated
   if (!isTokenValid && !isPublicAsset) {
@@ -820,7 +821,18 @@ const server = http.createServer(async (req, res) => {
   // =========================================================================
   // STATIC FILES (index.html, logos, CSS - NO LOCAL DATA FILES)
   // =========================================================================
-  let filePath = path.join(PUBLIC_DIR, pathname === '/' ? 'index.html' : pathname);
+  if (pathname === '/asebc') {
+    res.writeHead(301, { 'Location': '/asebc/' });
+    res.end();
+    return;
+  }
+
+  let filePath;
+  if (pathname === '/asebc/') {
+    filePath = path.join(PUBLIC_DIR, 'asebc', 'index.html');
+  } else {
+    filePath = path.join(PUBLIC_DIR, pathname === '/' ? 'index.html' : pathname);
+  }
 
   if (!filePath.startsWith(PUBLIC_DIR)) {
     res.writeHead(403);
