@@ -22,6 +22,10 @@
       <feGaussianBlur stdDeviation="5" result="blur"/>
       <feComposite in="SourceGraphic" in2="blur" operator="over"/>
     </filter>
+    <linearGradient id="appleSquircleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
   </defs>
 
   <style>
@@ -43,9 +47,9 @@
     }
   </style>
 
-  <!-- iOS App Icon Squircle Background -->
-  <rect width="180" height="180" rx="42" fill="#000000" />
-  <rect width="180" height="180" rx="42" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="1.2" />
+  <!-- iOS App Icon Squircle Background (Luminous Blue, No Black) -->
+  <rect width="180" height="180" rx="42" fill="url(#appleSquircleGrad)" />
+  <rect width="180" height="180" rx="42" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" />
 
   <!-- Ambient light -->
   <circle cx="90" cy="90" r="70" fill="#0071e3" opacity="0.15" />

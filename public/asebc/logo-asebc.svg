@@ -28,6 +28,10 @@
       <feGaussianBlur stdDeviation="4" result="blur"/>
       <feComposite in="SourceGraphic" in2="blur" operator="over"/>
     </filter>
+    <linearGradient id="appleSquircleGradHdr" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
   </defs>
 
   <style>
@@ -60,11 +64,11 @@
     }
   </style>
 
-  <!-- ICON SQUIRCLE EMBLEM (Apple iOS app icon inspired) -->
+  <!-- ICON SQUIRCLE EMBLEM (Apple iOS app icon inspired - Blue Gradient) -->
   <g transform="translate(10, 14)">
     <!-- Base Squircle -->
-    <rect x="0" y="0" width="92" height="92" rx="22" fill="#000000" />
-    <rect x="0" y="0" width="92" height="92" rx="22" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+    <rect x="0" y="0" width="92" height="92" rx="22" fill="url(#appleSquircleGradHdr)" />
+    <rect x="0" y="0" width="92" height="92" rx="22" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1.5"/>
     
     <!-- Ambient Halo Glow -->
     <circle cx="46" cy="46" r="38" fill="url(#appleHalo)"/>
