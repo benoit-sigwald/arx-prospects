@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ARX JobHunter — Sourcing & Prospection Décisionnaires</title>
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              900: '#312e81',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    code, pre, .font-mono { font-family: 'JetBrains Mono', monospace; }
+    .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scroll::-webkit-scrollbar-track { background: #0f172a; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    .custom-scroll::-webkit-scrollbar-thumb:hover { background: #475569; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+
+  <!-- TOP HEADER -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/20 font-bold text-lg text-white">
+          JH
+        </div>
+        <div>
+          <h1 class="font-bold text-lg tracking-tight flex items-center gap-2">
+            ARX JobHunter <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-medium border border-indigo-500/30">Pro Edition</span>
+          </h1>
+          <p class="text-xs text-slate-400">Sourcing d'entreprises, dirigeants & export multi-critères</p>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-3">
+        <!-- Live count indicator -->
+        <div class="hidden sm:flex items-center space-x-2 text-xs bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="text-slate-400">Total résultats :</span>
+          <span id="headerTotalCount" class="font-bold text-emerald-400">0</span>
+        </div>
+
+        <a href="index.html" class="flex items-center space-x-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold px-3 py-2 rounded-lg transition-all border border-slate-700" title="Accéder au Réseau de décideurs">
+          <span>&larr; Réseau de décideurs</span>
+        </a>
+        <a href="/asebc" class="flex items-center space-x-1.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 text-xs font-semibold px-3 py-2 rounded-lg transition-all border border-blue-500/30" title="Retourner au portail A.S.E.B.C.">
+          <span>A.S.E.B.C.</span>
+        </a>
+        <!-- Export CSV Button -->
+        <button id="btnExportCsv" onclick="exportCsv()" class="flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-all shadow-md shadow-emerald-900/30 disabled:opacity-40 disabled:cursor-not-allowed">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          <span>Exporter CSV (<span id="exportCountBadge">0</span>)</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 flex flex-col lg:flex-row gap-6">
+
+    <!-- LEFT SIDEBAR: FILTERS -->
+    <aside class="w-full lg:w-80 flex-shrink-0 space-y-5">
+
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-5">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <h2 class="font-semibold text-sm text-slate-200 flex items-center gap-2">
+            <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+            Filtres de Prospection
+          </h2>
+          <button onclick="resetFilters()" class="text-xs text-indigo-400 hover:text-indigo-300 font-medium">Réinitialiser</button>
+        </div>
+
+        <!-- Mode Source -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Source de Données</label>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <button id="btnModeApi" onclick="setMode('api')" class="py-2 px-3 rounded-lg border font-medium transition-all bg-indigo-600 border-indigo-500 text-white text-center">
+              API Live Gouv
+            </button>
+            <button id="btnModeLocal" onclick="setMode('local')" class="py-2 px-3 rounded-lg border font-medium transition-all bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700 text-center">
+              Fichier Local / PACA
+            </button>
+          </div>
+        </div>
+
+        <!-- Recherche Textuelle / Mots-clés -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Mots-clés / Intitulé</label>
+          <div class="relative">
+            <input type="text" id="filterKeyword" placeholder="Ex: IA, Cloud, Conseil, Yachting, Thales..." onkeydown="if(event.key==='Enter') executeSearch()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+          </div>
+        </div>
+
+        <!-- Territoire / Département -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Territoire / Département</label>
+          <select id="filterDept" onchange="executeSearch()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
+            <option value="06">06 — Alpes-Maritimes (Nice, Sophia Antipolis, Cannes)</option>
+            <option value="13">13 — Bouches-du-Rhône (Marseille, Aix)</option>
+            <option value="83">83 — Var (Toulon, Fréjus)</option>
+            <option value="PACA" selected>PACA — Région Complète (06, 13, 83, 84, 04, 05)</option>
+            <option value="75">75 — Paris</option>
+            <option value="69">69 — Rhône (Lyon)</option>
+            <option value="ALL">France Entière</option>
+          </select>
+        </div>
+
+        <!-- Secteur NAF / Activité -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Secteur d'Activité</label>
+          <select id="filterSecteur" onchange="executeSearch()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
+            <option value="ALL">Tous les secteurs</option>
+            <option value="TECH">💻 Tech, SaaS, IA & Télécoms (62.01Z, 62.02A, 58.29C, 61.10Z)</option>
+            <option value="AERO">🚀 Aéronautique, Défense, Spatial & Naval (30.30Z, 30.11Z, 25.40Z)</option>
+            <option value="MARITIME">🚢 Maritime, Logistique & Supply Chain (52.29A, 52.10B, 50.20Z)</option>
+            <option value="SANTE">🏥 Santé, Pharmaceutique & MedTech (21.20Z, 32.50A, 86.10Z)</option>
+            <option value="AROMES">🌸 Arômes, Parfumerie, Cosmétique & Agro (20.53Z, 20.42Z, 10.89Z)</option>
+            <option value="ENERGIE">⚡ Énergie, Cleantech & Environnement (35.11Z, 38.21Z, 39.00Z)</option>
+            <option value="CONSEIL">📊 Conseil Stratégique, Audit & ESN (70.22Z, 69.20Z, 70.10Z)</option>
+            <option value="BANQUE">💎 Banque Privée, Assurances & Holdings (64.19Z, 66.19A, 65.12Z)</option>
+            <option value="LUXE">🍸 Hôtellerie de Luxe, Yachting & Événementiel (55.10Z, 77.21Z, 82.30Z)</option>
+            <option value="IMMO">🏗️ BTP, Immobilier & Infrastructures (41.10A, 42.11Z, 68.10Z)</option>
+          </select>
+        </div>
+
+        <!-- Tranche d'Effectif -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Taille / Tranche d'effectif</label>
+          <select id="filterTaille" onchange="applyClientFilters()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
+            <option value="ALL">Toutes les tailles</option>
+            <option value="5PLUS">>= 5 salariés (PME & ETI)</option>
+            <option value="10PLUS">>= 10 salariés</option>
+            <option value="50PLUS">>= 50 salariés (ETI & Grands Groupes)</option>
+            <option value="TPE">1-9 salariés (TPE / Startups)</option>
+          </select>
+        </div>
+
+        <!-- Décideurs & Profils -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Niveau du Décideur Cible</label>
+          <select id="filterRole" onchange="applyClientFilters()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
+            <option value="ALL">Tous les décideurs identifiés</option>
+            <option value="DRH">🎯 DRH, Recrutement & Head of HR</option>
+            <option value="CTO">💻 CTO, Directeurs Techniques & IA</option>
+            <option value="C_LEVEL">👑 C-Level / Direction (PDG, DG, Président)</option>
+            <option value="FOUNDER">🚀 Fondateurs & Gérants</option>
+            <option value="DIRECTOR">👔 Administrateurs & Directeurs</option>
+          </select>
+        </div>
+
+        <!-- Checkboxes Options -->
+        <div class="pt-2 border-t border-slate-800 space-y-2">
+          <label class="flex items-center space-x-2 text-xs text-slate-300 cursor-pointer">
+            <input type="checkbox" id="checkOnlyWithDirigeants" onchange="applyClientFilters()" checked class="rounded bg-slate-950 border-slate-700 text-indigo-600 focus:ring-indigo-500">
+            <span>Avec dirigeant personne physique</span>
+          </label>
+          <label class="flex items-center space-x-2 text-xs text-slate-300 cursor-pointer">
+            <input type="checkbox" id="checkOnlyActive" onchange="applyClientFilters()" checked class="rounded bg-slate-950 border-slate-700 text-indigo-600 focus:ring-indigo-500">
+            <span>Sociétés actives uniquement</span>
+          </label>
+        </div>
+
+        <!-- Bouton de Recherche -->
+        <button onclick="executeSearch()" id="btnSearch" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-indigo-600/30 flex items-center justify-center space-x-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <span>Lancer la Recherche</span>
+        </button>
+
+        <!-- Dropzone Fichier Local (cachée par défaut) -->
+        <div id="localDropzone" class="hidden pt-2 border-t border-slate-800">
+          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Charger un JSONL / CSV Local</label>
+          <div class="border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-xl p-4 text-center cursor-pointer transition-colors bg-slate-950/50" onclick="document.getElementById('fileInput').click()">
+            <svg class="w-6 h-6 text-slate-500 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+            <span class="text-xs text-slate-400">Glisser-déposer ou <span class="text-indigo-400 underline">parcourir</span></span>
+            <input type="file" id="fileInput" accept=".jsonl,.json,.csv,.ndjson" class="hidden" onchange="handleFile(this.files[0])">
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RECHERCHE DIRECTE RECRUTEUR QUICK LINKS -->
+      <div class="bg-gradient-to-br from-indigo-950/40 to-slate-900 border border-indigo-900/30 rounded-2xl p-4 text-xs space-y-3">
+        <h3 class="font-bold text-indigo-300 flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 8.76a1.69 1.69 0 0 0 0-3.38 1.69 1.69 0 0 0 0 3.38m1.39 9.74v-8.37H5.07v8.37h2.78z"/></svg>
+          Astuce Chasseur de Têtes
+        </h3>
+        <p class="text-slate-400 leading-relaxed">
+          Clique sur le bouton <span class="text-indigo-300 font-mono bg-indigo-950 px-1 py-0.5 rounded">LinkedIn</span> sur chaque dirigeant pour ouvrir sa fiche candidat/recruteur avec requête ciblée.
+        </p>
+      </div>
+
+    </aside>
+
+    <!-- RIGHT SECTION: RESULTS & DATA TABLE -->
+    <section class="flex-1 flex flex-col min-w-0 space-y-4">
+
+      <!-- TOOLBAR RESULTS -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div class="flex items-center space-x-3 w-full sm:w-auto">
+          <div class="text-xs text-slate-400">
+            Affichage de <span id="displayedCount" class="font-bold text-slate-100">0</span> sur <span id="totalMatches" class="font-bold text-slate-100">0</span> entreprises cibles
+          </div>
+          <span class="inline-block w-1 h-1 rounded-full bg-slate-700"></span>
+          <div id="searchSpinner" class="hidden flex items-center space-x-2 text-xs text-indigo-400 font-medium">
+            <svg class="animate-spin h-3.5 w-3.5 text-indigo-400" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+            <span>Interrogation en cours...</span>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-2 w-full sm:w-auto justify-end">
+          <input type="text" id="tableFilter" placeholder="Filtrer dans la table..." oninput="filterTableRealtime(this.value)" class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-indigo-500 w-48">
+          <button onclick="selectAllRows()" class="text-xs px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition-all">Tout sélectionner</button>
+        </div>
+      </div>
+
+      <!-- RESULTS TABLE -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden flex-1 flex flex-col">
+        <div class="overflow-x-auto custom-scroll flex-1 max-h-[calc(100vh-280px)]">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead class="bg-slate-950/80 text-slate-400 sticky top-0 z-20 backdrop-blur-md border-b border-slate-800">
+              <tr>
+                <th class="p-3.5 w-10 text-center"><input type="checkbox" id="checkAll" onchange="toggleCheckAll(this.checked)" class="rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-indigo-500"></th>
+                <th class="p-3.5 font-semibold">Entreprise / SIREN</th>
+                <th class="p-3.5 font-semibold">Localisation</th>
+                <th class="p-3.5 font-semibold">Secteur / NAF</th>
+                <th class="p-3.5 font-semibold">Décideur & Qualité</th>
+                <th class="p-3.5 font-semibold text-right">Actions Prospection</th>
+              </tr>
+            </thead>
+            <tbody id="resultsTableBody" class="divide-y divide-slate-800/60 text-slate-300">
+              <!-- Empty state default -->
+              <tr id="rowEmptyState">
+                <td colspan="6" class="py-16 text-center text-slate-500">
+                  <svg class="w-12 h-12 mx-auto mb-3 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                  <p class="font-semibold text-sm text-slate-400">Prêt pour la prospection</p>
+                  <p class="text-xs text-slate-500 mt-1">Sélectionne tes critères à gauche et clique sur "Lancer la Recherche"</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- FOOTER PAGINATION -->
+        <div class="p-3.5 bg-slate-950/70 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+          <div>Page <span id="currentPageNum" class="font-bold text-slate-200">1</span></div>
+          <div class="flex items-center space-x-2">
+            <button id="btnPrevPage" onclick="prevPage()" disabled class="px-3 py-1 bg-slate-800 hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg font-medium">Précédent</button>
+            <button id="btnNextPage" onclick="nextPage()" disabled class="px-3 py-1 bg-slate-800 hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg font-medium">Suivant</button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- JAVASCRIPT APPLICATION LOGIC -->
+  <script>
+    let currentMode = 'api'; // 'api' or 'local'
+    let rawResults = [];
+    let filteredResults = [];
+    let selectedSirenSet = new Set();
+    let currentPage = 1;
+    const pageSize = 25;
+
+    // Extended 10 Recruitment Verticals NAF mapping
+    const NAF_CODES = {
+      TECH: ["62.01Z", "62.02A", "62.09Z", "58.29C", "61.10Z", "63.11Z"],
+      AERO: ["30.30Z", "30.11Z", "25.40Z", "71.12B"],
+      MARITIME: ["52.29A", "52.29B", "52.10B", "50.20Z", "49.41A"],
+      SANTE: ["21.20Z", "32.50A", "86.10Z", "72.11Z"],
+      AROMES: ["20.53Z", "20.42Z", "10.89Z", "11.02B"],
+      ENERGIE: ["35.11Z", "38.21Z", "39.00Z", "71.12B"],
+      CONSEIL: ["70.22Z", "69.20Z", "70.10Z", "73.11Z"],
+      BANQUE: ["64.19Z", "66.19A", "65.12Z", "64.20Z", "64.30Z"],
+      LUXE: ["55.10Z", "77.21Z", "82.30Z", "56.10A"],
+      IMMO: ["41.10A", "41.20A", "42.11Z", "68.10Z", "68.31Z"]
+    };
+
+    function setMode(mode) {
+      currentMode = mode;
+      const btnApi = document.getElementById('btnModeApi');
+      const btnLocal = document.getElementById('btnModeLocal');
+      const dropzone = document.getElementById('localDropzone');
+
+      if (mode === 'api') {
+        btnApi.className = "py-2 px-3 rounded-lg border font-medium transition-all bg-indigo-600 border-indigo-500 text-white text-center";
+        btnLocal.className = "py-2 px-3 rounded-lg border font-medium transition-all bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700 text-center";
+        dropzone.classList.add('hidden');
+      } else {
+        btnLocal.className = "py-2 px-3 rounded-lg border font-medium transition-all bg-indigo-600 border-indigo-500 text-white text-center";
+        btnApi.className = "py-2 px-3 rounded-lg border font-medium transition-all bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700 text-center";
+        dropzone.classList.remove('hidden');
+      }
+    }
+
+    function resetFilters() {
+      document.getElementById('filterKeyword').value = '';
+      document.getElementById('filterDept').value = 'PACA';
+      document.getElementById('filterSecteur').value = 'ALL';
+      document.getElementById('filterTaille').value = 'ALL';
+      document.getElementById('filterRole').value = 'ALL';
+      document.getElementById('tableFilter').value = '';
+      executeSearch();
+    }
+
+    // Execute Live Search against Government API
+    async function executeSearch() {
+      if (currentMode === 'local') {
+        applyClientFilters();
+        return;
+      }
+
+      const spinner = document.getElementById('searchSpinner');
+      const btnSearch = document.getElementById('btnSearch');
+      spinner.classList.remove('hidden');
+      btnSearch.disabled = true;
+
+      const keyword = document.getElementById('filterKeyword').value.trim();
+      const dept = document.getElementById('filterDept').value;
+      const secteur = document.getElementById('filterSecteur').value;
+
+      try {
+        let results = [];
+
+        // Build search URLs
+        let departments = [];
+        if (dept === 'PACA') departments = ['06', '13', '83', '84', '04', '05'];
+        else if (dept !== 'ALL') departments = [dept];
+
+        const queries = [];
+
+        if (departments.length > 0) {
+          for (const d of departments) {
+            let url = `https://recherche-entreprises.api.gouv.fr/search?code_departement=${d}&per_page=25&page=1`;
+            if (keyword) url += `&q=${encodeURIComponent(keyword)}`;
+            if (secteur !== 'ALL') {
+              const secCode = (secteur === 'HOLDINGS') ? 'K' : (secteur === 'IMMO' ? 'L' : 'J');
+              url += `&section_activite_principale=${secCode}`;
+            }
+            queries.push(url);
+          }
+        } else {
+          let url = `https://recherche-entreprises.api.gouv.fr/search?per_page=25&page=1`;
+          if (keyword) url += `&q=${encodeURIComponent(keyword)}`;
+          queries.push(url);
+        }
+
+        // Fetch parallel
+        const responses = await Promise.allSettled(
+          queries.slice(0, 6).map(u => fetch(u).then(r => r.json()))
+        );
+
+        for (const r of responses) {
+          if (r.status === 'fulfilled' && r.value && r.value.results) {
+            for (const item of r.value.results) {
+              const siege = item.siege || {};
+              const cp = siege.code_postal || '';
+              
+              // Direct extraction of decision makers
+              const dirigeants = (item.dirigeants || []).map(d => ({
+                nom: d.nom || '',
+                prenom: d.prenoms || d.prenom || '',
+                qualite: d.qualite || d.role || 'Dirigeant',
+                type: d.type_dirigeant || 'personne physique'
+              }));
+
+              results.push({
+                siren: item.siren,
+                denomination: item.nom_complet || item.nom_raison_sociale || 'N/A',
+                code_postal: cp,
+                ville: siege.libelle_commune || '',
+                departement: cp.substring(0, 2),
+                activite_principale: item.activite_principale || siege.activite_principale || 'N/A',
+                tranche_effectif: item.tranche_effectif_salarie || siege.tranche_effectif_salarie || '',
+                etat_administratif: item.etat_administratif || 'A',
+                dirigeants: dirigeants,
+                site_web: item.site_web || ''
+              });
+            }
+          }
+        }
+
+        // Deduplicate by siren
+        const seen = new Set();
+        rawResults = results.filter(item => {
+          if (seen.has(item.siren)) return false;
+          seen.add(item.siren);
+          return true;
+        });
+
+        applyClientFilters();
+
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        alert('Erreur lors de la récupération des données : ' + err.message);
+      } finally {
+        spinner.classList.add('hidden');
+        btnSearch.disabled = false;
+      }
+    }
+
+    // Client-side filtering & sorting
+    function applyClientFilters() {
+      const taille = document.getElementById('filterTaille').value;
+      const roleFilter = document.getElementById('filterRole').value;
+      const onlyDirigeants = document.getElementById('checkOnlyDirigeants').checked;
+      const onlyActive = document.getElementById('checkOnlyActive').checked;
+      const tableFilterText = document.getElementById('tableFilter').value.toLowerCase();
+
+      filteredResults = rawResults.filter(item => {
+        // Status filter
+        if (onlyActive && item.etat_administratif === 'C') return false;
+
+        // Dirigeant filter
+        if (onlyDirigeants && (!item.dirigeants || item.dirigeants.length === 0)) return false;
+
+        // Role filter
+        if (roleFilter !== 'ALL' && item.dirigeants) {
+          const hasRole = item.dirigeants.some(d => {
+            const q = (d.qualite || '').toLowerCase();
+            if (roleFilter === 'C_LEVEL') return q.includes('president') || q.includes('directeur general') || q.includes('pdg');
+            if (roleFilter === 'FOUNDER') return q.includes('gerant') || q.includes('fondateur') || q.includes('associe');
+            if (roleFilter === 'DIRECTOR') return q.includes('administrateur') || q.includes('directeur');
+            return true;
+          });
+          if (!hasRole) return false;
+        }
+
+        // Table search realtime
+        if (tableFilterText) {
+          const txt = `${item.denomination} ${item.siren} ${item.ville} ${item.activite_principale}`.toLowerCase();
+          if (!txt.includes(tableFilterText)) return false;
+        }
+
+        return true;
+      });
+
+      currentPage = 1;
+      renderTable();
+    }
+
+    function filterTableRealtime(val) {
+      applyClientFilters();
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('resultsTableBody');
+      const displayedCount = document.getElementById('displayedCount');
+      const totalMatches = document.getElementById('totalMatches');
+      const headerTotalCount = document.getElementById('headerTotalCount');
+      const exportCountBadge = document.getElementById('exportCountBadge');
+
+      displayedCount.textContent = filteredResults.length;
+      totalMatches.textContent = rawResults.length;
+      headerTotalCount.textContent = filteredResults.length;
+      exportCountBadge.textContent = selectedSirenSet.size > 0 ? selectedSirenSet.size : filteredResults.length;
+
+      if (filteredResults.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="py-12 text-center text-slate-500">
+              <p class="font-medium text-slate-400">Aucun résultat trouvé pour ces critères.</p>
+              <p class="text-xs text-slate-500 mt-1">Essaie d'élargir le secteur ou le département.</p>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      const start = (currentPage - 1) * pageSize;
+      const paginated = filteredResults.slice(start, start + pageSize);
+
+      let html = '';
+      for (const item of paginated) {
+        const isChecked = selectedSirenSet.has(item.siren) ? 'checked' : '';
+        
+        // Format first decision maker
+        const mainDir = (item.dirigeants && item.dirigeants.length > 0) ? item.dirigeants[0] : null;
+        const dirName = mainDir ? `${mainDir.prenom} ${mainDir.nom}`.trim() : 'Non renseigné';
+        const dirRole = mainDir ? mainDir.qualite : '—';
+        
+        // LinkedIn deep search query
+        const linkedinQuery = mainDir 
+          ? `https://www.linkedin.com/search/results/all/?keywords=${encodeURIComponent(dirName + ' ' + item.denomination)}`
+          : `https://www.linkedin.com/search/results/all/?keywords=${encodeURIComponent(item.denomination)}`;
+
+        // Google search query
+        const googleQuery = `https://www.google.com/search?q=${encodeURIComponent(item.denomination + ' ' + item.ville + ' contact email')}`;
+
+        const emails = item.emails || (item.enrichissement ? item.enrichissement.emails_verifies : []) || [];
+        const mobiles = item.mobiles || (item.enrichissement ? item.enrichissement.mobiles_directs : []) || [];
+        const phones = item.telephones || (item.enrichissement ? item.enrichissement.telephones_scrapes : []) || [];
+        const website = item.site_web || (item.enrichissement ? item.enrichissement.site_web : '') || '';
+
+        let contactsHtml = '';
+        if (emails.length > 0) {
+          contactsHtml += `<div class="mt-1 flex flex-wrap gap-1">` + emails.slice(0, 2).map(e => `<a href="mailto:${escapeHtml(e)}" class="inline-flex items-center px-1.5 py-0.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-800/40 text-[10px] font-mono hover:bg-emerald-900" title="Envoyer un email">✉️ ${escapeHtml(e)}</a>`).join('') + `</div>`;
+        }
+        if (mobiles.length > 0) {
+          contactsHtml += `<div class="mt-0.5 flex flex-wrap gap-1">` + mobiles.slice(0, 2).map(m => `<a href="tel:${escapeHtml(m)}" class="inline-flex items-center px-1.5 py-0.5 rounded bg-cyan-950/80 text-cyan-300 border border-cyan-800/40 text-[10px] font-mono hover:bg-cyan-900" title="Appeler direct">📱 ${escapeHtml(m)}</a>`).join('') + `</div>`;
+        }
+
+        html += `
+          <tr class="hover:bg-slate-800/40 transition-colors">
+            <td class="p-3.5 text-center">
+              <input type="checkbox" ${isChecked} onchange="toggleRowSelect('${item.siren}', this.checked)" class="rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-indigo-500">
+            </td>
+            <td class="p-3.5">
+              <div class="font-bold text-slate-100 flex items-center gap-2">
+                ${escapeHtml(item.denomination)}
+                ${item.etat_administratif === 'A' ? '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400" title="Actif"></span>' : '<span class="w-1.5 h-1.5 rounded-full bg-rose-400" title="Fermé"></span>'}
+                ${website ? `<a href="https://${website.replace(/^https?:\/\//, '')}" target="_blank" rel="noopener noreferrer" class="text-indigo-400 hover:text-indigo-300 text-[11px]" title="Site Web">🔗</a>` : ''}
+              </div>
+              <div class="text-[11px] text-slate-400 font-mono mt-0.5">SIREN: ${escapeHtml(item.siren)}</div>
+              ${contactsHtml}
+            </td>
+            <td class="p-3.5">
+              <div class="text-slate-200 font-medium">${escapeHtml(item.ville || '—')}</div>
+              <div class="text-[11px] text-slate-400">${escapeHtml(item.code_postal || '')} (${escapeHtml(item.departement || '')})</div>
+            </td>
+            <td class="p-3.5">
+              <span class="inline-block px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[11px] border border-slate-700">
+                ${escapeHtml(item.activite_principale)}
+              </span>
+            </td>
+            <td class="p-3.5">
+              <div class="font-medium text-indigo-300">${escapeHtml(dirName)}</div>
+              <div class="text-[11px] text-slate-400 truncate max-w-[180px]">${escapeHtml(dirRole)}</div>
+            </td>
+            <td class="p-3.5 text-right space-x-1 whitespace-nowrap">
+              <a href="https://www.linkedin.com/search/results/people/?keywords=DRH%20${encodeURIComponent(item.denomination)}" target="_blank" rel="noopener noreferrer" title="Chasser le DRH sur LinkedIn" class="inline-flex items-center px-2 py-0.5 bg-rose-950/80 hover:bg-rose-900 text-rose-300 rounded font-semibold border border-rose-800/50 transition-colors text-[10px]">
+                🎯 DRH
+              </a>
+              <a href="https://www.linkedin.com/search/results/people/?keywords=Directeur%20Financier%20${encodeURIComponent(item.denomination)}" target="_blank" rel="noopener noreferrer" title="Chasser le DAF sur LinkedIn" class="inline-flex items-center px-2 py-0.5 bg-amber-950/80 hover:bg-amber-900 text-amber-300 rounded font-semibold border border-amber-800/50 transition-colors text-[10px]">
+                💰 DAF
+              </a>
+              <a href="https://www.linkedin.com/search/results/people/?keywords=Directeur%20Commercial%20${encodeURIComponent(item.denomination)}" target="_blank" rel="noopener noreferrer" title="Chasser le Directeur Commercial sur LinkedIn" class="inline-flex items-center px-2 py-0.5 bg-blue-950/80 hover:bg-blue-900 text-blue-300 rounded font-semibold border border-blue-800/50 transition-colors text-[10px]">
+                📈 Commercial
+              </a>
+              <a href="https://www.linkedin.com/search/results/people/?keywords=Directeur%20Technique%20${encodeURIComponent(item.denomination)}" target="_blank" rel="noopener noreferrer" title="Chasser le CTO / Dir. Technique sur LinkedIn" class="inline-flex items-center px-2 py-0.5 bg-purple-950/80 hover:bg-purple-900 text-purple-300 rounded font-semibold border border-purple-800/50 transition-colors text-[10px]">
+                💻 CTO
+              </a>
+              <a href="https://www.google.com/search?q=${encodeURIComponent(item.denomination + ' ' + (item.ville || '') + ' recrutement carrieres contact email telephone')}" target="_blank" rel="noopener noreferrer" title="Dossier Web & Recrutement" class="inline-flex items-center px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded font-medium border border-slate-700 transition-colors text-[10px]">
+                🌐 Recrutement
+              </a>
+            </td>
+          </tr>
+        `;
+      }
+
+      tbody.innerHTML = html;
+      updatePaginationControls();
+    }
+
+    function toggleRowSelect(siren, isChecked) {
+      if (isChecked) selectedSirenSet.add(siren);
+      else selectedSirenSet.delete(siren);
+      document.getElementById('exportCountBadge').textContent = selectedSirenSet.size > 0 ? selectedSirenSet.size : filteredResults.length;
+    }
+
+    function toggleCheckAll(isChecked) {
+      if (isChecked) {
+        filteredResults.forEach(i => selectedSirenSet.add(i.siren));
+      } else {
+        selectedSirenSet.clear();
+      }
+      renderTable();
+    }
+
+    function selectAllRows() {
+      filteredResults.forEach(i => selectedSirenSet.add(i.siren));
+      document.getElementById('checkAll').checked = true;
+      renderTable();
+    }
+
+    function updatePaginationControls() {
+      const totalPages = Math.ceil(filteredResults.length / pageSize) || 1;
+      document.getElementById('currentPageNum').textContent = `${currentPage} / ${totalPages}`;
+      document.getElementById('btnPrevPage').disabled = (currentPage <= 1);
+      document.getElementById('btnNextPage').disabled = (currentPage >= totalPages);
+    }
+
+    function prevPage() {
+      if (currentPage > 1) {
+        currentPage--;
+        renderTable();
+      }
+    }
+
+    function nextPage() {
+      const totalPages = Math.ceil(filteredResults.length / pageSize) || 1;
+      if (currentPage < totalPages) {
+        currentPage++;
+        renderTable();
+      }
+    }
+
+    // CSV Export Generator
+    function exportCsv() {
+      const targetItems = selectedSirenSet.size > 0 
+        ? filteredResults.filter(i => selectedSirenSet.has(i.siren))
+        : filteredResults;
+
+      if (targetItems.length === 0) {
+        alert('Aucune donnée à exporter.');
+        return;
+      }
+
+      const headers = [
+        "SIREN",
+        "Raison Sociale",
+        "Code NAF",
+        "Code Postal",
+        "Ville",
+        "Département",
+        "Nom Dirigeant RNE",
+        "Prénom Dirigeant RNE",
+        "Qualité / Rôle",
+        "Recherche LinkedIn DRH / RH",
+        "Recherche LinkedIn DAF / Finance",
+        "Recherche LinkedIn Dir Commercial",
+        "Recherche LinkedIn CTO / Tech",
+        "Recherche Google Carrieres & Contact"
+      ];
+
+      const rows = targetItems.map(item => {
+        const mainDir = (item.dirigeants && item.dirigeants.length > 0) ? item.dirigeants[0] : null;
+        const dirNom = mainDir ? mainDir.nom : '';
+        const dirPrenom = mainDir ? mainDir.prenom : '';
+        const dirRole = mainDir ? mainDir.qualite : '';
+
+        const drhUrl = `https://www.linkedin.com/search/results/people/?keywords=DRH%20${encodeURIComponent(item.denomination)}`;
+        const dafUrl = `https://www.linkedin.com/search/results/people/?keywords=Directeur%20Financier%20${encodeURIComponent(item.denomination)}`;
+        const comUrl = `https://www.linkedin.com/search/results/people/?keywords=Directeur%20Commercial%20${encodeURIComponent(item.denomination)}`;
+        const ctoUrl = `https://www.linkedin.com/search/results/people/?keywords=Directeur%20Technique%20${encodeURIComponent(item.denomination)}`;
+        const careerUrl = `https://www.google.com/search?q=${encodeURIComponent(item.denomination + ' ' + (item.ville || '') + ' recrutement carrieres contact email telephone')}`;
+
+        return [
+          item.siren,
+          `"${(item.denomination || '').replace(/"/g, '""')}"`,
+          item.activite_principale,
+          item.code_postal,
+          `"${(item.ville || '').replace(/"/g, '""')}"`,
+          item.departement,
+          `"${dirNom.replace(/"/g, '""')}"`,
+          `"${dirPrenom.replace(/"/g, '""')}"`,
+          `"${dirRole.replace(/"/g, '""')}"`,
+          `"${drhUrl}"`,
+          `"${dafUrl}"`,
+          `"${comUrl}"`,
+          `"${ctoUrl}"`,
+          `"${careerUrl}"`
+        ].join(";");
+      });
+
+      const csvContent = "\uFEFF" + [headers.join(";"), ...rows].join("\r\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      const timestamp = new Date().toISOString().slice(0, 10);
+      link.setAttribute("href", url);
+      link.setAttribute("download", `prospection_recrutement_${timestamp}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // Local file handler (JSONL, NDJSON, CSV)
+    function handleFile(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const text = e.target.result;
+          let parsed = [];
+          if (file.name.endsWith('.jsonl') || file.name.endsWith('.ndjson')) {
+            const lines = text.split('\n');
+            for (const line of lines) {
+              if (line.trim()) {
+                parsed.push(JSON.parse(line));
+              }
+            }
+          } else if (file.name.endsWith('.json')) {
+            parsed = JSON.parse(text);
+          }
+
+          // Normalize
+          rawResults = parsed.map(item => ({
+            siren: item.siren || item.id || '',
+            denomination: item.denomination || item.org_name || item.nom_complet || 'N/A',
+            code_postal: item.code_postal || (item.siege && item.siege.code_postal) || '',
+            ville: item.ville || (item.siege && item.siege.libelle_commune) || '',
+            departement: (item.code_postal || '').substring(0, 2) || item.departement || '',
+            activite_principale: item.naf || item.activite_principale || '',
+            etat_administratif: item.etat_administratif || 'A',
+            dirigeants: item.dirigeants || item.dirigeants_initiaux || (item.enrichissement && item.enrichissement.dirigeants_legaux_rne) || [],
+            emails: item.emails || (item.enrichissement && item.enrichissement.emails_verifies) || [],
+            mobiles: item.mobiles || (item.enrichissement && item.enrichissement.mobiles_directs) || [],
+            telephones: item.telephones || (item.enrichissement && item.enrichissement.telephones_scrapes) || [],
+            site_web: item.site_web || (item.enrichissement && item.enrichissement.site_web) || ''
+          }));
+
+          applyClientFilters();
+          alert(`Fichier chargé avec succès (${rawResults.length} enregistrements)`);
+        } catch (err) {
+          alert('Erreur lors de la lecture du fichier : ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    // Auto-launch initial query on load
+    window.addEventListener('DOMContentLoaded', () => {
+      executeSearch();
+    });
+  </script>
+</body>
+</html>
