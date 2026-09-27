@@ -124,7 +124,7 @@ const server = http.createServer(async (req, res) => {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Contact PACA &mdash; Accès Protégé | Arx Consulting</title>
+  <title>Contacts &mdash; Accès Protégé | Arx Consulting</title>
   <link rel="icon" type="image/png" href="assets/favicon.png">
   <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
@@ -239,7 +239,7 @@ const server = http.createServer(async (req, res) => {
     <div class="logo-badge">
       <img src="assets/arx-logo-blanc.png" alt="Arx Consulting">
     </div>
-    <h1>Contact PACA</h1>
+    <h1>Contacts</h1>
     <p>Accès restreint aux décideurs économiques de la Région Sud. Saisissez votre jeton de sécurité.</p>
 
     <form method="GET" action="" onsubmit="return handleAuth(event)">
