@@ -239,58 +239,28 @@
 
   <!-- APPLE STICKY LOCAL NAVIGATION -->
   <header class="sticky top-0 z-50 apple-glass">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
       
-      <!-- BRAND LOGO (HIGH VISIBILITY EMBLEM + CRISP TYPOGRAPHY) -->
-      <a href="/asebc/" class="flex items-center gap-3 group" title="Solidarité Emploi Bassin Cannois (A.S.E.B.C.)">
-        <!-- Squircle Emblem -->
-        <div class="w-10 h-10 rounded-[14px] bg-gradient-to-br from-sky-500 via-blue-600 to-blue-700 p-2 shadow-md shadow-sky-500/25 flex items-center justify-center shrink-0 border border-white/20 group-hover:scale-105 transition-transform duration-300">
-          <svg viewBox="0 0 100 100" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="hdrSun" x1="0%" y1="100%" x2="100%" y2="0%">
-                <stop offset="0%" stop-color="#fbbf24"/>
-                <stop offset="100%" stop-color="#34d399"/>
-              </linearGradient>
-            </defs>
-            <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2" stroke-dasharray="6 4"/>
-            <path d="M 32 72 C 18 56, 20 34, 40 24 C 48 20, 56 24, 56 32 C 56 38, 48 44, 42 48 C 34 54, 34 66, 44 72 Z" fill="#ffffff" opacity="0.95"/>
-            <path d="M 46 76 C 58 78, 74 68, 78 52 C 82 36, 74 24, 62 24 C 56 24, 52 28, 54 34 C 56 40, 64 46, 66 54 C 68 64, 58 72, 46 76 Z" fill="url(#hdrSun)"/>
-            <circle cx="72" cy="34" r="7" fill="#fbbf24"/>
-            <circle cx="72" cy="34" r="3.5" fill="#ffffff"/>
-            <path d="M 44 56 L 52 48 L 60 56" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M 52 49 L 52 68" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round"/>
-          </svg>
-        </div>
-        <!-- Real HTML Typography (Never blurred or clipped) -->
-        <div class="flex flex-col text-left leading-tight">
-          <span class="text-[17px] sm:text-[18px] font-extrabold tracking-tight text-slate-900 group-hover:text-apple-blue transition-colors">
-            Solidarité <span class="text-apple-blue">Emploi</span>
-          </span>
-          <span class="text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase text-slate-500">
-            Bassin Cannois &bull; A.S.E.B.C.
-          </span>
-        </div>
-      </a>
-
       <!-- NAV ANCHORS -->
-      <nav class="hidden md:flex items-center space-x-7 text-[13px] text-apple-secondary font-normal">
-        <a href="#valeur-ajoutee" class="hover:text-apple-text transition-colors">Valeur Ajoutée</a>
-        <a href="#simulateur" class="hover:text-apple-text transition-colors">Simulateur</a>
-        <a href="#methode" class="hover:text-apple-text transition-colors">Méthode</a>
-        <a href="#benevoles" class="hover:text-apple-text transition-colors">Bénévolat</a>
-        <a href="#faq" class="hover:text-apple-text transition-colors">FAQ</a>
-        <a href="#specs" class="hover:text-apple-text transition-colors">Fiche Officielle</a>
+      <nav class="flex items-center space-x-5 sm:space-x-8 text-[13px] text-apple-secondary font-medium overflow-x-auto py-1">
+        <a href="#valeur-ajoutee" class="hover:text-apple-text transition-colors whitespace-nowrap">Valeur Ajoutée</a>
+        <a href="#simulateur" class="hover:text-apple-text transition-colors whitespace-nowrap">Simulateur</a>
+        <a href="#methode" class="hover:text-apple-text transition-colors whitespace-nowrap">Méthode</a>
+        <a href="#benevoles" class="hover:text-apple-text transition-colors whitespace-nowrap">Bénévolat</a>
+        <a href="#faq" class="hover:text-apple-text transition-colors whitespace-nowrap">FAQ</a>
+        <a href="#specs" class="hover:text-apple-text transition-colors whitespace-nowrap">Fiche Officielle</a>
       </nav>
 
       <!-- CTA -->
-      <div class="flex items-center gap-2">
-        <button onclick="openModal('candidat')" class="apple-btn-primary !py-2 !px-4 !text-[12px] shadow-sm shadow-blue-500/20">
+      <div class="flex items-center gap-2 shrink-0">
+        <button onclick="openModal('candidat')" class="apple-btn-primary !py-1.5 !px-3.5 !text-[12px] shadow-sm shadow-blue-500/20 whitespace-nowrap">
           Être Accompagné
         </button>
       </div>
 
     </div>
   </header>
+
 
   <!-- HERO SECTION (Apple Product Keynote Style) -->
   <main>
