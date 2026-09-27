@@ -3,353 +3,399 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Solidarité Emploi Bassin Cannois (A.S.E.B.C.) &mdash; Accompagnement Gratuit vers l'Emploi</title>
-  <meta name="description" content="Association Loi 1901 d'aide à la recherche d'emploi sur Cannes, Grasse et le bassin cannois. Accompagnement individuel en binôme de bénévoles, 100% gratuit et bienveillant.">
+  <title>Solidarité Emploi Bassin Cannois (A.S.E.B.C.) &mdash; Apple Design</title>
+  <meta name="description" content="Association Loi 1901 d'aide à la recherche d'emploi sur Cannes, Grasse et le bassin cannois. Accompagnement bénévole en binôme, gratuit et confidentiel.">
   <link rel="icon" type="image/svg+xml" href="logo-icon.svg">
   
-  <!-- Tailwind CSS via CDN with Typography & Forms -->
+  <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
-      darkMode: 'class',
       theme: {
         extend: {
           colors: {
-            brand: {
-              50: '#f0f9ff',
-              100: '#e0f2fe',
-              500: '#0284c7',
-              600: '#0369a1',
-              700: '#075985',
-              navy: '#0f172a',
-            },
-            sun: {
-              400: '#fbbf24',
-              500: '#f59e0b',
-              600: '#d97706',
+            apple: {
+              bg: '#f5f5f7',
+              dark: '#000000',
+              card: '#ffffff',
+              blue: '#0071e3',
+              'blue-hover': '#0077ed',
+              text: '#1d1d1f',
+              secondary: '#86868b',
+              tertiary: '#a1a1a6',
+              border: 'rgba(0, 0, 0, 0.08)',
+              'border-dark': 'rgba(255, 255, 255, 0.12)',
+              green: '#30d158',
+              orange: '#ff9f0a'
             }
           },
           fontFamily: {
-            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            sans: [
+              '-apple-system',
+              'BlinkMacSystemFont',
+              '"SF Pro Display"',
+              '"SF Pro Text"',
+              '"Helvetica Neue"',
+              'Helvetica',
+              'Arial',
+              'sans-serif'
+            ]
           }
         }
       }
     }
   </script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
   
   <style>
-    body { font-family: 'Inter', sans-serif; }
-    h1, h2, h3, .font-heading { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; }
-    .glass-card {
-      background: rgba(255, 255, 255, 0.88);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(226, 232, 240, 0.8);
+    /* Apple SF Pro typography smoothing */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      background-color: #f5f5f7;
+      color: #1d1d1f;
     }
-    .gradient-mesh {
-      background: radial-gradient(at 0% 0%, rgba(2, 132, 199, 0.12) 0px, transparent 50%),
-                  radial-gradient(at 100% 0%, rgba(245, 158, 11, 0.10) 0px, transparent 50%),
-                  radial-gradient(at 50% 50%, rgba(16, 185, 129, 0.05) 0px, transparent 50%);
+    
+    .sf-display {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+      letter-spacing: -0.03em;
     }
-    .shimmer-text {
-      background: linear-gradient(90deg, #0284c7, #2563eb, #d97706, #0284c7);
-      background-size: 200% auto;
-      color: transparent;
+
+    /* Apple Frosted Glass Header */
+    .apple-glass {
+      background: rgba(255, 255, 255, 0.82);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    .apple-glass-dark {
+      background: rgba(22, 22, 23, 0.82);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Apple Bento Card */
+    .apple-card {
+      background: #ffffff;
+      border-radius: 28px;
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.04);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .apple-card:hover {
+      box-shadow: 0 12px 36px -2px rgba(0, 0, 0, 0.08);
+      transform: translateY(-2px);
+    }
+
+    /* Apple Link Chevron */
+    .apple-link {
+      color: #0071e3;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 15px;
+      font-weight: 400;
+      transition: all 0.15s ease;
+    }
+    .apple-link:hover {
+      text-decoration: underline;
+    }
+    .apple-link::after {
+      content: "›";
+      font-size: 18px;
+      line-height: 1;
+      font-weight: 500;
+      transition: transform 0.2s ease;
+    }
+    .apple-link:hover::after {
+      transform: translateX(3px);
+    }
+
+    /* Apple Pill Button */
+    .apple-btn-primary {
+      background-color: #0071e3;
+      color: #ffffff;
+      border-radius: 980px;
+      padding: 12px 24px;
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .apple-btn-primary:hover {
+      background-color: #0077ed;
+      transform: scale(1.015);
+    }
+
+    .apple-btn-secondary {
+      background-color: rgba(0, 113, 227, 0.08);
+      color: #0071e3;
+      border-radius: 980px;
+      padding: 12px 24px;
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .apple-btn-secondary:hover {
+      background-color: rgba(0, 113, 227, 0.14);
+    }
+
+    /* Apple iOS Segmented Control */
+    .ios-segmented {
+      background-color: #e5e5ea;
+      padding: 3px;
+      border-radius: 980px;
+      display: inline-flex;
+      gap: 2px;
+    }
+    .ios-segment-item {
+      padding: 8px 18px;
+      border-radius: 980px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #1d1d1f;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .ios-segment-item.active {
+      background-color: #ffffff;
+      color: #000000;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    }
+
+    /* Subtle shimmer text gradient */
+    .apple-gradient-text {
+      background: linear-gradient(135deg, #1d1d1f 0%, #434344 60%, #0071e3 100%);
       -webkit-background-clip: text;
-      animation: shine 8s linear infinite;
-    }
-    @keyframes shine {
-      to { background-position: 200% center; }
+      -webkit-text-fill-color: transparent;
     }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800 antialiased selection:bg-sky-500 selection:text-white">
+<body class="selection:bg-apple-blue selection:text-white">
 
-  <!-- TOP NOTICE BANNER -->
-  <aside aria-label="Annonce légale" class="bg-brand-navy text-slate-300 text-xs py-2 px-4 border-b border-slate-800">
-    <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-2">
+  <!-- TOP APPLE GLOBAL BAR -->
+  <div class="bg-black text-[#86868b] text-[11px] py-1.5 px-4 font-normal">
+    <div class="max-w-5xl mx-auto flex items-center justify-between">
       <div class="flex items-center gap-2">
-        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-950 text-emerald-300 border border-emerald-800">
-          Association Reconnue
-        </span>
-        <span>A.S.E.B.C. &bull; Association Loi 1901 &bull; RNA W061008874 &bull; Bassin de Cannes &amp; Pays de Grasse</span>
+        <span class="inline-block w-1.5 h-1.5 rounded-full bg-apple-green"></span>
+        <span>Association d'intérêt général &bull; Bassin de Cannes &amp; Pays de Grasse &bull; Loi 1901</span>
       </div>
-      <div class="flex items-center gap-4 text-[11px]">
-        <span class="hidden sm:inline">🤝 100% Gratuit, Bénévole &amp; Confidentiel</span>
-        <a href="#contact" class="text-sky-400 hover:text-sky-300 font-medium underline underline-offset-2">Prendre Contact &rarr;</a>
+      <div class="hidden sm:flex items-center gap-4">
+        <span>RNA : W061008874</span>
+        <span class="text-slate-400">100% Bénévole &bull; Gratuit</span>
       </div>
     </div>
-  </aside>
+  </div>
 
-  <!-- NAVIGATION HEADER -->
-  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+  <!-- APPLE STICKY LOCAL NAVIGATION -->
+  <header class="sticky top-0 z-50 apple-glass">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
       
-      <!-- LOGO -->
-      <a href="#" class="flex items-center gap-3 group">
-        <div class="h-12 w-auto flex items-center">
-          <img src="logo-asebc.svg" alt="Solidarité Emploi Bassin Cannois A.S.E.B.C." class="h-12 w-auto max-w-[280px] sm:max-w-[340px]">
-        </div>
+      <!-- BRAND LOGO -->
+      <a href="#" class="flex items-center gap-3">
+        <img src="logo-asebc.svg" alt="A.S.E.B.C." class="h-8 w-auto">
       </a>
 
-      <!-- DESKTOP NAV -->
-      <nav class="hidden md:flex items-center space-x-7 text-sm font-medium text-slate-600">
-        <a href="#valeur-ajoutee" class="hover:text-brand-500 transition-colors">Votre Valeur Ajoutée</a>
-        <a href="#parcours" class="hover:text-brand-500 transition-colors">Notre Méthode</a>
-        <a href="#simulateur" class="hover:text-brand-500 transition-colors">Simulateur</a>
-        <a href="#association" class="hover:text-brand-500 transition-colors">L'Association</a>
+      <!-- NAV ANCHORS -->
+      <nav class="hidden md:flex items-center space-x-7 text-[13px] text-apple-secondary font-normal">
+        <a href="#valeur-ajoutee" class="hover:text-apple-text transition-colors">Valeur Ajoutée</a>
+        <a href="#simulateur" class="hover:text-apple-text transition-colors">Simulateur</a>
+        <a href="#methode" class="hover:text-apple-text transition-colors">La Méthode</a>
+        <a href="#specs" class="hover:text-apple-text transition-colors">Fiche Officielle</a>
       </nav>
 
-      <!-- CTA RIGHT -->
+      <!-- CTA -->
       <div class="flex items-center gap-3">
-        <a href="#contact" class="hidden sm:inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors border border-slate-200">
-          Nous Rejoindre / Bénévole
-        </a>
-        <button onclick="openModal()" class="inline-flex items-center justify-center px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-brand-500 to-sky-600 hover:from-brand-600 hover:to-sky-700 shadow-md shadow-sky-500/20 transition-all hover:scale-[1.02]">
-          Être Accompagné(e)
+        <button onclick="openModal()" class="apple-btn-primary !py-1.5 !px-3.5 !text-[12px]">
+          Être Accompagné
         </button>
       </div>
 
     </div>
   </header>
 
-  <!-- HERO SECTION -->
+  <!-- HERO SECTION (Apple Product Keynote Style) -->
   <main>
-  <section class="relative overflow-hidden pt-12 pb-20 lg:pt-20 lg:pb-28 gradient-mesh border-b border-slate-200/60">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+  <section class="pt-20 pb-24 px-4 sm:px-6 text-center max-w-4xl mx-auto">
+    
+    <!-- EYEBROW -->
+    <div class="inline-block text-[13px] font-semibold text-apple-secondary tracking-wide uppercase mb-3">
+      Solidarité Emploi Bassin Cannois &bull; A.S.E.B.C.
+    </div>
+
+    <!-- MAIN TYPOGRAPHY -->
+    <h1 class="sf-display text-5xl sm:text-6xl md:text-7xl font-semibold tracking-tight text-apple-text leading-[1.05] mb-6">
+      Ne cherchez plus seul.<br>
+      <span class="apple-gradient-text">Retrouvez élan, méthode &amp; réseau.</span>
+    </h1>
+
+    <!-- SUBHEAD -->
+    <p class="text-xl sm:text-2xl text-apple-secondary font-normal leading-snug max-w-2xl mx-auto mb-8">
+      Un binôme de parrains bénévoles dédié, une écoute bienveillante sans contrôle administratif, et un accès direct aux opportunités de Cannes et Grasse.
+    </p>
+
+    <!-- CALL TO ACTIONS -->
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
+      <button onclick="openModal()" class="apple-btn-primary w-full sm:w-auto">
+        Demander mon accompagnement gratuit
+      </button>
+      <a href="#valeur-ajoutee" class="apple-link text-[16px] py-2">
+        Découvrir la valeur ajoutée
+      </a>
+    </div>
+
+    <!-- SUB-NOTE -->
+    <div class="text-xs text-apple-secondary">
+      100% Gratuit &bull; Sans engagement &bull; Cannes, Le Cannet, Mandelieu &amp; Pays de Grasse
+    </div>
+
+    <!-- HERO SHOWCASE CARD (Apple Hardware/Studio Look) -->
+    <div class="mt-14 max-w-3xl mx-auto">
+      <div class="apple-card p-6 sm:p-10 text-left border border-black/5 bg-white relative overflow-hidden">
         
-        <!-- LEFT: HERO CONTENT -->
-        <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
-          
-          <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-sky-100/90 text-brand-700 border border-sky-200">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            Accompagnement Ouvert &bull; Cannes, Le Cannet, Grasse &amp; Alentours
+        <!-- Subtle corner glow -->
+        <div class="absolute -top-24 -right-24 w-60 h-60 bg-apple-blue/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-black/5">
+          <div class="space-y-1">
+            <span class="text-xs font-semibold text-apple-blue uppercase tracking-wider">Le Dispositif Humain</span>
+            <h2 class="sf-display text-2xl font-semibold text-apple-text">Un accompagnement sur-mesure</h2>
           </div>
-
-          <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.12]">
-            Ne cherchez plus seul(e).
-            <span class="block shimmer-text mt-1">Retrouvez élan, méthode &amp; réseau.</span>
-          </h1>
-
-          <p class="text-lg sm:text-xl text-slate-600 leading-relaxed max-w-2xl mx-auto lg:mx-0">
-            Face au chômage ou en pleine reconversion, l’isolement est le premier obstacle. 
-            L’<strong>A.S.E.B.C.</strong> vous offre un <strong>binôme de parrains bénévoles dédié</strong>, une écoute bienveillante sans contrôle administratif, et un accès direct aux opportunités du bassin cannois.
-          </p>
-
-          <!-- VALUE BULLETS -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-left max-w-xl mx-auto lg:mx-0 text-sm text-slate-700">
-            <div class="flex items-center gap-2.5">
-              <div class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs font-bold">✓</div>
-              <span><strong>100% Gratuit</strong> et sans engagement</span>
-            </div>
-            <div class="flex items-center gap-2.5">
-              <div class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs font-bold">✓</div>
-              <span><strong>Binôme de parrains</strong> expérimentés</span>
-            </div>
-            <div class="flex items-center gap-2.5">
-              <div class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs font-bold">✓</div>
-              <span><strong>Accès au marché caché</strong> local (70% des postes)</span>
-            </div>
-            <div class="flex items-center gap-2.5">
-              <div class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs font-bold">✓</div>
-              <span><strong>Zéro jugement</strong>, bienveillance absolue</span>
-            </div>
+          <div class="flex items-center gap-2 text-xs font-medium text-apple-secondary bg-apple-bg px-3 py-1.5 rounded-full self-start md:self-auto">
+            <span class="w-2 h-2 rounded-full bg-apple-green animate-pulse"></span>
+            Permanences actives &bull; Cannes &amp; Grasse
           </div>
-
-          <!-- HERO BUTTONS -->
-          <div class="pt-4 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-            <button onclick="openModal()" class="w-full sm:w-auto px-8 py-4 rounded-xl text-base font-bold text-white bg-gradient-to-r from-sky-600 via-brand-500 to-emerald-600 hover:opacity-95 shadow-lg shadow-sky-600/25 transition-all hover:scale-[1.02] flex items-center justify-center gap-2">
-              <span>Demander mon accompagnement gratuit</span>
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-            </button>
-            <a href="#simulateur" class="w-full sm:w-auto px-6 py-4 rounded-xl text-base font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 shadow-xs transition-all text-center">
-              Tester le simulateur de besoins
-            </a>
-          </div>
-
-          <!-- TRUST QUOTE -->
-          <p class="text-xs text-slate-500 italic pt-1">
-            * Aucun critère d’âge ou de diplôme. Ouvert à tout demandeur d’emploi résidant dans le 06.
-          </p>
-
         </div>
 
-        <!-- RIGHT: DYNAMIC HERO CARD / INTERACTIVE VALUE SHOWCASE -->
-        <div class="lg:col-span-5">
-          <div class="relative">
-            <!-- Glow background -->
-            <div class="absolute -inset-1 bg-gradient-to-r from-sky-500 to-amber-500 rounded-3xl blur-xl opacity-20 -z-10"></div>
-            
-            <div class="glass-card rounded-2xl p-6 sm:p-8 shadow-xl space-y-6">
-              
-              <!-- CARD HEADER -->
-              <div class="flex items-center justify-between pb-4 border-b border-slate-200">
-                <div class="flex items-center gap-3">
-                  <div class="w-12 h-12 rounded-xl bg-slate-900 p-2 shadow-inner">
-                    <img src="logo-icon.svg" alt="A.S.E.B.C." class="w-full h-full">
-                  </div>
-                  <div>
-                    <h3 class="font-bold text-slate-900 text-base leading-tight">Votre Réseau Solidaire</h3>
-                    <span class="text-xs text-slate-500">Cannes &bull; Grasse &bull; Sophia Antipolis</span>
-                  </div>
-                </div>
-                <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
-                  Actif &bull; 2026
-                </span>
-              </div>
+        <!-- 3 NUMERICAL PILLARS (Apple Stats Style) -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-6">
+          <div class="space-y-1">
+            <div class="sf-display text-4xl sm:text-5xl font-semibold text-apple-text tracking-tight">2</div>
+            <div class="text-xs font-semibold text-apple-text">Parrains par candidat</div>
+            <div class="text-[13px] text-apple-secondary leading-relaxed">
+              Un binôme expert (anciens DRH, chefs d'entreprise) pour un regard croisé équilibré.
+            </div>
+          </div>
 
-              <!-- VALUE METRICS TILES -->
-              <div class="grid grid-cols-2 gap-3 text-center">
-                <div class="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-xs">
-                  <span class="block text-2xl font-extrabold text-brand-600">2</span>
-                  <span class="text-xs font-medium text-slate-600">Accompagnateurs dédiés par personne</span>
-                </div>
-                <div class="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-xs">
-                  <span class="block text-2xl font-extrabold text-amber-500">0 €</span>
-                  <span class="text-xs font-medium text-slate-600">Frais d'inscription (100% bénévole)</span>
-                </div>
-                <div class="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-xs">
-                  <span class="block text-2xl font-extrabold text-emerald-600">20+ ans</span>
-                  <span class="text-xs font-medium text-slate-600">Présence sur le terrain (depuis 2002)</span>
-                </div>
-                <div class="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-xs">
-                  <span class="block text-2xl font-extrabold text-purple-600">1 à 2</span>
-                  <span class="text-xs font-medium text-slate-600">Séances mensuelles personnalisées</span>
-                </div>
-              </div>
+          <div class="space-y-1">
+            <div class="sf-display text-4xl sm:text-5xl font-semibold text-apple-blue tracking-tight">0 €</div>
+            <div class="text-xs font-semibold text-apple-text">Strictement gratuit</div>
+            <div class="text-[13px] text-apple-secondary leading-relaxed">
+              Action bénévole d'intérêt général financée par l'engagement citoyen depuis 2002.
+            </div>
+          </div>
 
-              <!-- REAL BENEFIT PREVIEW -->
-              <div class="bg-sky-50/80 rounded-xl p-4 border border-sky-200/70 text-sm space-y-2">
-                <div class="font-semibold text-brand-700 flex items-center gap-1.5">
-                  <svg class="w-4 h-4 text-brand-600" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                  Ce que vous gagnez dès la 1ère semaine :
-                </div>
-                <ul class="space-y-1.5 text-xs text-slate-700 pl-1">
-                  <li class="flex items-start gap-1.5">
-                    <span class="text-sky-600 font-bold">&bull;</span>
-                    <span><strong>Un regard extérieur et lucide</strong> sur votre CV &amp; parcours sans jugement.</span>
-                  </li>
-                  <li class="flex items-start gap-1.5">
-                    <span class="text-sky-600 font-bold">&bull;</span>
-                    <span><strong>Une stratégie d'attaque ciblée</strong> sur les entreprises qui recrutent dans le 06.</span>
-                  </li>
-                  <li class="flex items-start gap-1.5">
-                    <span class="text-sky-600 font-bold">&bull;</span>
-                    <span><strong>Un soulagement psychologique immédiat</strong> : vous avez une équipe avec vous.</span>
-                  </li>
-                </ul>
-              </div>
-
-              <!-- QUICK CALL ACTION -->
-              <div class="pt-2 flex items-center justify-between text-xs text-slate-500">
-                <span>Permanences sur Cannes &amp; Grasse</span>
-                <span class="text-emerald-600 font-semibold flex items-center gap-1">
-                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Inscriptions ouvertes
-                </span>
-              </div>
-
+          <div class="space-y-1">
+            <div class="sf-display text-4xl sm:text-5xl font-semibold text-apple-text tracking-tight">70%</div>
+            <div class="text-xs font-semibold text-apple-text">Marché caché déverrouillé</div>
+            <div class="text-[13px] text-apple-secondary leading-relaxed">
+              Accès direct aux entreprises du bassin cannois sans passer par les algorithmes de tri.
             </div>
           </div>
         </div>
 
       </div>
-
     </div>
+
   </section>
 
-  <!-- SECTION: LA VALEUR AJOUTÉE CONCRÈTE (WHY ASEBC) -->
-  <section id="valeur-ajoutee" class="py-20 bg-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  <!-- SECTION: BENTO GRID VALUE ADD (Apple Feature Bento) -->
+  <section id="valeur-ajoutee" class="py-20 px-4 sm:px-6 bg-white border-t border-black/5">
+    <div class="max-w-5xl mx-auto">
       
-      <div class="text-center max-w-3xl mx-auto space-y-4">
-        <span class="text-xs font-bold tracking-wider text-brand-600 uppercase bg-sky-50 px-3 py-1 rounded-full border border-sky-100">
-          Pourquoi Faire Appel à Nous ?
-        </span>
-        <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-          La vraie valeur ajoutée pour vous qui cherchez un travail
+      <div class="text-center max-w-2xl mx-auto mb-16 space-y-3">
+        <span class="text-xs font-semibold text-apple-blue uppercase tracking-wider">Pourquoi l'A.S.E.B.C.</span>
+        <h2 class="sf-display text-4xl sm:text-5xl font-semibold text-apple-text tracking-tight">
+          Ce que nous changeons pour vous.
         </h2>
-        <p class="text-base sm:text-lg text-slate-600">
-          Chercher seul derrière un écran est épuisant. L’A.S.E.B.C. apporte exactement ce qui manque aux dispositifs traditionnels : du temps, de l’écoute humaine et de la méthode de terrain.
+        <p class="text-lg text-apple-secondary font-normal">
+          Le chômage isole et use l'estime de soi. Nous apportons exactement l'écoute, la méthode et l'énergie nécessaires pour repartir.
         </p>
       </div>
 
-      <!-- 4 VALUE CARDS -->
-      <div class="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <!-- BENTO BOX -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
         
-        <!-- CARD 1: BINOME HUMAIN -->
-        <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200/80 hover:border-brand-500/50 hover:shadow-lg transition-all group flex flex-col justify-between">
-          <div class="space-y-4">
-            <div class="w-12 h-12 rounded-xl bg-sky-100 text-brand-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-            </div>
-            <h3 class="text-xl font-bold text-slate-900 leading-snug">
-              1. Un Binôme Dédié, Sans Jugement
+        <!-- CARD 1 (BIG 8 COLUMNS) -->
+        <div class="md:col-span-8 apple-card p-8 sm:p-10 flex flex-col justify-between bg-gradient-to-br from-slate-50 to-white">
+          <div class="space-y-4 max-w-xl">
+            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-apple-blue">
+              Pilier 01 &bull; L'Humain d'Abord
+            </span>
+            <h3 class="sf-display text-3xl font-semibold text-apple-text tracking-tight">
+              Un binôme dédié. Deux regards, zéro jugement.
             </h3>
-            <p class="text-sm text-slate-600 leading-relaxed">
-              Deux bénévoles vous accompagnent main dans la main. Pas de quota administratif, pas de radiation : seulement une relation d’aide désintéressée, humaine et bienveillante pour redonner confiance.
+            <p class="text-base text-apple-secondary leading-relaxed">
+              À l'A.S.E.B.C., vous n'êtes pas un numéro dans une file d'attente. Vous travaillez avec deux accompagnateurs bénévoles qui prennent le temps de vous écouter, de comprendre vos freins et de bâtir un plan réaliste, en toute confidentialité.
             </p>
           </div>
-          <div class="pt-4 border-t border-slate-200/60 mt-4 text-xs font-semibold text-brand-600">
-            Écoute active &bull; Suivi régulier
+          <div class="pt-6 border-t border-black/5 mt-6 flex items-center justify-between text-xs text-apple-secondary font-medium">
+            <span>Séances bimensuelles régulières</span>
+            <span class="text-apple-blue">Écoute active &amp; Bienveillance</span>
           </div>
         </div>
 
-        <!-- CARD 2: MARCHE CACHE -->
-        <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200/80 hover:border-amber-500/50 hover:shadow-lg transition-all group flex flex-col justify-between">
+        <!-- CARD 2 (4 COLUMNS: LE MARCHÉ CACHÉ) -->
+        <div class="md:col-span-4 apple-card p-8 sm:p-10 flex flex-col justify-between bg-[#161617] text-white">
           <div class="space-y-4">
-            <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-            </div>
-            <h3 class="text-xl font-bold text-slate-900 leading-snug">
-              2. Déverrouiller le « Marché Caché »
+            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-white/10 text-apple-orange">
+              Pilier 02 &bull; Réseau Local
+            </span>
+            <h3 class="sf-display text-2xl sm:text-3xl font-semibold text-white tracking-tight">
+              Le marché invisible du 06.
             </h3>
-            <p class="text-sm text-slate-600 leading-relaxed">
-              Plus de 70% des embauches se font par cooptation ou candidatures spontanées ciblées. Nous vous aidons à cartographier le tissu économique local (PME, tourisme, parfumerie, nautisme) et à contacter les bons décideurs.
+            <p class="text-sm text-[#86868b] leading-relaxed">
+              Hôtellerie de luxe, nautisme, parfumerie à Grasse, tech à Sophia : plus de 70% des postes ne sont jamais publiés en ligne. Nous vous formons aux techniques d'approche directe des dirigeants.
             </p>
           </div>
-          <div class="pt-4 border-t border-slate-200/60 mt-4 text-xs font-semibold text-amber-600">
-            Réseau Cannes, Grasse, Sophia
+          <div class="pt-6 border-t border-white/10 mt-6 text-xs text-[#a1a1a6]">
+            Cannes &bull; Grasse &bull; Sophia
           </div>
         </div>
 
-        <!-- CARD 3: OUTILS MODERNES -->
-        <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200/80 hover:border-emerald-500/50 hover:shadow-lg transition-all group flex flex-col justify-between">
+        <!-- CARD 3 (4 COLUMNS: OUTILS ET CV) -->
+        <div class="md:col-span-5 apple-card p-8 sm:p-10 flex flex-col justify-between bg-white">
           <div class="space-y-4">
-            <div class="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-            </div>
-            <h3 class="text-xl font-bold text-slate-900 leading-snug">
-              3. CV Perforant &amp; Pitch Affûté
+            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-apple-green">
+              Pilier 03 &bull; Outils Tactiques
+            </span>
+            <h3 class="sf-display text-2xl font-semibold text-apple-text tracking-tight">
+              CV, pitch &amp; simulations.
             </h3>
-            <p class="text-sm text-slate-600 leading-relaxed">
-              Fini les CV génériques ignorés par les robots (ATS). Nous retravaillons vos accroches, vos réalisations chiffrées et nous vous entraînons en simulation d'entretien pour convaincre dès les 3 premières minutes.
+            <p class="text-sm text-apple-secondary leading-relaxed">
+              Nous réécrivons votre CV pour passer les filtres recruteurs et vous entraînons en situation réelle pour convaincre dès les premières minutes de l'entretien d'embauche.
             </p>
           </div>
-          <div class="pt-4 border-t border-slate-200/60 mt-4 text-xs font-semibold text-emerald-600">
-            Simulations &bull; Profil LinkedIn
+          <div class="pt-4 text-xs font-semibold text-apple-blue">
+            Simulations d'entretiens filmées &rarr;
           </div>
         </div>
 
-        <!-- CARD 4: ENERGIE COLLECTIVE -->
-        <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200/80 hover:border-purple-500/50 hover:shadow-lg transition-all group flex flex-col justify-between">
+        <!-- CARD 4 (7 COLUMNS: LA FIN DE L'ISOLEMENT) -->
+        <div class="md:col-span-7 apple-card p-8 sm:p-10 flex flex-col justify-between bg-apple-bg">
           <div class="space-y-4">
-            <div class="w-12 h-12 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-            </div>
-            <h3 class="text-xl font-bold text-slate-900 leading-snug">
-              4. Rompre l'Isolement &amp; Rester Motivé
+            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-50 text-purple-700">
+              Pilier 04 &bull; Dynamique Collective
+            </span>
+            <h3 class="sf-display text-2xl sm:text-3xl font-semibold text-apple-text tracking-tight">
+              Rompre l'isolement. Retrouver le rythme.
             </h3>
-            <p class="text-sm text-slate-600 leading-relaxed">
-              Le plus grand ennemi de la recherche d'emploi, c’est le découragement. Nos rendez-vous réguliers créent un calendrier structurant, des objectifs précis et l'émulation nécessaire pour ne jamais baisser les bras.
+            <p class="text-sm text-apple-secondary leading-relaxed">
+              La recherche d'emploi est un marathon solitaire. En rejoignant l'A.S.E.B.C., vous bénéficiez d'un calendrier structurant, d'un soutien moral continu et de rencontres entre chercheurs d'emploi pour échanger astuces et opportunités.
             </p>
           </div>
-          <div class="pt-4 border-t border-slate-200/60 mt-4 text-xs font-semibold text-purple-600">
-            Émulation &bull; Santé mentale
+          <div class="pt-4 border-t border-black/5 mt-4 text-xs text-apple-secondary font-medium">
+            Cafés de l'emploi &bull; Ateliers collaboratifs
           </div>
         </div>
 
@@ -358,228 +404,206 @@
     </div>
   </section>
 
-  <!-- INTERACTIVE SIMULATEUR: TAILORED PATH FINDER -->
-  <section id="simulateur" class="py-20 bg-slate-100/80 border-y border-slate-200">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+  <!-- SECTION: APPLE-STYLE INTERACTIVE SIMULATOR -->
+  <section id="simulateur" class="py-20 px-4 sm:px-6 bg-apple-bg">
+    <div class="max-w-4xl mx-auto">
       
-      <div class="text-center space-y-3 mb-12">
-        <span class="text-xs font-bold tracking-wider text-amber-600 uppercase bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
-          Outil Interactif
-        </span>
-        <h2 class="text-3xl font-extrabold text-slate-900">
-          Quel plan d'action pour votre profil ?
+      <div class="text-center space-y-3 mb-10">
+        <span class="text-xs font-semibold text-apple-blue uppercase tracking-wider">Simulateur Personnalisé</span>
+        <h2 class="sf-display text-3xl sm:text-4xl font-semibold text-apple-text tracking-tight">
+          Votre plan d'action en un coup d'œil.
         </h2>
-        <p class="text-slate-600 max-w-xl mx-auto text-sm sm:text-base">
-          Sélectionnez votre situation et votre blocage principal pour visualiser la réponse concrète de l'A.S.E.B.C.
+        <p class="text-base text-apple-secondary max-w-xl mx-auto">
+          Sélectionnez votre profil pour découvrir l'accompagnement spécifique mis en place par votre binôme.
         </p>
+
+        <!-- APPLE IOS SEGMENTED CONTROL -->
+        <div class="pt-4 flex justify-center">
+          <div class="ios-segmented flex-wrap justify-center" id="profileSegments">
+            <button onclick="setProfile('reconversion', this)" class="ios-segment-item active">Reconversion</button>
+            <button onclick="setProfile('senior', this)" class="ios-segment-item">Cadre / Senior (+45)</button>
+            <button onclick="setProfile('jeune', this)" class="ios-segment-item">Jeune Diplômé</button>
+            <button onclick="setProfile('longue', this)" class="ios-segment-item">Longue Interruption</button>
+          </div>
+        </div>
       </div>
 
-      <div class="glass-card rounded-2xl p-6 sm:p-10 shadow-lg border border-slate-200">
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-          
-          <!-- STEP 1: SITUATION -->
-          <div class="space-y-3">
-            <label class="block text-sm font-bold text-slate-900">
-              1. Votre situation actuelle :
-            </label>
-            <div class="space-y-2" id="situationGroup">
-              <button onclick="selectSituation(this, 'reconversion')" class="sit-btn w-full text-left p-3.5 rounded-xl border border-slate-200 bg-white hover:border-brand-500 transition-all text-sm font-medium flex items-center justify-between active-btn border-brand-500 bg-sky-50/50">
-                <span>🔄 En reconversion professionnelle</span>
-                <span class="text-brand-600 font-bold text-xs check-mark">✓</span>
-              </button>
-              <button onclick="selectSituation(this, 'senior')" class="sit-btn w-full text-left p-3.5 rounded-xl border border-slate-200 bg-white hover:border-brand-500 transition-all text-sm font-medium flex items-center justify-between">
-                <span>💼 Cadre / Senior (+45 ans)</span>
-                <span class="text-brand-600 font-bold text-xs check-mark hidden">✓</span>
-              </button>
-              <button onclick="selectSituation(this, 'jeune')" class="sit-btn w-full text-left p-3.5 rounded-xl border border-slate-200 bg-white hover:border-brand-500 transition-all text-sm font-medium flex items-center justify-between">
-                <span>🎓 Jeune diplômé / 1er tremplin</span>
-                <span class="text-brand-600 font-bold text-xs check-mark hidden">✓</span>
-              </button>
-              <button onclick="selectSituation(this, 'longue')" class="sit-btn w-full text-left p-3.5 rounded-xl border border-slate-200 bg-white hover:border-brand-500 transition-all text-sm font-medium flex items-center justify-between">
-                <span>⏳ Chômage longue durée / Retour après arrêt</span>
-                <span class="text-brand-600 font-bold text-xs check-mark hidden">✓</span>
-              </button>
-            </div>
+      <!-- DYNAMIC APPLE RESULT CARD -->
+      <div class="apple-card p-8 sm:p-10 bg-white">
+        <div class="flex items-center justify-between pb-6 border-b border-black/5">
+          <div class="space-y-1">
+            <span id="simTag" class="text-xs font-semibold text-apple-blue uppercase tracking-wider">Feuille de Route Reconversion</span>
+            <h3 id="simTitle" class="sf-display text-2xl font-semibold text-apple-text">Bilan de transférabilité des compétences</h3>
           </div>
-
-          <!-- STEP 2: OBSTACLE -->
-          <div class="space-y-3">
-            <label class="block text-sm font-bold text-slate-900">
-              2. Votre principal besoin ou difficulté :
-            </label>
-            <div class="space-y-2" id="needGroup">
-              <button onclick="selectNeed(this, 'cv')" class="need-btn w-full text-left p-3.5 rounded-xl border border-slate-200 bg-white hover:border-brand-500 transition-all text-sm font-medium flex items-center justify-between active-btn border-brand-500 bg-sky-50/50">
-                <span>📄 Mon CV n'obtient pas de réponses</span>
-                <span class="text-brand-600 font-bold text-xs check-mark">✓</span>
-              </button>
-              <button onclick="selectNeed(this, 'reseau')" class="need-btn w-full text-left p-3.5 rounded-xl border border-slate-200 bg-white hover:border-brand-500 transition-all text-sm font-medium flex items-center justify-between">
-                <span>🌐 Je n'ai pas de réseau dans la région (06)</span>
-                <span class="text-brand-600 font-bold text-xs check-mark hidden">✓</span>
-              </button>
-              <button onclick="selectNeed(this, 'entretien')" class="need-btn w-full text-left p-3.5 rounded-xl border border-slate-200 bg-white hover:border-brand-500 transition-all text-sm font-medium flex items-center justify-between">
-                <span>🗣️ Je stresse ou perds mes moyens en entretien</span>
-                <span class="text-brand-600 font-bold text-xs check-mark hidden">✓</span>
-              </button>
-              <button onclick="selectNeed(this, 'perte')" class="need-btn w-full text-left p-3.5 rounded-xl border border-slate-200 bg-white hover:border-brand-500 transition-all text-sm font-medium flex items-center justify-between">
-                <span>⚡ Je perds espoir et motivation</span>
-                <span class="text-brand-600 font-bold text-xs check-mark hidden">✓</span>
-              </button>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- DYNAMIC RESULT PANEL -->
-        <div id="resultBox" class="mt-8 p-6 rounded-2xl bg-white border border-sky-200 shadow-md">
-          <div class="flex items-center gap-3 mb-3">
-            <span class="px-3 py-1 rounded-full text-xs font-bold bg-sky-100 text-brand-700">Votre Solution A.S.E.B.C.</span>
-            <span class="text-xs text-slate-500 font-medium">Programme d'action sur-mesure</span>
-          </div>
-          <h4 id="resultTitle" class="text-lg font-bold text-slate-900 mb-2">
-            Audit de transférabilité de compétences &amp; Refonte stratégique du CV
-          </h4>
-          <p id="resultDesc" class="text-sm text-slate-600 leading-relaxed mb-4">
-            En reconversion, vos compétences antérieures sont une force. Vos parrains A.S.E.B.C. identifient vos compétences transférables et reformulent votre CV pour répondre aux attentes réelles des recruteurs locaux.
-          </p>
-          <div class="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-slate-100">
-            <div class="text-xs font-semibold text-emerald-600 flex items-center gap-1.5">
-              <span>✓ 2 parrains dédiés</span> &bull; <span>✓ Sans limite de durée</span> &bull; <span>✓ 100% Gratuit</span>
-            </div>
-            <button onclick="openModal()" class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-brand-500 hover:bg-brand-600 transition-colors shadow-sm">
-              Enclencher cette démarche &rarr;
-            </button>
-          </div>
-        </div>
-
-      </div>
-
-    </div>
-  </section>
-
-  <!-- SECTION: LE PARCOURS EN 4 ÉTAPES -->
-  <section id="parcours" class="py-20 bg-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      
-      <div class="text-center max-w-3xl mx-auto space-y-4">
-        <span class="text-xs font-bold tracking-wider text-emerald-600 uppercase bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
-          Méthode Éprouvée
-        </span>
-        <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900">
-          Comment se déroule votre accompagnement ?
-        </h2>
-        <p class="text-base text-slate-600">
-          Un cadre structurant, clair et rassurant, pensé pour respecter votre rythme sans jamais vous brusquer.
-        </p>
-      </div>
-
-      <div class="mt-16 grid grid-cols-1 md:grid-cols-4 gap-6">
-        
-        <!-- STEP 1 -->
-        <div class="relative bg-slate-50 p-6 rounded-2xl border border-slate-200">
-          <div class="w-10 h-10 rounded-full bg-brand-500 text-white font-extrabold flex items-center justify-center text-sm mb-4 shadow-md shadow-sky-500/20">
-            01
-          </div>
-          <h3 class="text-lg font-bold text-slate-900 mb-2">Rencontre &amp; Écoute</h3>
-          <p class="text-xs text-slate-600 leading-relaxed">
-            Un premier entretien informel de 45 minutes pour faire le point sur vos souhaits, vos doutes et votre situation, en toute confidentialité.
-          </p>
-        </div>
-
-        <!-- STEP 2 -->
-        <div class="relative bg-slate-50 p-6 rounded-2xl border border-slate-200">
-          <div class="w-10 h-10 rounded-full bg-brand-500 text-white font-extrabold flex items-center justify-center text-sm mb-4 shadow-md shadow-sky-500/20">
-            02
-          </div>
-          <h3 class="text-lg font-bold text-slate-900 mb-2">Binôme de Parrains</h3>
-          <p class="text-xs text-slate-600 leading-relaxed">
-            Attribution de deux accompagnateurs bénévoles choisis selon votre profil et secteur, pour un regard croisé équilibré.
-          </p>
-        </div>
-
-        <!-- STEP 3 -->
-        <div class="relative bg-slate-50 p-6 rounded-2xl border border-slate-200">
-          <div class="w-10 h-10 rounded-full bg-brand-500 text-white font-extrabold flex items-center justify-center text-sm mb-4 shadow-md shadow-sky-500/20">
-            03
-          </div>
-          <h3 class="text-lg font-bold text-slate-900 mb-2">Plan d'Action Actif</h3>
-          <p class="text-xs text-slate-600 leading-relaxed">
-            Séances tous les 15 jours : réécriture du CV, ciblage d'entreprises locales, simulation d'entretiens, relances et réseau.
-          </p>
-        </div>
-
-        <!-- STEP 4 -->
-        <div class="relative bg-slate-50 p-6 rounded-2xl border border-slate-200">
-          <div class="w-10 h-10 rounded-full bg-emerald-600 text-white font-extrabold flex items-center justify-center text-sm mb-4 shadow-md shadow-emerald-500/20">
-            04
-          </div>
-          <h3 class="text-lg font-bold text-slate-900 mb-2">Prise de Poste &amp; Suivi</h3>
-          <p class="text-xs text-slate-600 leading-relaxed">
-            Quand vous signez votre contrat, nous restons à vos côtés durant la période d'essai pour garantir votre intégration pérenne.
-          </p>
-        </div>
-
-      </div>
-
-    </div>
-  </section>
-
-  <!-- SECTION: IDENTITY & OFFICIAL TRANSPARENCY -->
-  <section id="association" class="py-16 bg-slate-900 text-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-        
-        <div class="lg:col-span-7 space-y-4">
-          <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-sky-950 text-sky-300 border border-sky-800">
-            Solidarité &amp; Engagement Citoyen
+          <span class="hidden sm:inline-flex px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-apple-green">
+            100% Inclus &bull; Gratuit
           </span>
-          <h2 class="text-3xl font-extrabold tracking-tight">
-            Association Solidarité Emploi du Bassin Cannois (A.S.E.B.C.)
-          </h2>
-          <p class="text-slate-300 text-sm leading-relaxed">
-            Fondée en novembre 2002 sous le régime de la loi 1901 (déclaration en préfecture des Alpes-Maritimes), l’A.S.E.B.C. œuvre depuis plus de deux décennies pour faciliter l'insertion et la réinsertion professionnelle des résidents du bassin cannois et du Pays de Grasse.
+        </div>
+
+        <div class="py-6 space-y-4">
+          <p id="simDesc" class="text-base text-apple-secondary leading-relaxed">
+            Vos compétences passées constituent un levier majeur. Vos parrains A.S.E.B.C. vous aident à traduire vos acquis dans le vocabulaire cible du nouveau secteur et à cibler les entreprises ouvertes aux profils atypiques sur Cannes et Grasse.
           </p>
-          <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-2 text-xs">
-            <div class="p-3 rounded-lg bg-slate-800/80 border border-slate-700">
-              <span class="block text-slate-400">Statut Juridique</span>
-              <span class="font-bold text-slate-100">Association Loi 1901</span>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+            <div class="p-4 rounded-2xl bg-apple-bg space-y-1">
+              <span class="text-xs font-semibold text-apple-text">Ce que nous travaillons ensemble :</span>
+              <ul id="simPoints" class="text-xs text-apple-secondary space-y-1.5 pt-1">
+                <li>&bull; Traduction des compétences en bénéfices employeur</li>
+                <li>&bull; Enquêtes métiers de terrain auprès de professionnels locaux</li>
+                <li>&bull; Storytelling et cohérence de votre réorientation</li>
+              </ul>
             </div>
-            <div class="p-3 rounded-lg bg-slate-800/80 border border-slate-700">
-              <span class="block text-slate-400">Numéro RNA</span>
-              <span class="font-bold text-sky-400">W061008874</span>
-            </div>
-            <div class="p-3 rounded-lg bg-slate-800/80 border border-slate-700">
-              <span class="block text-slate-400">Création Officielle</span>
-              <span class="font-bold text-slate-100">04/11/2002</span>
+            <div class="p-4 rounded-2xl bg-apple-bg space-y-1">
+              <span class="text-xs font-semibold text-apple-text">L'impact attendu :</span>
+              <ul id="simImpact" class="text-xs text-apple-secondary space-y-1.5 pt-1">
+                <li>&bull; Un CV percutant sans justification apologétique</li>
+                <li>&bull; Confiance totale lors des questions pièges en entretien</li>
+                <li>&bull; Validation du réalisme économique du projet</li>
+              </ul>
             </div>
           </div>
         </div>
 
-        <div class="lg:col-span-5 bg-slate-800/90 rounded-2xl p-6 border border-slate-700 space-y-4 text-xs">
-          <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2">
-            <svg class="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg>
-            Nos Territoires d'Intervention
-          </h3>
-          <p class="text-slate-300">
-            Permanences et rendez-vous d'accompagnement organisés sur les communes du bassin :
-          </p>
-          <ul class="space-y-1.5 text-slate-300">
-            <li class="flex items-center gap-2">
-              <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
-              <strong>Cannes &amp; Cannes La Bocca</strong> (Bassin historique)
-            </li>
-            <li class="flex items-center gap-2">
-              <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
-              <strong>Pays de Grasse</strong> (Grasse, Mouans-Sartoux, Valbonne)
-            </li>
-            <li class="flex items-center gap-2">
-              <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
-              <strong>Le Cannet, Mandelieu-La Napoule &amp; Sophia Antipolis</strong>
-            </li>
-          </ul>
-          <div class="pt-2 text-slate-400">
-            * Rendez-vous en présentiel ou visioconférence selon vos disponibilités et contraintes de mobilité.
+        <div class="pt-6 border-t border-black/5 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div class="text-xs text-apple-secondary">
+            Deux bénévoles vous guident à chaque étape, sans limite de temps prédéfinie.
+          </div>
+          <button onclick="openModal()" class="apple-btn-primary w-full sm:w-auto !py-2.5 !px-5 !text-[13px]">
+            Démarrer ce parcours &rarr;
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- SECTION: METHODOLOGY (Apple Step Sequence) -->
+  <section id="methode" class="py-20 px-4 sm:px-6 bg-white">
+    <div class="max-w-5xl mx-auto">
+      
+      <div class="text-center max-w-2xl mx-auto mb-16 space-y-3">
+        <span class="text-xs font-semibold text-apple-blue uppercase tracking-wider">Méthodologie</span>
+        <h2 class="sf-display text-4xl sm:text-5xl font-semibold text-apple-text tracking-tight">
+          Votre parcours en 4 étapes simples.
+        </h2>
+        <p class="text-base sm:text-lg text-apple-secondary font-normal">
+          Un cadre structuré, clair et rassurant, conçu pour respecter votre rythme sans jamais vous brusquer.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        
+        <div class="apple-card p-6 bg-apple-bg flex flex-col justify-between">
+          <div class="space-y-3">
+            <span class="sf-display text-3xl font-semibold text-apple-secondary/60">01</span>
+            <h3 class="sf-display text-xl font-semibold text-apple-text">Premier Contact</h3>
+            <p class="text-xs text-apple-secondary leading-relaxed">
+              Un entretien informel de 45 minutes pour faire connaissance, exposer vos attentes et faire le point en toute confidentialité.
+            </p>
+          </div>
+          <div class="pt-4 text-[11px] font-semibold text-apple-blue">Sans engagement</div>
+        </div>
+
+        <div class="apple-card p-6 bg-apple-bg flex flex-col justify-between">
+          <div class="space-y-3">
+            <span class="sf-display text-3xl font-semibold text-apple-secondary/60">02</span>
+            <h3 class="sf-display text-xl font-semibold text-apple-text">Le Binôme</h3>
+            <p class="text-xs text-apple-secondary leading-relaxed">
+              Attribution de deux accompagnateurs bénévoles choisis pour leur complémentarité humaine et sectorielle.
+            </p>
+          </div>
+          <div class="pt-4 text-[11px] font-semibold text-apple-blue">Regard croisé</div>
+        </div>
+
+        <div class="apple-card p-6 bg-apple-bg flex flex-col justify-between">
+          <div class="space-y-3">
+            <span class="sf-display text-3xl font-semibold text-apple-secondary/60">03</span>
+            <h3 class="sf-display text-xl font-semibold text-apple-text">L'Action</h3>
+            <p class="text-xs text-apple-secondary leading-relaxed">
+              Séances bimensuelles : refonte du CV, ciblage des entreprises du bassin cannois, simulations d'entretiens et réseau.
+            </p>
+          </div>
+          <div class="pt-4 text-[11px] font-semibold text-apple-blue">Outils &amp; Simulations</div>
+        </div>
+
+        <div class="apple-card p-6 bg-apple-bg flex flex-col justify-between">
+          <div class="space-y-3">
+            <span class="sf-display text-3xl font-semibold text-apple-green">04</span>
+            <h3 class="sf-display text-xl font-semibold text-apple-text">L'Embauche</h3>
+            <p class="text-xs text-apple-secondary leading-relaxed">
+              Décrochage de votre contrat et suivi durant la période d'essai pour assurer une intégration sereine et durable.
+            </p>
+          </div>
+          <div class="pt-4 text-[11px] font-semibold text-apple-green">Pérennisation</div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- SECTION: TECH SPECS / OFFICIAL DIRECTORY SHEET (Apple Tech Specs Style) -->
+  <section id="specs" class="py-20 px-4 sm:px-6 bg-apple-bg border-t border-black/5">
+    <div class="max-w-4xl mx-auto space-y-12">
+      
+      <div class="space-y-2">
+        <span class="text-xs font-semibold text-apple-secondary uppercase tracking-wider">Données Officielles &amp; Transparence</span>
+        <h2 class="sf-display text-3xl sm:text-4xl font-semibold text-apple-text tracking-tight">
+          Fiche d'identité de l'association.
+        </h2>
+      </div>
+
+      <!-- SPECS TABLE -->
+      <div class="divide-y divide-black/10 border-y border-black/10 text-sm">
+        
+        <div class="py-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div class="font-semibold text-apple-text">Dénomination Officielle</div>
+          <div class="sm:col-span-2 text-apple-secondary">
+            Association Solidarité Emploi du Bassin Cannois (A.S.E.B.C.)
+          </div>
+        </div>
+
+        <div class="py-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div class="font-semibold text-apple-text">Forme Juridique</div>
+          <div class="sm:col-span-2 text-apple-secondary">
+            Association déclarée régie par la loi du 1er juillet 1901 (Préfecture des Alpes-Maritimes)
+          </div>
+        </div>
+
+        <div class="py-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div class="font-semibold text-apple-text">Numéro RNA</div>
+          <div class="sm:col-span-2 text-apple-text font-mono font-medium">
+            W061008874 <span class="text-apple-secondary font-sans font-normal text-xs">(Ancien identifiant : 0061019760)</span>
+          </div>
+        </div>
+
+        <div class="py-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div class="font-semibold text-apple-text">Date de Création</div>
+          <div class="sm:col-span-2 text-apple-secondary">
+            4 novembre 2002 &bull; Publication Journal Officiel (JOAFE) le 4 janvier 2003
+          </div>
+        </div>
+
+        <div class="py-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div class="font-semibold text-apple-text">Objet Statutaire</div>
+          <div class="sm:col-span-2 text-apple-secondary">
+            Aide et accompagnement bénévole à la recherche d'emploi &bull; Code activité 015000 (Éducation / Formation)
+          </div>
+        </div>
+
+        <div class="py-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div class="font-semibold text-apple-text">Bassin Géographique</div>
+          <div class="sm:col-span-2 text-apple-secondary">
+            Cannes, Le Cannet, Mandelieu-La Napoule, Mougins, Grasse, Pays de Grasse et Sophia Antipolis
+          </div>
+        </div>
+
+        <div class="py-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div class="font-semibold text-apple-text">Tarification Candidat</div>
+          <div class="sm:col-span-2 text-apple-green font-semibold">
+            0,00 € &mdash; 100% Gratuit, sans aucun frais d'inscription ni de commission
           </div>
         </div>
 
@@ -588,125 +612,108 @@
     </div>
   </section>
 
-  <!-- FINAL CTA STRIP -->
-  <section id="contact" class="py-20 bg-gradient-to-br from-brand-600 via-sky-600 to-brand-700 text-white text-center">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-      
-      <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight">
-        Prêt(e) à redonner un souffle à votre recherche ?
+  <!-- SECTION: CALLOUT FOOTER BANNER -->
+  <section class="py-24 px-4 sm:px-6 bg-black text-white text-center">
+    <div class="max-w-2xl mx-auto space-y-6">
+      <h2 class="sf-display text-4xl sm:text-5xl font-semibold tracking-tight text-white leading-tight">
+        Faites le premier pas.<br>Nous faisons les suivants ensemble.
       </h2>
-      <p class="text-lg text-sky-100 max-w-2xl mx-auto">
-        Le premier pas est souvent le plus difficile. Prenez contact en toute simplicité : nous vous répondrons sous 48h pour fixer un premier échange en toute sérénité.
+      <p class="text-base sm:text-lg text-apple-secondary font-normal">
+        Un simple échange téléphonique permet de faire connaissance et de planifier votre premier rendez-vous avec votre binôme bénévole.
       </p>
-
-      <div class="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
-        <button onclick="openModal()" class="w-full sm:w-auto px-8 py-4 rounded-xl text-base font-bold text-brand-700 bg-white hover:bg-slate-100 shadow-xl transition-transform hover:scale-105">
-          Prendre Rendez-vous Gratuitement
+      <div class="pt-2 flex flex-col sm:flex-row items-center justify-center gap-4">
+        <button onclick="openModal()" class="apple-btn-primary w-full sm:w-auto !bg-white !text-black hover:!bg-slate-100">
+          Prendre contact gratuitement
         </button>
-        <a href="mailto:contact@arx-consulting.com?subject=Demande%20Accompagnement%20ASEBC" class="w-full sm:w-auto px-6 py-4 rounded-xl text-base font-semibold text-white bg-sky-800/80 hover:bg-sky-800 border border-sky-400/40 transition-colors">
-          Envoyer un message direct
+        <a href="mailto:contact@arx-consulting.com?subject=Contact%20ASEBC" class="text-apple-secondary hover:text-white text-sm py-2 apple-link">
+          Écrire un courriel
         </a>
       </div>
-
-      <p class="text-xs text-sky-200 pt-2">
-        Confidentialité totale garantie &bull; Aucune démarche auprès d'organismes tiers requise
-      </p>
-
     </div>
   </section>
   </main>
 
-  <!-- FOOTER -->
-  <footer class="bg-slate-950 text-slate-400 text-xs py-10 border-t border-slate-900">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-      <div class="flex items-center gap-3">
-        <img src="logo-icon.svg" alt="A.S.E.B.C." class="w-6 h-6 rounded">
-        <span>&copy; 2002&ndash;2026 Association Solidarité Emploi du Bassin Cannois (A.S.E.B.C.). Tous droits réservés.</span>
+  <!-- APPLE FOOTER -->
+  <footer class="bg-apple-bg text-apple-secondary text-[11px] py-10 px-4 sm:px-6 border-t border-black/5">
+    <div class="max-w-5xl mx-auto space-y-4">
+      <div class="border-b border-black/5 pb-4 leading-relaxed">
+        1. L'Association Solidarité Emploi du Bassin Cannois (A.S.E.B.C.) est une association loi 1901 à but non lucratif reconnue d'intérêt général (RNA W061008874). L'ensemble des prestations et accompagnements envers les demandeurs d'emploi est strictement bénévole et gratuit.<br>
+        2. Les rendez-vous peuvent être organisés en présentiel dans les locaux associatifs et permanences partenaires de Cannes et Grasse, ou à distance en visioconférence.
       </div>
-      <div class="flex items-center gap-6">
-        <span>RNA : W061008874</span>
-        <a href="#association" class="hover:text-slate-200">Mentions Légales</a>
-        <a href="https://arx-consulting.com" target="_blank" class="hover:text-sky-400">Plateforme hébergée par Arx</a>
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+        <div>
+          Copyright &copy; 2002&ndash;2026 Association Solidarité Emploi du Bassin Cannois (A.S.E.B.C.). Tous droits réservés.
+        </div>
+        <div class="flex items-center space-x-4">
+          <a href="#specs" class="hover:text-apple-text">Mentions légales</a>
+          <a href="#valeur-ajoutee" class="hover:text-apple-text">Valeur ajoutée</a>
+          <a href="https://arx-consulting.com" target="_blank" class="hover:text-apple-text">Infrastructure par Arx</a>
+        </div>
       </div>
     </div>
   </footer>
 
-  <!-- MODAL: DEMANDE D'ACCOMPAGNEMENT -->
-  <div id="contactModal" class="fixed inset-0 z-50 hidden bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-lg w-full p-6 sm:p-8 shadow-2xl relative border border-slate-200">
+  <!-- MODAL: APPLE SHEET CONTACT -->
+  <div id="contactModal" class="fixed inset-0 z-50 hidden bg-black/40 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-white rounded-[28px] max-w-md w-full p-8 shadow-2xl relative border border-black/5">
       
-      <!-- Close button -->
-      <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 p-1">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      <button onclick="closeModal()" class="absolute top-5 right-5 text-apple-secondary hover:text-apple-text p-1 text-xl leading-none">
+        &times;
       </button>
 
       <div class="text-center space-y-2 mb-6">
-        <div class="w-12 h-12 rounded-xl bg-sky-100 text-brand-600 flex items-center justify-center mx-auto mb-2">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        <div class="w-10 h-10 rounded-2xl bg-black p-2 mx-auto mb-3 shadow-sm">
+          <img src="logo-icon.svg" alt="A.S.E.B.C." class="w-full h-full">
         </div>
-        <h3 class="text-xl font-bold text-slate-900">Demande d'Accompagnement Bénévole</h3>
-        <p class="text-xs text-slate-500">
-          Remplissez ce formulaire court. Un bénévole de l'A.S.E.B.C. vous contactera sous 48h.
+        <h3 class="sf-display text-2xl font-semibold text-apple-text">Demande d'Échange</h3>
+        <p class="text-xs text-apple-secondary">
+          Un bénévole de l'A.S.E.B.C. vous contactera sous 48 heures.
         </p>
       </div>
 
-      <form id="contactForm" onsubmit="handleSubmit(event)" class="space-y-4 text-left">
+      <form id="contactForm" onsubmit="handleFormSubmit(event)" class="space-y-4">
         <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Votre Nom &amp; Prénom *</label>
-          <input type="text" required placeholder="Ex: Marie Dupont" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+          <label class="block text-xs font-semibold text-apple-text mb-1">Nom et Prénom</label>
+          <input type="text" required placeholder="Votre nom" class="w-full px-4 py-2.5 rounded-xl bg-apple-bg border border-transparent focus:border-apple-blue focus:bg-white text-sm outline-none transition-all">
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Téléphone *</label>
-            <input type="tel" required placeholder="06 00 00 00 00" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+            <label class="block text-xs font-semibold text-apple-text mb-1">Téléphone</label>
+            <input type="tel" required placeholder="06 00 00 00 00" class="w-full px-4 py-2.5 rounded-xl bg-apple-bg border border-transparent focus:border-apple-blue focus:bg-white text-sm outline-none transition-all">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Email</label>
-            <input type="email" placeholder="marie@exemple.fr" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+            <label class="block text-xs font-semibold text-apple-text mb-1">Commune (06)</label>
+            <input type="text" required placeholder="Cannes, Grasse..." class="w-full px-4 py-2.5 rounded-xl bg-apple-bg border border-transparent focus:border-apple-blue focus:bg-white text-sm outline-none transition-all">
           </div>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Votre commune de résidence *</label>
-          <select required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
-            <option value="">Sélectionnez votre ville</option>
-            <option value="cannes">Cannes / Cannes La Bocca</option>
-            <option value="le-cannet">Le Cannet</option>
-            <option value="grasse">Grasse / Pays de Grasse</option>
-            <option value="mandelieu">Mandelieu-La Napoule</option>
-            <option value="mougins">Mougins</option>
-            <option value="sophia">Antibes / Sophia Antipolis</option>
-            <option value="autre">Autre commune des Alpes-Maritimes</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Quelques mots sur votre recherche (facultatif)</label>
-          <textarea rows="2" placeholder="Ex: Reconversion dans le commerce, recherche d'un poste administratif, besoin de refaire mon CV..." class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"></textarea>
+          <label class="block text-xs font-semibold text-apple-text mb-1">Votre recherche ou besoin en 1 phrase</label>
+          <input type="text" placeholder="Ex: Refaire mon CV, préparer un entretien..." class="w-full px-4 py-2.5 rounded-xl bg-apple-bg border border-transparent focus:border-apple-blue focus:bg-white text-sm outline-none transition-all">
         </div>
 
         <div class="pt-2">
-          <button type="submit" class="w-full py-3 rounded-xl text-sm font-bold text-white bg-brand-500 hover:bg-brand-600 transition-colors shadow-md">
-            Envoyer ma demande &rarr;
+          <button type="submit" class="apple-btn-primary w-full !py-3">
+            Envoyer la demande
           </button>
         </div>
 
-        <p class="text-[11px] text-slate-400 text-center">
-          🔒 Données strictement confidentielles réservées à l'équipe bénévole A.S.E.B.C.
+        <p class="text-[11px] text-apple-secondary text-center pt-1">
+          Strictement confidentiel &bull; Aucun partage commercial
         </p>
       </form>
 
-      <!-- Confirmation message -->
-      <div id="confirmMsg" class="hidden text-center py-8 space-y-3">
-        <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto text-xl font-bold">
+      <!-- Confirmation view -->
+      <div id="confirmMsg" class="hidden text-center py-6 space-y-3">
+        <div class="w-12 h-12 rounded-full bg-apple-green/10 text-apple-green flex items-center justify-center mx-auto text-xl font-bold">
           ✓
         </div>
-        <h4 class="text-lg font-bold text-slate-900">Demande bien reçue !</h4>
-        <p class="text-xs text-slate-600">
-          Merci pour votre confiance. Un bénévole de l'A.S.E.B.C. vous contactera très rapidement par téléphone pour planifier votre premier entretien gratuit.
+        <h4 class="sf-display text-xl font-semibold text-apple-text">Demande enregistrée</h4>
+        <p class="text-xs text-apple-secondary">
+          Merci. Un membre bénévole de l'A.S.E.B.C. vous appellera sous 48 heures pour organiser votre premier entretien gratuit.
         </p>
-        <button onclick="closeModal()" class="mt-4 px-6 py-2 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200">
+        <button onclick="closeModal()" class="apple-btn-secondary !text-xs !py-2 !px-4 mt-2">
           Fermer
         </button>
       </div>
@@ -714,119 +721,98 @@
     </div>
   </div>
 
-  <!-- INTERACTIVE SCRIPTS -->
+  <!-- INTERACTIVE LOGIC -->
   <script>
-    // Simulator data
-    const SOLUTIONS = {
-      'reconversion_cv': {
-        title: "Audit de transférabilité de compétences & Refonte du CV",
-        desc: "En reconversion, vos compétences antérieures sont un atout. Vos parrains A.S.E.B.C. traduisent votre expérience passée dans les mots-clés du nouveau métier ciblé."
+    const PROFILES = {
+      reconversion: {
+        tag: "Feuille de Route Reconversion",
+        title: "Bilan de transférabilité des compétences",
+        desc: "Vos compétences passées constituent un levier majeur. Vos parrains A.S.E.B.C. vous aident à traduire vos acquis dans le vocabulaire cible du nouveau secteur et à cibler les entreprises ouvertes aux profils atypiques sur Cannes et Grasse.",
+        points: [
+          "&bull; Traduction des compétences en bénéfices employeur",
+          "&bull; Enquêtes métiers de terrain auprès de professionnels locaux",
+          "&bull; Storytelling et cohérence de votre réorientation"
+        ],
+        impact: [
+          "&bull; Un CV percutant sans justification apologétique",
+          "&bull; Confiance totale lors des questions pièges en entretien",
+          "&bull; Validation du réalisme économique du projet"
+        ]
       },
-      'reconversion_reseau': {
-        title: "Immersion réseau & Enquêtes métiers sur le terrain",
-        desc: "Nous vous mettons en relation avec des professionnels en activité dans le bassin cannois pour valider la réalité du métier et contourner les barrières du diplôme."
+      senior: {
+        tag: "Feuille de Route Cadre / Senior (+45 ans)",
+        title: "Désamorçage des freins employeurs & Accès direct aux dirigeants",
+        desc: "Pour les plus de 45 ans, l'enjeu est de mettre en avant la rentabilité immédiate et la flexibilité. Nous contournons les plateformes de recrutement automatisées pour contacter directement les décideurs et dirigeants de PME de la région.",
+        points: [
+          "&bull; Formulation de la proposition de valeur opérationnelle",
+          "&bull; Ciblage du marché caché des PME en croissance (06)",
+          "&bull; Entraînement aux réponses sur la rémunération et le management"
+        ],
+        impact: [
+          "&bull; Valorisation de l'expertise sans paraître surqualifié",
+          "&bull; Accès aux opportunités non publiées de bouche-à-oreille",
+          "&bull; Rajeunissement de la posture numérique et LinkedIn"
+        ]
       },
-      'reconversion_entretien': {
-        title: "Storytelling du parcours & Justification du changement",
-        desc: "Les recruteurs craignent le manque d'expérience. Nous construisons ensemble votre argumentaire pour prouver votre motivation et votre valeur ajoutée immédiate."
+      jeune: {
+        tag: "Feuille de Route Jeune Diplômé / Premier Emploi",
+        title: "Valorisation des soft skills & Pitch d'impact",
+        desc: "Sans longue expérience, c'est votre potentiel, votre rigueur et votre énergie qui emportent la décision. Vos parrains vous coachent pour structurer vos expériences associatives, stages et projets en arguments percutants.",
+        points: [
+          "&bull; Structuration d'un CV moderne et orienté résultats",
+          "&bull; Entraînement intensif au pitch d'impact de 120 secondes",
+          "&bull; Méthode de réseautage proactif sur LinkedIn"
+        ],
+        impact: [
+          "&bull; Sortir du lot face aux candidatures génériques",
+          "&bull; Aisance et clarté immédiates dès la première minute d'entretien",
+          "&bull; Tutorat et parrainage d'un dirigeant expérimenté"
+        ]
       },
-      'reconversion_perte': {
-        title: "Coaching de recentrage & Clarification du projet",
-        desc: "Quand on doute de sa voie, rien de tel qu'une écoute bienveillante pour refaire le point sur ses forces et reprendre la recherche avec des étapes simples."
-      },
-      'senior_cv': {
-        title: "Valorisation de l'expertise & Rajeunissement de la posture",
-        desc: "Pour les plus de 45 ans, nous mettons l'accent sur la valeur opérationnelle immédiate, la maîtrise des nouveaux outils et l'adaptabilité terrain."
-      },
-      'senior_reseau': {
-        title: "Activation du marché caché PME & Cabinets de recrutement",
-        desc: "Les postes seniors se diffusent principalement de bouche-à-oreille. L'A.S.E.B.C. vous apprend les techniques de contact direct des dirigeants de PME locales."
-      },
-      'senior_entretien': {
-        title: "Désamorçage des freins employeurs (coût, surqualification)",
-        desc: "Simulations filmées pour répondre avec aisance aux questions délicates et rassurer l'employeur sur votre souplesse managériale."
-      },
-      'senior_perte': {
-        title: "Rupture de l'isolement & Émulation collective",
-        desc: "Échanger avec d'autres cadres en recherche permet de relativiser le rejet institutionnel et de repartir avec une dynamique positive."
-      },
-      'jeune_cv': {
-        title: "Mise en avant des compétences concrètes et projets",
-        desc: "Même sans 5 ans d'expérience, vos stages, projets associatifs et soft-skills peuvent faire la différence. Nous vous aidons à les packager professionnellement."
-      },
-      'jeune_reseau': {
-        title: "Techniques de réseautage actif sur LinkedIn & Salons",
-        desc: "Apprenez à solliciter des professionnels locaux avec pertinence pour obtenir des entretiens d'information qui débouchent souvent sur des embauches."
-      },
-      'jeune_entretien': {
-        title: "Entraînement intensif au pitch de 2 minutes",
-        desc: "Donnez envie en 120 secondes chrono ! Nous travaillons votre élocution, votre posture et la clarté de votre projet."
-      },
-      'jeune_perte': {
-        title: "Tutorat bienveillant par des professionnels expérimentés",
-        desc: "Avoir deux parrains qui croient en vous et vous conseillent comme un mentor change complètement l'entrée dans la vie active."
-      },
-      'longue_cv': {
-        title: "Valorisation des périodes d'interruption & Requalification",
-        desc: "Nous apprenons à présenter les 'trous' dans le CV de façon constructive et positive pour les recruteurs."
-      },
-      'longue_reseau': {
-        title: "Reconnexion progressive au tissu socio-économique",
-        desc: "Reprendre contact avec le monde du travail en douceur grâce aux événements et ateliers partenaires de l'association."
-      },
-      'longue_entretien': {
-        title: "Reconstruction de la confiance & Simulations sécurisées",
-        desc: "Un entraînement sans pression dans un cadre sécurisant pour retrouver l'aisance verbale et chasser le syndrome de l'imposteur."
-      },
-      'longue_perte': {
-        title: "Soutien moral continu & Rythme hebdomadaire positif",
-        desc: "L'A.S.E.B.C. est d'abord une famille de soutien. Retrouvez des repères, des rendez-vous réguliers et une équipe qui ne vous lâchera pas."
+      longue: {
+        tag: "Feuille de Route Longue Interruption",
+        title: "Reconstruction de la confiance & Rythme structurant",
+        desc: "Une longue coupure fragilise l'assurance personnelle. L'A.S.E.B.C. réactive vos repères à travers des objectifs hebdomadaires bienveillants et requalifie vos périodes d'arrêt de manière positive face aux recruteurs.",
+        points: [
+          "&bull; Requalification constructive des périodes d'interruption",
+          "&bull; Simulations d'entretiens sécurisées sans pression",
+          "&bull; Remobilisation hebdomadaire et soutien moral continu"
+        ],
+        impact: [
+          "&bull; Disparition du sentiment d'illégitimité",
+          "&bull; Reprise d'une dynamique professionnelle positive",
+          "&bull; Soutien jusqu'à la fin de la période d'essai"
+        ]
       }
     };
 
-    let curSit = 'reconversion';
-    let curNeed = 'cv';
+    function setProfile(key, btn) {
+      document.querySelectorAll('#profileSegments .ios-segment-item').forEach(el => el.classList.remove('active'));
+      btn.classList.add('active');
 
-    function updateSim() {
-      const key = `${curSit}_${curNeed}`;
-      const data = SOLUTIONS[key] || SOLUTIONS['reconversion_cv'];
-      document.getElementById('resultTitle').textContent = data.title;
-      document.getElementById('resultDesc').textContent = data.desc;
+      const data = PROFILES[key];
+      if (!data) return;
+
+      document.getElementById('simTag').textContent = data.tag;
+      document.getElementById('simTitle').textContent = data.title;
+      document.getElementById('simDesc').textContent = data.desc;
+
+      const pList = document.getElementById('simPoints');
+      pList.innerHTML = data.points.map(p => `<li>${p}</li>`).join('');
+
+      const iList = document.getElementById('simImpact');
+      iList.innerHTML = data.impact.map(i => `<li>${i}</li>`).join('');
     }
 
-    function selectSituation(btn, val) {
-      document.querySelectorAll('#situationGroup .sit-btn').forEach(b => {
-        b.classList.remove('border-brand-500', 'bg-sky-50/50');
-        b.querySelector('.check-mark').classList.add('hidden');
-      });
-      btn.classList.add('border-brand-500', 'bg-sky-50/50');
-      btn.querySelector('.check-mark').classList.remove('hidden');
-      curSit = val;
-      updateSim();
-    }
-
-    function selectNeed(btn, val) {
-      document.querySelectorAll('#needGroup .need-btn').forEach(b => {
-        b.classList.remove('border-brand-500', 'bg-sky-50/50');
-        b.querySelector('.check-mark').classList.add('hidden');
-      });
-      btn.classList.add('border-brand-500', 'bg-sky-50/50');
-      btn.querySelector('.check-mark').classList.remove('hidden');
-      curNeed = val;
-      updateSim();
-    }
-
-    // Modal controls
     function openModal() {
       document.getElementById('contactModal').classList.remove('hidden');
     }
     function closeModal() {
       document.getElementById('contactModal').classList.add('hidden');
-      // Reset form view
       document.getElementById('contactForm').classList.remove('hidden');
       document.getElementById('confirmMsg').classList.add('hidden');
     }
-    function handleSubmit(e) {
+    function handleFormSubmit(e) {
       e.preventDefault();
       document.getElementById('contactForm').classList.add('hidden');
       document.getElementById('confirmMsg').classList.remove('hidden');
