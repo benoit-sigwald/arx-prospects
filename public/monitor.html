@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Live Ingestion & C-Suite Scaling Monitor &mdash; Arx Consulting</title>
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090a0f;
+      --bg-surface: #12141c;
+      --card-bg: rgba(22, 25, 37, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-border-hover: rgba(0, 113, 227, 0.4);
+      --primary: #0071e3;
+      --primary-hover: #0077ed;
+      --primary-glow: rgba(0, 113, 227, 0.25);
+      --accent-emerald: #10b981;
+      --accent-emerald-glow: rgba(16, 185, 129, 0.2);
+      --accent-purple: #8b5cf6;
+      --accent-amber: #f59e0b;
+      --accent-cyan: #06b6d4;
+      --text-main: #f5f5f7;
+      --text-muted: #86868b;
+      --text-dim: #636366;
+      --radius-xl: 18px;
+      --radius-lg: 14px;
+      --radius-md: 10px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif; }
+
+    body {
+      background: radial-gradient(circle at 50% 0%, #171c2f 0%, var(--bg) 70%);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 2rem 1.5rem 4rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    /* Top Bar */
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .brand-logo {
+      width: 44px;
+      height: 44px;
+      background: var(--primary);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 16px var(--primary-glow);
+    }
+
+    .brand-logo img {
+      width: 26px;
+      height: 26px;
+      object-fit: contain;
+    }
+
+    .brand-titles h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-titles p {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.65rem 1.1rem;
+      border-radius: var(--radius-md);
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 4px 14px var(--primary-glow);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-main);
+      border-color: var(--card-border);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .refresh-spinner {
+      display: inline-block;
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .spinning {
+      animation: spin 1s infinite linear;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* Scraper Status Banner */
+    .status-banner {
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-xl);
+      padding: 1.5rem 1.8rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.5rem;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+    }
+
+    .status-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .status-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .status-val-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .pulse-dot {
+      width: 10px;
+      height: 10px;
+      background: var(--accent-emerald);
+      border-radius: 50%;
+      box-shadow: 0 0 12px var(--accent-emerald);
+      animation: pulse 2s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.25); opacity: 0.6; }
+    }
+
+    .status-val {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .status-sub {
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Section Cards Grid */
+    .section-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      letter-spacing: -0.01em;
+    }
+
+    .section-title .badge {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      background: rgba(0, 113, 227, 0.15);
+      color: #58a6ff;
+      border: 1px solid rgba(0, 113, 227, 0.3);
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.2rem;
+    }
+
+    .grid-5 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.2rem;
+    }
+
+    .stat-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      padding: 1.4rem;
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--card-border-hover);
+      box-shadow: 0 8px 24px rgba(0, 113, 227, 0.12);
+    }
+
+    .stat-icon {
+      font-size: 1.4rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .stat-number {
+      font-size: 1.9rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+    }
+
+    .stat-title {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 0.3rem;
+      font-weight: 500;
+    }
+
+    .stat-detail {
+      font-size: 0.74rem;
+      color: var(--text-dim);
+      margin-top: 0.5rem;
+      padding-top: 0.5rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    /* Executive Table */
+    .table-container {
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th {
+      background: rgba(255, 255, 255, 0.03);
+      padding: 1rem 1.2rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    td {
+      padding: 1rem 1.2rem;
+      font-size: 0.88rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: var(--text-main);
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .role-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .num-cell {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+    }
+
+    .progress-bar-bg {
+      width: 80px;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 4px;
+      overflow: hidden;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 0.5rem;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--primary);
+      border-radius: 4px;
+    }
+
+    .footer {
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 768px) {
+      body { padding: 1rem 0.75rem 3rem; }
+      .header-bar { flex-direction: column; align-items: flex-start; }
+      .table-container { overflow-x: auto; }
+      th, td { padding: 0.75rem 0.8rem; font-size: 0.8rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Top Header -->
+    <header class="header-bar">
+      <div class="brand-section">
+        <div class="brand-logo">
+          <img src="assets/arx-logo-blanc.png" alt="Arx">
+        </div>
+        <div class="brand-titles">
+          <h1>Live Ingestion & C-Suite Scaling Monitor</h1>
+          <p>Oracle Autonomous Database 23ai &bull; Continuous Harvester Engine</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="btnRefresh" class="btn btn-primary" onclick="loadLiveMetrics()">
+          <span id="refreshIcon" class="refresh-spinner">🔄</span>
+          <span>Actualiser les métriques</span>
+        </button>
+        <a href="index.html" class="btn btn-secondary">
+          <span>&larr; Ouvrir l'Explorateur PACA</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- Scraper Status & Uptime Banner -->
+    <div class="status-banner">
+      <div class="status-item">
+        <span class="status-label">Statut du Scraper Daemon</span>
+        <div class="status-val-wrap">
+          <div id="scraperStatusDot" class="pulse-dot"></div>
+          <span id="scraperStatusText" class="status-val">RUNNING (24/7)</span>
+        </div>
+        <span id="scraperHost" class="status-sub">OCI instance-20260725-1437</span>
+      </div>
+
+      <div class="status-item">
+        <span class="status-label">Durée de Fonctionnement (Uptime)</span>
+        <div class="status-val-wrap">
+          <span id="scraperUptime" class="status-val" style="color: #38bdf8;">--</span>
+        </div>
+        <span id="scraperStartedAt" class="status-sub">Démarré: --</span>
+      </div>
+
+      <div class="status-item">
+        <span class="status-label">Progression du Cycle PACA</span>
+        <div class="status-val-wrap">
+          <span id="scraperBatch" class="status-val" style="color: #a78bfa;">--</span>
+        </div>
+        <span id="scraperRate" class="status-sub">Dernier Heartbeat: --</span>
+      </div>
+
+      <div class="status-item">
+        <span class="status-label">Dernier Refresh Base Oracle</span>
+        <div class="status-val-wrap">
+          <span id="lastRefreshTime" class="status-val" style="font-size: 0.95rem; color: #34d399;">--:--:--</span>
+        </div>
+        <span id="refreshTimerSub" class="status-sub">Actualisation automatique: 30s</span>
+      </div>
+    </div>
+
+    <!-- Section 1: Master Database Scale -->
+    <section>
+      <div class="section-title">
+        <span>🏢 1. Master Database Scale</span>
+        <span class="badge">Oracle ATP ARXDB01</span>
+      </div>
+      <div class="grid-4">
+        <div class="stat-card">
+          <div class="stat-icon">🏢</div>
+          <div id="cntTotalEnt" class="stat-number">--</div>
+          <div class="stat-title">Organisations Totales</div>
+          <div class="stat-detail">Consolidé National & Régional Master</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">📍</div>
+          <div id="cntPacaEnt" class="stat-number" style="color: #60a5fa;">--</div>
+          <div class="stat-title">Entreprises PACA</div>
+          <div class="stat-detail">06, 13, 83, 84, 04, 05</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">🌐</div>
+          <div id="cntWebEnt" class="stat-number" style="color: #34d399;">--</div>
+          <div class="stat-title">Domaines Web Résolus</div>
+          <div class="stat-detail">Sites Web d'entreprises vérifiés</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">📞</div>
+          <div id="cntPhoneEnt" class="stat-number" style="color: #fbbf24;">--</div>
+          <div class="stat-title">Lignes Directes Standard / HQ</div>
+          <div class="stat-detail">Switchboards & sièges sociaux</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 1b: Reachability -->
+    <section>
+      <div class="section-title">
+        <span>🎯 Contactabilité & Décideurs Actionnables</span>
+        <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.3);">100% Vérifiés</span>
+      </div>
+      <div class="grid-5">
+        <div class="stat-card">
+          <div class="stat-icon">👤</div>
+          <div id="cntTotalContacts" class="stat-number">--</div>
+          <div class="stat-title">Décideurs Référencés</div>
+          <div class="stat-detail">Dirigeants & C-Levels dédupliqués</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">✉️</div>
+          <div id="cntEmails" class="stat-number" style="color: #38bdf8;">--</div>
+          <div class="stat-title">Emails Directs Vérifiés</div>
+          <div class="stat-detail">Syntax & MX Validés</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">📱</div>
+          <div id="cntPhones" class="stat-number" style="color: #4ade80;">--</div>
+          <div class="stat-title">Téléphones & Mobiles</div>
+          <div class="stat-detail">Normalisation E.164 (+33...)</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">🔗</div>
+          <div id="cntLinkedins" class="stat-number" style="color: #818cf8;">--</div>
+          <div class="stat-title">Profils LinkedIn Deep</div>
+          <div class="stat-detail">URLs individuelles /in/</div>
+        </div>
+
+        <div class="stat-card" style="border-color: rgba(16, 185, 129, 0.3); background: rgba(16, 185, 129, 0.05);">
+          <div class="stat-icon">⚡</div>
+          <div id="cntReachable" class="stat-number" style="color: #34d399;">--</div>
+          <div class="stat-title">Actionnables Immédiats</div>
+          <div class="stat-detail">Email OU Téléphone direct</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: Full Spectrum C-Suite & Executive Breakdown -->
+    <section>
+      <div class="section-title">
+        <span>👤 2. Full Spectrum C-Suite & Executive Breakdown</span>
+        <span class="badge" style="background: rgba(139, 92, 246, 0.15); color: #c084fc; border-color: rgba(139, 92, 246, 0.3);">Enrichissement Continu</span>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Rôle / Persona Dirigeant</th>
+              <th>Profils Totaux</th>
+              <th>Emails Directs</th>
+              <th>Téléphones Directs</th>
+              <th>LinkedIn Profils</th>
+              <th>Actionnabilité</th>
+            </tr>
+          </thead>
+          <tbody id="rolesTableBody">
+            <tr>
+              <td colspan="6" style="text-align: center; color: var(--text-dim); padding: 2rem;">
+                Chargement des statistiques en direct depuis Oracle ATP...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer class="footer">
+      Arx Consulting &bull; Contact PACA Intelligence Platform &bull; Oracle Autonomous Database (OCI)
+    </footer>
+  </div>
+
+  <script>
+    let rawUptimeSeconds = 0;
+    let uptimeInterval = null;
+
+    function formatNumber(num) {
+      if (num === null || num === undefined) return '--';
+      return Number(num).toLocaleString('fr-FR');
+    }
+
+    function formatUptime(seconds) {
+      if (!seconds || seconds <= 0) return '0m 00s';
+      const d = Math.floor(seconds / (3600 * 24));
+      const h = Math.floor((seconds % (3600 * 24)) / 3600);
+      const m = Math.floor((seconds % 3600) / 60);
+      const s = Math.floor(seconds % 60);
+      
+      const parts = [];
+      if (d > 0) parts.push(d + 'j');
+      if (h > 0 || d > 0) parts.push(h + 'h');
+      parts.push(m + 'm');
+      parts.push(s.toString().padStart(2, '0') + 's');
+      return parts.join(' ');
+    }
+
+    function getRoleIcon(role) {
+      const r = (role || '').toUpperCase();
+      if (r.includes('AI') || r.includes('CAIO') || r.includes('ARTIFICIELLE')) return '🤖';
+      if (r.includes('CTO') || r.includes('TECHNIQUE') || r.includes('ENGINEERING')) return '💻';
+      if (r.includes('CEO') || r.includes('DIRIGEANT') || r.includes('PRESIDENT') || r.includes('GERANT')) return '👔';
+      if (r.includes('DRH') || r.includes('HUMAINES') || r.includes('PEOPLE') || r.includes('TALENT')) return '👥';
+      if (r.includes('CFO') || r.includes('FINANCIER') || r.includes('DAF') || r.includes('FINANCE')) return '💰';
+      if (r.includes('CMO') || r.includes('MARKETING') || r.includes('GROWTH')) return '📣';
+      if (r.includes('COO') || r.includes('OPERATIONS') || r.includes('EXPLOITATION')) return '⚙️';
+      if (r.includes('CPO') || r.includes('PRODUIT') || r.includes('PRODUCT')) return '📦';
+      if (r.includes('CIO') || r.includes('DSI') || r.includes('INFORMATIQUE')) return '🖥️';
+      if (r.includes('CRO') || r.includes('COMMERCIAL') || r.includes('SALES')) return '📈';
+      if (r.includes('CDO') || r.includes('DATA')) return '🗄️';
+      if (r.includes('CISO') || r.includes('CYBER') || r.includes('RSSI')) return '🛡️';
+      return '🔍';
+    }
+
+    async function loadLiveMetrics() {
+      const btn = document.getElementById('btnRefresh');
+      const icon = document.getElementById('refreshIcon');
+      icon.classList.add('spinning');
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('api/live-stats?t=' + Date.now(), {
+          headers: { 'Accept': 'application/json' }
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+
+        // 1. Database scale
+        document.getElementById('cntTotalEnt').innerText = formatNumber(data.database.total_entreprises);
+        document.getElementById('cntPacaEnt').innerText = formatNumber(data.database.paca_entreprises);
+        document.getElementById('cntWebEnt').innerText = formatNumber(data.database.resolved_websites);
+        document.getElementById('cntPhoneEnt').innerText = formatNumber(data.database.hq_phones);
+
+        // 1b. Reachability
+        document.getElementById('cntTotalContacts').innerText = formatNumber(data.database.total_contacts);
+        document.getElementById('cntEmails').innerText = formatNumber(data.database.verified_emails);
+        document.getElementById('cntPhones').innerText = formatNumber(data.database.direct_phones);
+        document.getElementById('cntLinkedins').innerText = formatNumber(data.database.linkedin_profiles);
+        document.getElementById('cntReachable').innerText = formatNumber(data.database.actionable_contacts);
+
+        // Scraper status
+        if (data.scraper) {
+          document.getElementById('scraperStatusText').innerText = (data.scraper.STATUS || 'RUNNING') + ' (24/7)';
+          document.getElementById('scraperHost').innerText = data.scraper.HOST_INFO || 'OCI instance-20260725-1437';
+          document.getElementById('scraperBatch').innerText = data.scraper.CURRENT_BATCH || '--';
+          
+          if (data.scraper.STARTED_AT) {
+            const startD = new Date(data.scraper.STARTED_AT);
+            document.getElementById('scraperStartedAt').innerText = 'Démarré: ' + startD.toLocaleTimeString('fr-FR');
+          }
+
+          if (data.scraper.LAST_HEARTBEAT) {
+            const hbD = new Date(data.scraper.LAST_HEARTBEAT);
+            document.getElementById('scraperRate').innerText = 'Dernier Heartbeat: ' + hbD.toLocaleTimeString('fr-FR');
+          }
+
+          rawUptimeSeconds = parseInt(data.scraper.UPTIME_SECONDS) || 60;
+          document.getElementById('scraperUptime').innerText = formatUptime(rawUptimeSeconds);
+        }
+
+        // 2. Roles Breakdown Table
+        const tbody = document.getElementById('rolesTableBody');
+        tbody.innerHTML = '';
+
+        if (data.roles && data.roles.length > 0) {
+          data.roles.forEach(r => {
+            const tr = document.createElement('tr');
+            const pct = r.total > 0 ? Math.round(((r.emails + r.phones) / r.total) * 100) : 0;
+            const icon = getRoleIcon(r.role);
+
+            tr.innerHTML = `
+              <td>
+                <div class="role-badge">
+                  <span>${icon}</span>
+                  <span>${r.role}</span>
+                </div>
+              </td>
+              <td class="num-cell" style="font-weight: 700; color: #fff;">${formatNumber(r.total)}</td>
+              <td class="num-cell" style="color: #38bdf8;">${formatNumber(r.emails)}</td>
+              <td class="num-cell" style="color: #4ade80;">${formatNumber(r.phones)}</td>
+              <td class="num-cell" style="color: #818cf8;">${formatNumber(r.linkedin)}</td>
+              <td>
+                <div class="progress-bar-bg">
+                  <div class="progress-bar-fill" style="width: ${Math.min(100, pct)}%;"></div>
+                </div>
+                <span class="num-cell" style="font-size: 0.8rem; color: var(--text-muted);">${pct}%</span>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+
+        const now = new Date();
+        document.getElementById('lastRefreshTime').innerText = now.toLocaleTimeString('fr-FR');
+
+      } catch (e) {
+        console.error('Failed to load metrics:', e);
+      } finally {
+        setTimeout(() => {
+          icon.classList.remove('spinning');
+          btn.disabled = false;
+        }, 500);
+      }
+    }
+
+    // Live ticking uptime counter
+    if (uptimeInterval) clearInterval(uptimeInterval);
+    uptimeInterval = setInterval(() => {
+      rawUptimeSeconds++;
+      document.getElementById('scraperUptime').innerText = formatUptime(rawUptimeSeconds);
+    }, 1000);
+
+    // Initial load & periodic background refresh every 30s
+    loadLiveMetrics();
+    setInterval(loadLiveMetrics, 30000);
+  </script>
+</body>
+</html>

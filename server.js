@@ -1,743 +1,858 @@
-'use strict';
-/*
- * arx-prospects — consultation des entreprises et contacts du schéma Oracle PROSPECTS.
- *
- *   GET /                     page (protégée par DASH_TOKEN : ?key=… puis cookie)
- *   GET /api/stats            compteurs par territoire, secteur, tranche d'effectif
- *   GET /api/entreprises      liste filtrable   ?q=&territoire=&secteur=&effmin=&statut=&page=
- *   GET /api/entreprises/:id  fiche + contacts rattachés
- *   GET /api/personnes        recherche par nom ?q=&origine=&territoire=&canal=&tri=&page=
- *   PATCH /api/entreprises/:id  { statut, priorite, notes }
- *
- * La page expose des données personnelles (contacts) : l'accès est refusé sans jeton,
- * et les réponses sont marquées no-store.
- */
+// server.js - Contact PACA powered exclusively by Oracle Autonomous Database 23ai (OCI)
+const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const express = require('express');
+const url = require('url');
+const oracledb = require('oracledb');
 
-// ---------- db ----------
-// Wallet et pool vivent dans lib/oracle.js : la CLI d'export vers Linki
-// interroge la meme base avec la meme connexion.
-const { q } = require('./lib/oracle');
-const pont = require('./lib/pont-linki');
-const crm = require('./lib/crm');
+const PORT = process.env.PORT || 3000;
+const ACCESS_TOKEN = process.env.PACA_ACCESS_TOKEN || 'paca-arx-2026';
+const PUBLIC_DIR = path.join(__dirname, 'public');
 
-// ---------- auth ----------
-const TOKEN = process.env.DASH_TOKEN || '';
-const app = express();
-app.disable('x-powered-by');
-app.use(express.json());
+// Oracle Database Connection Pool
+let dbPool = null;
 
-function auth(req, res, next) {
-  if (!TOKEN) return res.status(503).send('DASH_TOKEN non configuré');
-  const given = req.query.key
-    || (req.headers.cookie || '').match(/(?:^|;\s*)pk=([^;]+)/)?.[1]
-    || (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
-  if (given !== TOKEN) return res.status(401).send('clé requise');
-  if (req.query.key) {
-    // Cookie d'hôte : duckdns.org est un public suffix, pas de partage inter-sous-domaines.
-    res.setHeader('Set-Cookie', `pk=${TOKEN}; Path=/; HttpOnly; SameSite=Lax; Secure; Max-Age=604800`);
-  }
-  res.setHeader('Cache-Control', 'no-store');
-  res.setHeader('Referrer-Policy', 'no-referrer');
-  next();
-}
-
-// ---------- api ----------
-app.get('/api/stats', auth, async (_req, res, next) => {
+async function initOraclePool() {
   try {
-    const [terr, sect, eff, tot] = await Promise.all([
-      q(`SELECT TERRITOIRE, COUNT(*) N FROM ENTREPRISES GROUP BY TERRITOIRE ORDER BY N DESC`),
-      q(`SELECT NVL(SECTEUR_LIBELLE,'Non renseigné') S, COUNT(*) N FROM ENTREPRISES
-         GROUP BY NVL(SECTEUR_LIBELLE,'Non renseigné') ORDER BY N DESC FETCH FIRST 14 ROWS ONLY`),
-      q(`SELECT CASE WHEN EFFECTIF IS NULL THEN 'inconnu' WHEN EFFECTIF<10 THEN '1-9'
-                     WHEN EFFECTIF<50 THEN '10-49' WHEN EFFECTIF<250 THEN '50-249'
-                     ELSE '250+' END T, COUNT(*) N
-         FROM ENTREPRISES GROUP BY CASE WHEN EFFECTIF IS NULL THEN 'inconnu' WHEN EFFECTIF<10 THEN '1-9'
-                     WHEN EFFECTIF<50 THEN '10-49' WHEN EFFECTIF<250 THEN '50-249'
-                     ELSE '250+' END`),
-      q(`SELECT (SELECT COUNT(*) FROM ENTREPRISES) ENTREPRISES,
-                (SELECT COUNT(*) FROM CONTACTS) CONTACTS,
-                (SELECT COUNT(*) FROM V_CIBLES_ACTIVES) ACTIVES,
-                (SELECT NVL(SUM(CA_EUR),0) FROM ENTREPRISES) CA_CUMULE,
-                (SELECT COUNT(*) FROM ENTREPRISES
-                  WHERE DIRIGEANT IS NOT NULL AND TRIM(DIRIGEANT) IS NOT NULL) DIRIGEANTS,
-                (SELECT COUNT(ENTREPRISE_ID) FROM CONTACTS) CONTACTS_LIES,
-                (SELECT COUNT(*) FROM CONTACTS WHERE LINKEDIN_URL IS NOT NULL) AVEC_LINKEDIN,
-                (SELECT COUNT(*) FROM CONTACTS WHERE LINKEDIN_URL IS NULL) AU_REGISTRE,
-                (SELECT COUNT(*) FROM ENTREPRISES WHERE SIREN IS NOT NULL) AVEC_SIREN,
-                (SELECT COUNT(*) FROM ENTREPRISES WHERE TELEPHONE IS NOT NULL) APPELABLES,
-                (SELECT COUNT(*) FROM INTERACTIONS) APPELS_FAITS,
-                (SELECT COUNT(DISTINCT ENTREPRISE_ID) FROM INTERACTIONS
-                  WHERE RELANCE_LE <= TRUNC(SYSDATE)) RELANCES_DUES,
-                (SELECT COUNT(*) FROM ENTREPRISES WHERE SITE_WEB IS NOT NULL) AVEC_SITE
-           FROM DUAL`),
-    ]);
-    const t = tot.rows[0];
-    res.json({
-      territoires: terr.rows, secteurs: sect.rows, effectifs: eff.rows,
-      totaux: { ...t, PERSONNES: Number(t.DIRIGEANTS) + Number(t.CONTACTS) },
+    dbPool = await oracledb.createPool({
+      user: process.env.ORA_USER || 'prospects',
+      password: process.env.ORA_PASSWORD || 'PriefXOosnNJVChB0KlxM64k',
+      connectString: process.env.ORA_CONNECT || 'arxdb01_low',
+      configDir: process.env.ORA_WALLET_DIR || '/wallet',
+      walletLocation: process.env.ORA_WALLET_DIR || '/wallet',
+      walletPassword: process.env.ORA_WALLET_PASSWORD || 'Blackstone2026',
+      poolMin: 2,
+      poolMax: 10,
+      poolIncrement: 2,
+      poolTimeout: 60
     });
-  } catch (e) { next(e); }
-});
-
-app.get('/api/entreprises', auth, async (req, res, next) => {
-  try {
-    const w = [], b = {};
-    if (req.query.q)          { w.push(`(UPPER(RAISON_SOCIALE) LIKE :q OR UPPER(NVL(VILLE,' ')) LIKE :q OR UPPER(NVL(SECTEUR_LIBELLE,' ')) LIKE :q OR UPPER(NVL(DIRIGEANT,' ')) LIKE :q)`); b.q = `%${String(req.query.q).toUpperCase()}%`; }
-    if (req.query.territoire) { w.push(`TERRITOIRE = :t`); b.t = req.query.territoire; }
-    if (req.query.secteur)    { w.push(`SECTEUR_LIBELLE = :s`); b.s = req.query.secteur; }
-    if (req.query.statut)     { w.push(`STATUT = :st`); b.st = req.query.statut; }
-    if (req.query.effmin)     { w.push(`EFFECTIF >= :e`); b.e = Number(req.query.effmin); }
-    const where = w.length ? 'WHERE ' + w.join(' AND ') : '';
-
-    const tri = { ca: 'CA_EUR DESC NULLS LAST', effectif: 'EFFECTIF DESC NULLS LAST',
-                  nom: 'RAISON_SOCIALE', recent: 'ANNEE_SOURCE DESC NULLS LAST' }[req.query.tri] || 'CA_EUR DESC NULLS LAST';
-    b.off = Number(req.query.page || 0) * 60;
-
-    const r = await q(`SELECT ID, RAISON_SOCIALE, TERRITOIRE, VILLE, CODE_POSTAL, SECTEUR_LIBELLE,
-                              DIRIGEANT, EFFECTIF, CA_EUR, RESULTAT_EUR, TELEPHONE, SITE_WEB,
-                              SIREN, CODE_NAF, STATUT, PRIORITE, ANNEE_SOURCE, SOURCE,
-                              DOUBLON_POTENTIEL
-                       FROM ENTREPRISES ${where}
-                       ORDER BY ${tri} OFFSET :off ROWS FETCH NEXT 60 ROWS ONLY`, b);
-    const c = await q(`SELECT COUNT(*) N FROM ENTREPRISES ${where}`,
-                      Object.fromEntries(Object.entries(b).filter(([k]) => k !== 'off')));
-    res.json({ total: c.rows[0].N, rows: r.rows });
-  } catch (e) { next(e); }
-});
-
-/*
- * Recherche de personnes.
- *
- * Deux gisements coexistent et aucun ne suffit seul :
- *   - CONTACTS : 45 fiches nominatives issues d'un export LinkedIn/Waalaxy,
- *     riches en profil mais sans rattachement (ENTREPRISE_ID est vide partout) ;
- *   - ENTREPRISES.DIRIGEANT : 433 dirigeants nommes, rattaches par construction
- *     mais sans canal de contact direct.
- * On les expose sous un meme toit pour que la recherche par nom couvre les deux.
- */
-const SQL_PERSONNES = `
-  SELECT c.ID                                              AS PID,
-         -- Trois provenances, trois niveaux de confiance : le registre est
-         -- opposable, l'export LinkedIn est declaratif, la fiche entreprise
-         -- est une saisie. Les confondre sous « contact » induirait en erreur.
-         CASE WHEN c.LINKEDIN_URL IS NOT NULL THEN 'linkedin'
-              ELSE 'registre' END                          AS ORIGINE,
-         TRIM(NVL(c.PRENOM, ' ') || ' ' || NVL(c.NOM, ' ')) AS NOM_COMPLET,
-         c.FONCTION                                        AS ROLE,
-         -- Un contact rattache doit montrer sa societe, pas son titre LinkedIn :
-         -- c'est la colonne sur laquelle on lit la table et on recherche.
-         NVL(ec.RAISON_SOCIALE, c.INTITULE_POSTE)          AS DETAIL,
-         NVL(c.LOCALISATION, ec.VILLE)                     AS LIEU,
-         -- L'import Waalaxy a decale les colonnes sur au moins une ligne :
-         -- EMAIL y contient une localisation. On ne retient que ce qui a la
-         -- forme d'une adresse, sinon le filtre « avec e-mail » ment et la
-         -- fiche propose un mailto: invalide.
-         CASE WHEN REGEXP_LIKE(c.EMAIL, '^[^[:space:]@]+@[^[:space:]@]+\.[A-Za-z]{2,}$')
-              THEN c.EMAIL END                             AS EMAIL,
-         c.TELEPHONE                                       AS TELEPHONE,
-         c.LINKEDIN_URL                                    AS LINKEDIN_URL,
-         c.ENTREPRISE_ID                                   AS ENTREPRISE_ID,
-         ec.TERRITOIRE                                     AS TERRITOIRE,
-         c.SOURCE                                          AS SOURCE,
-         c.OPPOSITION                                      AS OPPOSITION
-  FROM CONTACTS c
-  LEFT JOIN ENTREPRISES ec ON ec.ID = c.ENTREPRISE_ID
-  UNION ALL
-  SELECT e.ID,
-         'fiche',
-         e.DIRIGEANT,
-         CAST('Dirigeant' AS VARCHAR2(120)),
-         e.RAISON_SOCIALE,
-         e.VILLE,
-         CAST(NULL AS VARCHAR2(320)),
-         e.TELEPHONE,
-         CAST(NULL AS VARCHAR2(400)),
-         e.ID,
-         e.TERRITOIRE,
-         e.SOURCE,
-         CAST(NULL AS CHAR(1))
-  FROM ENTREPRISES e
-  WHERE e.DIRIGEANT IS NOT NULL AND TRIM(e.DIRIGEANT) IS NOT NULL`;
-
-app.get('/api/personnes', auth, async (req, res, next) => {
-  try {
-    const w = [], b = {};
-    if (req.query.q) {
-      w.push(`(UPPER(NOM_COMPLET) LIKE :q OR UPPER(NVL(DETAIL,' ')) LIKE :q
-               OR UPPER(NVL(ROLE,' ')) LIKE :q OR UPPER(NVL(EMAIL,' ')) LIKE :q
-               OR UPPER(NVL(LIEU,' ')) LIKE :q)`);
-      b.q = `%${String(req.query.q).toUpperCase()}%`;
-    }
-    if (req.query.origine)    { w.push(`ORIGINE = :o`); b.o = req.query.origine; }
-    if (req.query.territoire) { w.push(`TERRITOIRE = :t`); b.t = req.query.territoire; }
-    if (req.query.canal === 'email')    w.push(`EMAIL IS NOT NULL`);
-    if (req.query.canal === 'linkedin') w.push(`LINKEDIN_URL IS NOT NULL`);
-    if (req.query.canal === 'tel')      w.push(`TELEPHONE IS NOT NULL`);
-    const where = w.length ? 'WHERE ' + w.join(' AND ') : '';
-
-    // Un nom se cherche par ordre alphabetique : les contacts joignables d'abord,
-    // sinon la page 1 ne montrerait que des fiches sans canal.
-    const tri = { nom: 'NOM_COMPLET', joignable: 'JOIGNABLE DESC, NOM_COMPLET' }
-                [req.query.tri] || 'JOIGNABLE DESC, NOM_COMPLET';
-    b.off = Number(req.query.page || 0) * 60;
-
-    const base = `SELECT p.*,
-                    CASE WHEN EMAIL IS NOT NULL THEN 2
-                         WHEN LINKEDIN_URL IS NOT NULL OR TELEPHONE IS NOT NULL THEN 1
-                         ELSE 0 END AS JOIGNABLE
-                  FROM (${SQL_PERSONNES}) p`;
-
-    const r = await q(`SELECT * FROM (${base}) ${where}
-                       ORDER BY ${tri} OFFSET :off ROWS FETCH NEXT 60 ROWS ONLY`, b);
-    const c = await q(`SELECT COUNT(*) N FROM (${base}) ${where}`,
-                      Object.fromEntries(Object.entries(b).filter(([k]) => k !== 'off')));
-    res.json({ total: c.rows[0].N, rows: r.rows });
-  } catch (e) { next(e); }
-});
-
-/*
- * File d'appel.
- *
- * Ce gisement n'a pas d'e-mail nominatif — mesure faite, pas supposition. Le
- * seul canal direct est le telephone du siege. La file classe donc par valeur
- * (CA) ce qui est appelable, en remontant la derniere interaction pour ne pas
- * rappeler deux fois le meme jour et ne pas rater une relance due.
- */
-const ETATS_OUVERTS = ['a_qualifier', 'a_verifier', 'qualifie', 'contacte', 'rdv', 'proposition'];
-
-app.get('/api/appels', auth, async (req, res, next) => {
-  try {
-    const w = ['e.TELEPHONE IS NOT NULL'], b = {};
-    if (req.query.q) {
-      w.push(`(UPPER(e.RAISON_SOCIALE) LIKE :q OR UPPER(NVL(e.VILLE,' ')) LIKE :q)`);
-      b.q = `%${String(req.query.q).toUpperCase()}%`;
-    }
-    if (req.query.territoire) { w.push('e.TERRITOIRE = :t'); b.t = req.query.territoire; }
-    if (req.query.statut)     { w.push('e.STATUT = :st'); b.st = req.query.statut; }
-    if (req.query.camin)      { w.push('e.CA_EUR >= :ca'); b.ca = Number(req.query.camin); }
-    // « A faire » exclut ce qui est clos et ce qui a deja ete appele aujourd'hui.
-    if (req.query.file === 'todo') {
-      w.push(`e.STATUT IN (${ETATS_OUVERTS.map((_, i) => `:e${i}`).join(',')})`);
-      ETATS_OUVERTS.forEach((v, i) => { b[`e${i}`] = v; });
-      w.push(`NOT EXISTS (SELECT 1 FROM INTERACTIONS i
-                           WHERE i.ENTREPRISE_ID = e.ID AND TRUNC(i.DATE_INTER) = TRUNC(SYSDATE))`);
-    }
-    if (req.query.file === 'relance') {
-      w.push(`EXISTS (SELECT 1 FROM INTERACTIONS i
-                       WHERE i.ENTREPRISE_ID = e.ID AND i.RELANCE_LE <= TRUNC(SYSDATE))`);
-    }
-    const where = 'WHERE ' + w.join(' AND ');
-    b.off = Number(req.query.page || 0) * 60;
-
-    const tri = { ca: 'e.CA_EUR DESC NULLS LAST', nom: 'e.RAISON_SOCIALE',
-                  relance: 'RELANCE_LE ASC NULLS LAST, e.CA_EUR DESC' }
-                [req.query.tri] || 'NVL(e.PRIORITE, 3), e.CA_EUR DESC NULLS LAST';
-
-    const base = `SELECT e.ID, e.RAISON_SOCIALE, e.VILLE, e.TERRITOIRE, e.SECTEUR_LIBELLE,
-             e.CA_EUR, e.EFFECTIF, e.TELEPHONE, e.SITE_WEB, e.SIREN,
-             e.STATUT, e.PRIORITE, e.NOTES,
-             (SELECT COUNT(*) FROM INTERACTIONS i WHERE i.ENTREPRISE_ID = e.ID) NB_APPELS,
-             (SELECT MAX(i.DATE_INTER) FROM INTERACTIONS i WHERE i.ENTREPRISE_ID = e.ID) DERNIER,
-             (SELECT MIN(i.RELANCE_LE) FROM INTERACTIONS i
-               WHERE i.ENTREPRISE_ID = e.ID AND i.RELANCE_LE >= TRUNC(SYSDATE)) RELANCE_LE,
-             (SELECT LISTAGG(TRIM(NVL(k.PRENOM,' ')||' '||k.NOM) || ' (' || NVL(k.FONCTION,'?') || ')', ' · ')
-                       WITHIN GROUP (ORDER BY k.NOM)
-                FROM CONTACTS k WHERE k.ENTREPRISE_ID = e.ID AND ROWNUM <= 4) DIRIGEANTS
-        FROM ENTREPRISES e ${where}`;
-
-    const r = await q(`SELECT * FROM (${base}) ORDER BY ${tri.replace(/e\./g, '')}
-                       OFFSET :off ROWS FETCH NEXT 60 ROWS ONLY`, b);
-    const c = await q(`SELECT COUNT(*) N FROM ENTREPRISES e ${where}`,
-                      Object.fromEntries(Object.entries(b).filter(([k]) => k !== 'off')));
-    res.json({ total: c.rows[0].N, rows: r.rows });
-  } catch (e) { next(e); }
-});
-
-app.post('/api/interactions', auth, async (req, res, next) => {
-  try {
-    const { entreprise_id, canal, resume, prochaine_etape, relance_le, statut } = req.body || {};
-    if (!entreprise_id) return res.status(400).json({ erreur: 'entreprise_id requis' });
-    await q(`INSERT INTO INTERACTIONS
-               (ENTREPRISE_ID, CANAL, RESUME, PROCHAINE_ETAPE, RELANCE_LE, DATE_INTER)
-             VALUES (:id, :canal, :resume, :etape, TO_DATE(:relance,'YYYY-MM-DD'), SYSDATE)`,
-            { id: Number(entreprise_id), canal: canal || 'telephone',
-              resume: resume || null, etape: prochaine_etape || null, relance: relance_le || null });
-    // Le statut suit l'appel : le saisir ailleurs ferait diverger les deux.
-    if (statut) {
-      await q(`UPDATE ENTREPRISES SET STATUT = :s, UPDATED_AT = SYSTIMESTAMP WHERE ID = :id`,
-              { s: statut, id: Number(entreprise_id) });
-    }
-    res.json({ ok: true });
-  } catch (e) { next(e); }
-});
-
-/*
- * Pont vers Linki (B1.4).
- *
- * Les ecrans Entreprises et Personnes filtrent deja ; le bouton reprend le
- * filtre affiche et l'envoie tel quel. Rien n'est recopie, donc rien ne peut
- * diverger entre ce qu'on a vu et ce qu'on demarche.
- *
- * LISTE garde le filtre, jamais les lignes : rejouer une liste dans six mois
- * doit rendre l'etat du referentiel a ce moment-la, pas une photo perimee.
- */
-const CHAMPS_FILTRE = ['source', 'canal', 'pays', 'ville', 'titre', 'q', 'territoire', 'secteur'];
-
-function filtreDeLaRequete(src = {}) {
-  const f = {};
-  for (const k of CHAMPS_FILTRE) if (src[k]) f[k] = String(src[k]);
-  if (src.limite) f.limite = Number(src.limite);
-  return f;
+    console.log('[ORACLE ATP] Connection pool initialized successfully.');
+  } catch (err) {
+    console.error('[ORACLE ATP] Failed to initialize connection pool:', err);
+  }
 }
 
-app.get('/api/listes', auth, async (_req, res, next) => {
-  try {
-    const r = await q(`SELECT ID, NOM, FILTRE, CANAL, LINKI_INSTANCE, LINKI_LIST_ID,
-                              DERNIER_ENVOI, LIGNES_ENVOYEES, CREE_PAR, CREATED_AT, UPDATED_AT
-                       FROM LISTE ORDER BY UPDATED_AT DESC`);
-    res.json({ rows: r.rows.map(l => ({ ...l, FILTRE: JSON.parse(l.FILTRE) })) });
-  } catch (e) { next(e); }
-});
+// Helpers
+function parseCookies(request) {
+  const list = {};
+  const rc = request.headers.cookie;
+  if (rc) {
+    rc.split(';').forEach(cookie => {
+      const parts = cookie.split('=');
+      list[parts.shift().trim()] = decodeURI(parts.join('='));
+    });
+  }
+  return list;
+}
 
-app.post('/api/listes', auth, async (req, res, next) => {
-  try {
-    const { nom } = req.body || {};
-    if (!nom) return res.status(400).json({ erreur: 'nom requis' });
-    const filtre = filtreDeLaRequete(req.body.filtre || req.body);
-    // MERGE : reenregistrer un ciblage sous le meme nom le corrige au lieu
-    // d'echouer sur l'unicite du nom.
-    await q(`MERGE INTO LISTE l USING (SELECT :nom NOM FROM DUAL) s ON (l.NOM = s.NOM)
-             WHEN MATCHED THEN UPDATE SET FILTRE = :filtre, CANAL = :canal, UPDATED_AT = SYSTIMESTAMP
-             WHEN NOT MATCHED THEN INSERT (NOM, FILTRE, CANAL, CREE_PAR)
-                                  VALUES (:nom, :filtre, :canal, :par)`,
-            { nom, filtre: JSON.stringify(filtre), canal: filtre.canal || 'mixte', par: 'arx-prospects' });
-    res.json({ ok: true, filtre });
-  } catch (e) { next(e); }
-});
+function escapeCsv(val) {
+  if (val === null || val === undefined) return '""';
+  const clean = String(val).replace(/\r?\n|\r/g, ' ').replace(/"/g, '""');
+  return `"${clean}"`;
+}
 
-/*
- * Apercu : ce que l'envoi ferait, sans rien envoyer.
- *
- * Le CSV n'est pas renvoye — il porte des donnees personnelles et l'ecran n'en
- * a pas besoin pour decider. Seuls les compteurs remontent.
- */
-app.post('/api/listes/apercu', auth, async (req, res, next) => {
-  try {
-    const filtre = filtreDeLaRequete(req.body.filtre || req.body);
-    let exclusions = null, avertissement = null;
-    try { exclusions = await pont.exclusionsLinki(); }
-    catch (e) { avertissement = `exclusions Linki indisponibles : ${e.message}`; }
-    const r = await pont.construireCsv(q, filtre, { exclusions });
-    res.json({ filtre, candidats: r.candidats, ecartes_demarches: r.ecartes_demarches,
-               lignes: r.lignes, avertissement });
-  } catch (e) { next(e); }
-});
-
-app.post('/api/listes/envoyer', auth, async (req, res, next) => {
-  try {
-    const { nom } = req.body || {};
-    if (!nom) return res.status(400).json({ erreur: 'nom de liste requis' });
-
-    // Un nom deja connu fait foi : on rejoue son filtre plutot que celui de
-    // l'ecran, sinon deux envois de « la meme » liste viseraient deux publics.
-    const dejaLa = await q(`SELECT ID, FILTRE FROM LISTE WHERE NOM = :n`, { n: nom });
-    const filtre = dejaLa.rows.length
-      ? JSON.parse(dejaLa.rows[0].FILTRE)
-      : filtreDeLaRequete(req.body.filtre || req.body);
-
-    let exclusions = null, avertissement = null;
-    try { exclusions = await pont.exclusionsLinki(); }
-    catch (e) { avertissement = `exclusions Linki indisponibles : ${e.message}`; }
-
-    const r = await pont.construireCsv(q, filtre, { exclusions });
-    if (!r.lignes) {
-      return res.json({ ok: false, raison: 'aucune ligne exportable',
-                        candidats: r.candidats, ecartes_demarches: r.ecartes_demarches, avertissement });
-    }
-
-    const envoi = await pont.pousserVersLinki(nom, r.csv);
-
-    await q(`MERGE INTO LISTE l USING (SELECT :nom NOM FROM DUAL) s ON (l.NOM = s.NOM)
-             WHEN MATCHED THEN UPDATE SET LINKI_LIST_ID = :lid, LINKI_INSTANCE = :inst,
-                    DERNIER_ENVOI = SYSTIMESTAMP, LIGNES_ENVOYEES = :n, UPDATED_AT = SYSTIMESTAMP
-             WHEN NOT MATCHED THEN INSERT (NOM, FILTRE, CANAL, LINKI_LIST_ID, LINKI_INSTANCE,
-                                           DERNIER_ENVOI, LIGNES_ENVOYEES, CREE_PAR)
-                                  VALUES (:nom, :filtre, :canal, :lid, :inst,
-                                          SYSTIMESTAMP, :n, 'arx-prospects')`,
-            { nom, filtre: JSON.stringify(filtre), canal: filtre.canal || 'mixte',
-              lid: envoi.liste_id, inst: pont.LINKI_BASE, n: r.lignes });
-
-    res.json({ ok: true, liste: envoi.nom, liste_id: envoi.liste_id,
-               candidats: r.candidats, ecartes_demarches: r.ecartes_demarches, lignes: r.lignes,
-               crees: envoi.imported, mis_a_jour: envoi.updated, deja_dans_la_liste: envoi.skipped,
-               refus: envoi.errors || [], avertissement });
-  } catch (e) { next(e); }
-});
-
-/*
- * CRM — le pipeline, toutes bases confondues.
- *
- * Une seule liste pour INVESTORS, PROSPECTS, les dirigeants de fiches et les
- * 35 formulaires GATE_*. C'est le point : un prospect n'appartient pas a un
- * ecran, il appartient a un etat.
- *
- * L'absence de ligne dans CONTACT_STATE vaut `a_contacter` — on ne materialise
- * pas 85 494 lignes pour dire que rien ne s'est encore passe.
- */
-const FILES = {
-  // Les trois questions qu'on se pose le matin, dans l'ordre.
-  retard:     `ACTION_LE < TRUNC(SYSDATE)`,
-  aujourdhui: `ACTION_LE <= TRUNC(SYSDATE)`,
-  semaine:    `ACTION_LE <= TRUNC(SYSDATE) + 7`,
-  actifs:     `STATUT NOT IN ('a_contacter', 'gagne', 'perdu')`,
+const MIME_TYPES = {
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'application/javascript; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.svg': 'image/svg+xml',
+  '.ico': 'image/x-icon'
 };
 
-function ouPipeline(req) {
-  const w = [], b = {};
-  if (req.query.source) {
-    // « gate » vaut pour les 35 formulaires d'un coup.
-    if (req.query.source === 'gate') w.push(`SOURCE LIKE 'gate:%'`);
-    else { w.push(`SOURCE = :source`); b.source = req.query.source; }
+const server = http.createServer(async (req, res) => {
+  const parsedUrl = url.parse(req.url, true);
+  let pathname = parsedUrl.pathname;
+
+  // Handle prefix stripping if mounted on /contact-paca
+  if (pathname === '/contact-paca') {
+    const search = parsedUrl.search || '';
+    res.writeHead(301, { 'Location': '/contact-paca/' + search });
+    res.end();
+    return;
   }
-  if (req.query.statut)       { w.push(`STATUT = :statut`); b.statut = req.query.statut; }
-  if (req.query.proprietaire) { w.push(`PROPRIETAIRE = :prop`); b.prop = req.query.proprietaire; }
-  if (req.query.canal === 'email')    w.push(`EMAIL IS NOT NULL`);
-  if (req.query.canal === 'linkedin') w.push(`LINKEDIN_URL IS NOT NULL`);
-  if (req.query.canal === 'joignable') w.push(`(EMAIL IS NOT NULL OR LINKEDIN_URL IS NOT NULL)`);
-  if (req.query.optout === '1')  w.push(`OPT_OUT = 1`);
-  if (req.query.optout === '0')  w.push(`OPT_OUT = 0`);
-  if (FILES[req.query.file])     w.push(FILES[req.query.file]);
-  if (req.query.q) {
-    w.push(`(UPPER(FIRST_NAME || ' ' || LAST_NAME) LIKE :q
-             OR UPPER(NVL(COMPANY,' ')) LIKE :q OR UPPER(NVL(TITLE,' ')) LIKE :q
-             OR UPPER(NVL(EMAIL,' ')) LIKE :q)`);
-    b.q = `%${String(req.query.q).toUpperCase()}%`;
+  if (pathname.startsWith('/contact-paca/')) {
+    pathname = pathname.slice('/contact-paca'.length) || '/';
   }
-  return { where: w.length ? 'WHERE ' + w.join(' AND ') : '', binds: b };
-}
 
-app.get('/api/pipeline', auth, async (req, res, next) => {
-  try {
-    const { where, binds } = ouPipeline(req);
-    const b = { ...binds, off: Number(req.query.page || 0) * 60 };
-    // Les echeances d'abord, puis les fiches vivantes : une liste de CRM se lit
-    // par urgence, pas par ordre alphabetique.
-    const tri = { action: 'ACTION_LE NULLS LAST, LAST_NAME',
-                  nom: 'LAST_NAME, FIRST_NAME',
-                  recent: 'DERNIER_CONTACT_LE DESC NULLS LAST' }[req.query.tri]
-                || 'ACTION_LE NULLS LAST, LAST_NAME';
-    const r = await q(`SELECT * FROM (${crm.SQL_PIPELINE}) ${where}
-                       ORDER BY ${tri} OFFSET :off ROWS FETCH NEXT 60 ROWS ONLY`, b);
-    const c = await q(`SELECT COUNT(*) N FROM (${crm.SQL_PIPELINE}) ${where}`, binds);
-    res.json({ total: c.rows[0].N, rows: r.rows });
-  } catch (e) { next(e); }
-});
+  // Health check
+  if (pathname === '/health' || pathname === '/sante') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ status: 'ok', oracle: !!dbPool }));
+    return;
+  }
 
-/*
- * Les compteurs du CRM : une ligne par base, une ligne par statut, et les
- * echeances. C'est ce qui doit tenir en haut de l'ecran.
- */
-app.get('/api/pipeline/stats', auth, async (_req, res, next) => {
-  try {
-    const [bases, statuts, echeances] = await Promise.all([
-      q(`SELECT SOURCE, COUNT(*) N,
-                COUNT(CASE WHEN EMAIL IS NOT NULL OR LINKEDIN_URL IS NOT NULL THEN 1 END) JOIGNABLES,
-                COUNT(CASE WHEN STATUT <> 'a_contacter' THEN 1 END) ENGAGES,
-                SUM(OPT_OUT) OPT_OUT
-           FROM (${crm.SQL_PIPELINE}) GROUP BY SOURCE ORDER BY N DESC`),
-      q(`SELECT STATUT, COUNT(*) N FROM (${crm.SQL_PIPELINE})
-          WHERE STATUT <> 'a_contacter' GROUP BY STATUT`),
-      q(`SELECT COUNT(CASE WHEN ${FILES.retard} THEN 1 END) RETARD,
-                COUNT(CASE WHEN ${FILES.aujourdhui} THEN 1 END) AUJOURDHUI,
-                COUNT(CASE WHEN ${FILES.semaine} THEN 1 END) SEMAINE,
-                COUNT(CASE WHEN ${FILES.actifs} THEN 1 END) ACTIFS
-           FROM (${crm.SQL_PIPELINE})`),
-    ]);
-    res.json({ bases: bases.rows, statuts: statuts.rows, echeances: echeances.rows[0],
-               vocabulaire: crm.STATUTS, motifs: crm.MOTIFS_PERTE,
-               types_action: crm.TYPES_ACTION, sans_action_due: crm.SANS_ACTION_DUE,
-               canaux: crm.CANAUX, types_interaction: crm.TYPES_INTER });
-  } catch (e) { next(e); }
-});
+  // Token Authentication Check
+  const cookies = parseCookies(req);
+  const queryToken = parsedUrl.query.token || parsedUrl.query.k;
+  const headerToken = req.headers['x-access-token'];
+  const cookieToken = cookies['paca_token'];
 
-/*
- * Saisie d'un etat.
- *
- * MERGE : la ligne d'etat nait au premier geste, pas avant. Les colonnes
- * absentes du corps ne sont pas touchees — un ecran qui envoie un champ ne doit
- * pas effacer les autres.
- */
-app.patch('/api/etat/:person_key', auth, async (req, res, next) => {
-  try {
-    const k = req.params.person_key;
-    const v = req.body || {};
-    if (v.statut && !crm.STATUTS.includes(v.statut))
-      return res.status(400).json({ erreur: `statut inconnu : ${v.statut}` });
-    if (v.action_type && !crm.TYPES_ACTION.includes(v.action_type))
-      return res.status(400).json({ erreur: `type d'action inconnu : ${v.action_type}` });
-    if (v.motif_perte && !crm.MOTIFS_PERTE.includes(v.motif_perte))
-      return res.status(400).json({ erreur: `motif de perte inconnu : ${v.motif_perte}` });
+  const isTokenValid = (
+    queryToken === ACCESS_TOKEN ||
+    cookieToken === ACCESS_TOKEN ||
+    headerToken === ACCESS_TOKEN
+  );
 
-    // La personne doit exister dans le referentiel : une cle inventee creerait
-    // un etat orphelin que plus rien ne rattacherait a quelqu'un.
-    const p = await q(`SELECT COUNT(*) N FROM V_PERSONNES WHERE PERSON_KEY = :k`, { k });
-    if (!p.rows[0].N) return res.status(404).json({ erreur: 'personne inconnue' });
+  // If query token valid on page request, set persistent cookie and redirect to clean URL
+  if (!pathname.startsWith('/api/') && queryToken === ACCESS_TOKEN) {
+    res.writeHead(302, {
+      'Set-Cookie': `paca_token=${ACCESS_TOKEN}; Path=/; Max-Age=2592000; SameSite=Lax`,
+      'Location': req.url.split('?')[0] || '/'
+    });
+    res.end();
+    return;
+  }
 
-    await q(`MERGE INTO CONTACT_STATE c USING (SELECT :k PERSON_KEY FROM DUAL) s
-               ON (c.PERSON_KEY = s.PERSON_KEY)
-             WHEN MATCHED THEN UPDATE SET
-               STATUT = NVL(:statut, STATUT),
-               PROPRIETAIRE = NVL(:prop, PROPRIETAIRE),
-               ACTION_TYPE = NVL(:atype, ACTION_TYPE),
-               ACTION_LE = NVL(TO_DATE(:ale, 'YYYY-MM-DD'), ACTION_LE),
-               ACTION_NOTE = NVL(:anote, ACTION_NOTE),
-               NOTES = NVL(:notes, NOTES),
-               MOTIF_PERTE = NVL(:motif, MOTIF_PERTE),
-               OPT_OUT = NVL(:optout, OPT_OUT),
-               OPT_OUT_LE = CASE WHEN :optout = 1 AND OPT_OUT_LE IS NULL THEN SYSTIMESTAMP ELSE OPT_OUT_LE END,
-               UPDATED_AT = SYSTIMESTAMP
-             WHEN NOT MATCHED THEN INSERT
-               (PERSON_KEY, STATUT, PROPRIETAIRE, ACTION_TYPE, ACTION_LE, ACTION_NOTE,
-                NOTES, MOTIF_PERTE, OPT_OUT, OPT_OUT_LE, ORIGINE_ETAT)
-               VALUES (:k, NVL(:statut, 'a_contacter'), :prop, :atype,
-                       TO_DATE(:ale, 'YYYY-MM-DD'), :anote, :notes, :motif,
-                       NVL(:optout, 0), CASE WHEN :optout = 1 THEN SYSTIMESTAMP END, 'saisie')`,
-            { k, statut: v.statut || null, prop: v.proprietaire || null,
-              atype: v.action_type || null, ale: v.action_le || null,
-              anote: v.action_note || null, notes: v.notes || null,
-              motif: v.motif_perte || null,
-              optout: v.opt_out == null ? null : (v.opt_out ? 1 : 0) });
+  // Static public assets allowed without auth (for lock screen logo)
+  const isPublicAsset = pathname.startsWith('/assets/') || pathname === '/favicon.png';
 
-    const r = await q(`SELECT * FROM (${crm.SQL_PIPELINE}) WHERE PERSON_KEY = :k`, { k });
-    res.json({ ok: true, fiche: r.rows[0] });
-  } catch (e) {
-    // La contrainte B4.2 est le coeur du CRM : son refus doit se lire, pas
-    // ressortir en ORA-02290 dans une boite de dialogue.
-    if (String(e.message).includes('CK_CS_ACTION_DUE')) {
-      return res.status(400).json({
-        erreur: 'Ce statut exige une prochaine action datee : renseignez le type et la date.' });
+  // If not authenticated
+  if (!isTokenValid && !isPublicAsset) {
+    if (pathname.startsWith('/api/')) {
+      res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ error: 'Accès non autorisé. Jeton requis.' }));
+      return;
     }
-    next(e);
+
+    // Render Apple Gate Lockscreen
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end(`<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Contact PACA &mdash; Accès Protégé | Arx Consulting</title>
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #000000;
+      --card: #1c1c1e;
+      --blue: #0071e3;
+      --blue-hover: #0077ed;
+      --text: #f5f5f7;
+      --text-sec: #86868b;
+      --border: rgba(255, 255, 255, 0.12);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+    .gate-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 2.5rem 2rem;
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+      backdrop-filter: blur(20px);
+    }
+    .logo-badge {
+      width: 52px;
+      height: 52px;
+      background: var(--blue);
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.2rem;
+      box-shadow: 0 4px 14px rgba(0, 113, 227, 0.4);
+    }
+    .logo-badge img {
+      width: 32px;
+      height: 32px;
+      object-fit: contain;
+    }
+    h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+    p {
+      color: var(--text-sec);
+      font-size: 0.92rem;
+      line-height: 1.45;
+      margin-bottom: 1.8rem;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    input[type="password"], input[type="text"] {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      background: #2c2c2e;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: #fff;
+      font-size: 1rem;
+      outline: none;
+      text-align: center;
+      letter-spacing: 0.05em;
+    }
+    input:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.3);
+    }
+    .btn-submit {
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      padding: 0.85rem;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-submit:hover {
+      background: var(--blue-hover);
+    }
+    .footer-note {
+      margin-top: 1.5rem;
+      font-size: 0.75rem;
+      color: #636366;
+    }
+    .error-msg {
+      color: #ff453a;
+      font-size: 0.82rem;
+      margin-top: 0.5rem;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="gate-card">
+    <div class="logo-badge">
+      <img src="assets/arx-logo-blanc.png" alt="Arx Consulting">
+    </div>
+    <h1>Contact PACA</h1>
+    <p>Accès restreint aux décideurs économiques de la Région Sud. Saisissez votre jeton de sécurité.</p>
+
+    <form method="GET" action="" onsubmit="return handleAuth(event)">
+      <div class="form-group">
+        <input type="password" id="tokenInput" placeholder="Entrez le jeton d'accès" autocomplete="current-password" required autofocus>
+        <button type="submit" class="btn-submit">Déverrouiller l'accès &rarr;</button>
+        <div id="errorMsg" class="error-msg">Jeton d'accès invalide.</div>
+      </div>
+    </form>
+
+    <div class="footer-note">
+      Connecté à Oracle Autonomous Database (OCI) &bull; <a href="https://arxcapital.duckdns.org" target="_blank" style="color: inherit; text-decoration: underline;">Arx Consulting</a>
+    </div>
+  </div>
+
+  <script>
+    function handleAuth(e) {
+      e.preventDefault();
+      const val = document.getElementById('tokenInput').value.trim();
+      if (!val) return false;
+      window.location.href = window.location.pathname + '?token=' + encodeURIComponent(val);
+      return false;
+    }
+  </script>
+</body>
+</html>`);
+    return;
   }
+
+  // =========================================================================
+  // API ROUTING: LIVE ORACLE AUTONOMOUS DATABASE 23ai QUERIES
+  // =========================================================================
+
+  // Helper to get Oracle connection from pool
+  async function getDb() {
+    if (!dbPool) await initOraclePool();
+    return await dbPool.getConnection();
+  }
+
+  // 1. STATS ENDPOINT: LIVE COUNTS FROM ORACLE
+  if (pathname === '/api/stats') {
+    let cn;
+    try {
+      cn = await getDb();
+      const sql = `
+        SELECT 
+          COUNT(*) AS TOTAL,
+          COUNT(CASE WHEN UPPER(c.FONCTION) LIKE '%SIDENT%' OR UPPER(c.FONCTION) LIKE '%RANT%' OR UPPER(c.FONCTION) LIKE '%DIRECTEUR%' OR UPPER(c.FONCTION) LIKE '%DIRIGEANT%' OR UPPER(c.FONCTION) LIKE '%FONDATEUR%' THEN 1 END) AS C_LEVEL,
+          COUNT(CASE WHEN c.EMAIL IS NOT NULL OR c.TELEPHONE IS NOT NULL OR e.TELEPHONE IS NOT NULL THEN 1 END) AS ACTIONABLE,
+          COUNT(CASE WHEN c.EMAIL IS NOT NULL THEN 1 END) AS WITH_EMAIL,
+          COUNT(CASE WHEN c.TELEPHONE IS NOT NULL OR e.TELEPHONE IS NOT NULL THEN 1 END) AS WITH_PHONE,
+          COUNT(CASE WHEN c.TELEPHONE LIKE '+336%' OR c.TELEPHONE LIKE '+337%' OR c.TELEPHONE LIKE '06%' OR c.TELEPHONE LIKE '07%' THEN 1 END) AS WITH_MOBILE,
+          COUNT(CASE WHEN c.LINKEDIN_URL IS NOT NULL THEN 1 END) AS WITH_LINKEDIN,
+          COUNT(CASE WHEN e.DEPARTEMENT = '06' OR e.TERRITOIRE = '06' OR SUBSTR(e.CODE_POSTAL, 1, 2) = '06' THEN 1 END) AS DEPT_06,
+          COUNT(CASE WHEN e.DEPARTEMENT = '13' OR e.TERRITOIRE = '13' OR SUBSTR(e.CODE_POSTAL, 1, 2) = '13' THEN 1 END) AS DEPT_13,
+          COUNT(CASE WHEN e.DEPARTEMENT = '83' OR e.TERRITOIRE = '83' OR SUBSTR(e.CODE_POSTAL, 1, 2) = '83' THEN 1 END) AS DEPT_83,
+          COUNT(CASE WHEN e.DEPARTEMENT = '84' OR e.TERRITOIRE = '84' OR SUBSTR(e.CODE_POSTAL, 1, 2) = '84' THEN 1 END) AS DEPT_84,
+          COUNT(CASE WHEN e.DEPARTEMENT = '05' OR e.TERRITOIRE = '05' OR SUBSTR(e.CODE_POSTAL, 1, 2) = '05' THEN 1 END) AS DEPT_05,
+          COUNT(CASE WHEN e.DEPARTEMENT = '04' OR e.TERRITOIRE = '04' OR SUBSTR(e.CODE_POSTAL, 1, 2) = '04' THEN 1 END) AS DEPT_04
+        FROM PROSPECTS.CONTACTS c
+        LEFT JOIN PROSPECTS.ENTREPRISES e ON c.ENTREPRISE_ID = e.ID
+      `;
+      const result = await cn.execute(sql, [], { outFormat: oracledb.OUT_FORMAT_OBJECT });
+      const rEnt = await cn.execute('SELECT COUNT(*) AS CNT FROM PROSPECTS.ENTREPRISES');
+      const data = result.rows[0];
+      data.TOTAL_ENTREPRISES = rEnt.rows[0][0];
+
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(data));
+    } catch (err) {
+      console.error('Error in /api/stats:', err);
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: err.message }));
+    } finally {
+      if (cn) try { await cn.close(); } catch(e){}
+    }
+    return;
+  }
+
+  // 1b. LIVE FULL SPECTRUM METRICS & SCALING DASHBOARD ENDPOINT
+  if (pathname === '/api/live-stats') {
+    let cn;
+    try {
+      cn = await getDb();
+
+      // Master scale metrics
+      const rEntTotal = await cn.execute('SELECT COUNT(*) FROM PROSPECTS.ENTREPRISES');
+      const rEntPaca = await cn.execute(`
+        SELECT COUNT(*) FROM PROSPECTS.ENTREPRISES 
+        WHERE CODE_POSTAL LIKE '06%' OR CODE_POSTAL LIKE '13%' OR CODE_POSTAL LIKE '83%' 
+           OR CODE_POSTAL LIKE '84%' OR CODE_POSTAL LIKE '04%' OR CODE_POSTAL LIKE '05%'
+      `);
+      const rEntWeb = await cn.execute('SELECT COUNT(*) FROM PROSPECTS.ENTREPRISES WHERE SITE_WEB IS NOT NULL');
+      const rEntPhone = await cn.execute('SELECT COUNT(*) FROM PROSPECTS.ENTREPRISES WHERE TELEPHONE IS NOT NULL');
+
+      const rContacts = await cn.execute(`
+        SELECT 
+          COUNT(*) AS TOTAL,
+          COUNT(CASE WHEN EMAIL IS NOT NULL THEN 1 END) AS EMAILS,
+          COUNT(CASE WHEN TELEPHONE IS NOT NULL THEN 1 END) AS PHONES,
+          COUNT(CASE WHEN LINKEDIN_URL IS NOT NULL THEN 1 END) AS LINKEDINS,
+          COUNT(CASE WHEN EMAIL IS NOT NULL OR TELEPHONE IS NOT NULL OR LINKEDIN_URL IS NOT NULL THEN 1 END) AS REACHABLE
+        FROM PROSPECTS.CONTACTS
+      `, [], { outFormat: oracledb.OUT_FORMAT_OBJECT });
+
+      // C-Suite breakdown
+      const rolesSql = `
+        SELECT 
+            CASE 
+                WHEN UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%DRH%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%RESSOURCES HUMAINES%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%PEOPLE%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%TALENT%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%RECRUT%' THEN 'DRH / Head of People'
+                WHEN UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%DIRECTEUR GENERAL%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%PDG%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%CEO%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%PRESIDENT%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%GERANT%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%FONDATEUR%' THEN 'CEO / Dirigeant / DG'
+                WHEN UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%CTO%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%TECHNIQUE%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%ENGINEERING%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%ARCHITECT%' THEN 'CTO / Dir. Technique'
+                WHEN UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%CFO%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%FINANCE%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%FINANCIER%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%DAF%' THEN 'CFO / DAF'
+                WHEN UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%CIO%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%DSI%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%INFORMATIQUE%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%SYSTEMES D%' THEN 'CIO / DSI'
+                WHEN UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%COO%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%OPERATION%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%EXPLOITATION%' THEN 'COO / Operations'
+                WHEN UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%CAIO%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%INTELLIGENCE ARTIFICIELLE%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%IA%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%AI%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%MACHINE LEARNING%' THEN 'CAIO / Head of AI & ML'
+                WHEN UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%CDO%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%DATA%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%DONNEE%' THEN 'CDO / Head of Data'
+                WHEN UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%CMO%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%MARKETING%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%GROWTH%' THEN 'CMO / Marketing & Growth'
+                WHEN UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%CRO%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%COMMERCIAL%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%SALES%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%VENTES%' THEN 'CRO / Sales & Dev'
+                WHEN UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%CPO%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%PRODUIT%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%PRODUCT%' THEN 'CPO / Head of Product'
+                WHEN UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%CISO%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%CYBER%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%SECURITE%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%RSSI%' THEN 'CISO / RSSI & Cyber'
+                ELSE 'OTHER / SECTOR SPECIALISTS'
+            END AS role_category,
+            COUNT(*) AS total_count,
+            COUNT(EMAIL) AS with_email,
+            COUNT(TELEPHONE) AS with_phone,
+            COUNT(LINKEDIN_URL) AS with_linkedin
+        FROM PROSPECTS.CONTACTS
+        GROUP BY 
+            CASE 
+                WHEN UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%DRH%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%RESSOURCES HUMAINES%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%PEOPLE%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%TALENT%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%RECRUT%' THEN 'DRH / Head of People'
+                WHEN UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%DIRECTEUR GENERAL%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%PDG%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%CEO%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%PRESIDENT%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%GERANT%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%FONDATEUR%' THEN 'CEO / Dirigeant / DG'
+                WHEN UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%CTO%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%TECHNIQUE%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%ENGINEERING%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%ARCHITECT%' THEN 'CTO / Dir. Technique'
+                WHEN UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%CFO%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%FINANCE%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%FINANCIER%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%DAF%' THEN 'CFO / DAF'
+                WHEN UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%CIO%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%DSI%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%INFORMATIQUE%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%SYSTEMES D%' THEN 'CIO / DSI'
+                WHEN UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%COO%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%OPERATION%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%EXPLOITATION%' THEN 'COO / Operations'
+                WHEN UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%CAIO%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%INTELLIGENCE ARTIFICIELLE%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%IA%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%AI%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%MACHINE LEARNING%' THEN 'CAIO / Head of AI & ML'
+                WHEN UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%CDO%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%DATA%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%DONNEE%' THEN 'CDO / Head of Data'
+                WHEN UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%CMO%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%MARKETING%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%GROWTH%' THEN 'CMO / Marketing & Growth'
+                WHEN UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%CRO%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%COMMERCIAL%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%SALES%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%VENTES%' THEN 'CRO / Sales & Dev'
+                WHEN UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%CPO%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%PRODUIT%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%PRODUCT%' THEN 'CPO / Head of Product'
+                WHEN UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%CISO%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%CYBER%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%SECURITE%' 
+                  OR UPPER(NVL(FONCTION, INTITULE_POSTE)) LIKE '%RSSI%' THEN 'CISO / RSSI & Cyber'
+                ELSE 'OTHER / SECTOR SPECIALISTS'
+            END
+        ORDER BY total_count DESC
+      `;
+      const rRoles = await cn.execute(rolesSql, [], { outFormat: oracledb.OUT_FORMAT_OBJECT });
+
+      // Scraper Heartbeat
+      let scraperInfo = { status: 'RUNNING', uptime_seconds: null, current_batch: 'Active Harvester' };
+      try {
+        const rHb = await cn.execute(`
+          SELECT 
+            SERVICE_NAME, STATUS, 
+            TO_CHAR(STARTED_AT, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS STARTED_AT, 
+            TO_CHAR(LAST_HEARTBEAT, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS LAST_HEARTBEAT,
+            PROCESSED_COUNT, EXTRACTED_CXOS, CURRENT_BATCH, HOST_INFO,
+            ROUND((SYSDATE - CAST(STARTED_AT AS DATE)) * 86400) AS UPTIME_SECONDS,
+            ROUND((SYSDATE - CAST(LAST_HEARTBEAT AS DATE)) * 86400) AS SECONDS_SINCE_HEARTBEAT
+          FROM PROSPECTS.INGESTION_HEARTBEAT 
+          WHERE SERVICE_NAME = 'c_suite_harvester'
+        `, [], { outFormat: oracledb.OUT_FORMAT_OBJECT });
+
+        if (rHb.rows && rHb.rows.length > 0) {
+          scraperInfo = rHb.rows[0];
+        }
+      } catch (hbErr) {
+        console.warn('Could not query INGESTION_HEARTBEAT:', hbErr.message);
+      }
+
+      const responsePayload = {
+        refreshed_at: new Date().toISOString(),
+        database: {
+          total_entreprises: rEntTotal.rows[0][0],
+          paca_entreprises: rEntPaca.rows[0][0],
+          resolved_websites: rEntWeb.rows[0][0],
+          hq_phones: rEntPhone.rows[0][0],
+          total_contacts: rContacts.rows[0].TOTAL,
+          verified_emails: rContacts.rows[0].EMAILS,
+          direct_phones: rContacts.rows[0].PHONES,
+          linkedin_profiles: rContacts.rows[0].LINKEDINS,
+          actionable_contacts: rContacts.rows[0].REACHABLE
+        },
+        roles: rRoles.rows.map(r => ({
+          role: r.ROLE_CATEGORY,
+          total: r.TOTAL_COUNT,
+          emails: r.WITH_EMAIL,
+          phones: r.WITH_PHONE,
+          linkedin: r.WITH_LINKEDIN
+        })),
+        scraper: scraperInfo
+      };
+
+      res.writeHead(200, { 
+        'Content-Type': 'application/json; charset=utf-8',
+        'Cache-Control': 'no-cache, no-store, must-revalidate'
+      });
+      res.end(JSON.stringify(responsePayload));
+    } catch (err) {
+      console.error('Error in /api/live-stats:', err);
+      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ error: err.message }));
+    } finally {
+      if (cn) try { await cn.close(); } catch(e){}
+    }
+    return;
+  }
+
+  // 2. FILTER OPTIONS ENDPOINT (Dynamic dropdown lists from Oracle)
+  if (pathname === '/api/filter-options') {
+    let cn;
+    try {
+      cn = await getDb();
+      // Secteurs
+      const rSecteurs = await cn.execute(`
+        SELECT DISTINCT e.SECTEUR 
+        FROM PROSPECTS.ENTREPRISES e 
+        WHERE e.SECTEUR IS NOT NULL 
+        ORDER BY e.SECTEUR
+      `);
+      // Top Villes
+      const rVilles = await cn.execute(`
+        SELECT e.VILLE, COUNT(*) AS CNT
+        FROM PROSPECTS.ENTREPRISES e
+        WHERE e.VILLE IS NOT NULL
+        GROUP BY e.VILLE
+        ORDER BY CNT DESC
+        FETCH FIRST 80 ROWS ONLY
+      `);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        secteurs: rSecteurs.rows.map(r => r[0]),
+        villes: rVilles.rows.map(r => ({ ville: r[0], count: r[1] }))
+      }));
+    } catch (err) {
+      console.error('Error in /api/filter-options:', err);
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: err.message }));
+    } finally {
+      if (cn) try { await cn.close(); } catch(e){}
+    }
+    return;
+  }
+
+  // Helper to construct contact filter WHERE clauses and binds for both /api/contacts and /api/export
+  function buildContactFilters(q) {
+    const whereClauses = ["1=1"];
+    const binds = {};
+
+    if (q.ids && q.ids.trim()) {
+      const idList = q.ids.split(',').map(x => parseInt(x)).filter(x => !isNaN(x)).slice(0, 5000);
+      if (idList.length > 0) {
+        whereClauses.push(`c.ID IN (${idList.join(',')})`);
+      }
+    }
+
+    // Keyword search
+    if (q.q && q.q.trim()) {
+      whereClauses.push(`(
+        UPPER(c.PRENOM || ' ' || c.NOM) LIKE :searchKey
+        OR UPPER(NVL(e.RAISON_SOCIALE, ' ')) LIKE :searchKey
+        OR UPPER(NVL(c.FONCTION, ' ')) LIKE :searchKey
+        OR UPPER(NVL(c.EMAIL, ' ')) LIKE :searchKey
+        OR UPPER(NVL(c.TELEPHONE, ' ')) LIKE :searchKey
+        OR UPPER(NVL(e.TELEPHONE, ' ')) LIKE :searchKey
+        OR UPPER(NVL(e.VILLE, ' ')) LIKE :searchKey
+        OR UPPER(NVL(c.LOCALISATION, ' ')) LIKE :searchKey
+        OR UPPER(NVL(e.SIREN, ' ')) LIKE :searchKey
+        OR UPPER(NVL(e.CODE_NAF, ' ')) LIKE :searchKey
+        OR UPPER(NVL(e.SECTEUR, ' ')) LIKE :searchKey
+      )`);
+      binds.searchKey = `%${q.q.trim().toUpperCase()}%`;
+    }
+
+    // Department
+    if (q.dept && q.dept.trim()) {
+      whereClauses.push(`(
+        e.DEPARTEMENT = :dept 
+        OR e.TERRITOIRE = :dept 
+        OR SUBSTR(e.CODE_POSTAL, 1, 2) = :dept
+        OR c.LOCALISATION LIKE '%' || :dept || '%'
+      )`);
+      binds.dept = q.dept.trim();
+    }
+
+    // Secteur
+    if (q.secteur && q.secteur.trim()) {
+      whereClauses.push(`(e.SECTEUR = :secteur OR e.CODE_NAF = :secteur)`);
+      binds.secteur = q.secteur.trim();
+    }
+
+    // Ville
+    if (q.ville && q.ville.trim()) {
+      whereClauses.push(`(UPPER(e.VILLE) = :ville OR UPPER(c.LOCALISATION) LIKE '%' || :ville || '%')`);
+      binds.ville = q.ville.trim().toUpperCase();
+    }
+
+    // Channels
+    if (q.has_email === 'true' || q.has_email === '1') {
+      whereClauses.push(`c.EMAIL IS NOT NULL`);
+    }
+    if (q.has_phone === 'true' || q.has_phone === '1') {
+      whereClauses.push(`(c.TELEPHONE IS NOT NULL OR e.TELEPHONE IS NOT NULL)`);
+    }
+    if (q.has_mobile === 'true' || q.has_mobile === '1') {
+      whereClauses.push(`(c.TELEPHONE LIKE '+336%' OR c.TELEPHONE LIKE '+337%' OR c.TELEPHONE LIKE '06%' OR c.TELEPHONE LIKE '07%')`);
+    }
+    if (q.has_actionable === 'true' || q.has_actionable === '1') {
+      whereClauses.push(`(c.EMAIL IS NOT NULL OR c.TELEPHONE IS NOT NULL OR e.TELEPHONE IS NOT NULL)`);
+    }
+    if (q.has_c_level === 'true' || q.has_c_level === '1') {
+      whereClauses.push(`(UPPER(c.FONCTION) LIKE '%SIDENT%' OR UPPER(c.FONCTION) LIKE '%RANT%' OR UPPER(c.FONCTION) LIKE '%DIRECTEUR%' OR UPPER(c.FONCTION) LIKE '%DIRIGEANT%' OR UPPER(c.FONCTION) LIKE '%FONDATEUR%')`);
+    }
+    if (q.has_website === 'true' || q.has_website === '1') {
+      whereClauses.push(`e.SITE_WEB IS NOT NULL`);
+    }
+
+    // Role category
+    if (q.fonction) {
+      if (q.fonction === 'direction') {
+        whereClauses.push(`(UPPER(c.FONCTION) LIKE '%DIRECTEUR%' OR UPPER(c.FONCTION) LIKE '%PRÉSIDENT%' OR UPPER(c.FONCTION) LIKE '%PRESIDENT%' OR UPPER(c.FONCTION) LIKE '%DG%')`);
+      } else if (q.fonction === 'conseil') {
+        whereClauses.push(`(UPPER(c.FONCTION) LIKE '%ADMINISTRATEUR%' OR UPPER(c.FONCTION) LIKE '%CONSEIL%' OR UPPER(c.FONCTION) LIKE '%SURVEILLANCE%')`);
+      } else if (q.fonction === 'gerant') {
+        whereClauses.push(`(UPPER(c.FONCTION) LIKE '%GÉRANT%' OR UPPER(c.FONCTION) LIKE '%GERANT%' OR UPPER(c.FONCTION) LIKE '%FONDATEUR%')`);
+      } else if (q.fonction === 'rh') {
+        whereClauses.push(`(UPPER(c.FONCTION) LIKE '%RH%' OR UPPER(c.FONCTION) LIKE '%RESSOURCES%')`);
+      }
+    }
+
+    // Chiffre d'Affaires
+    if (q.ca) {
+      if (q.ca === '1m') whereClauses.push(`e.CA_EUR >= 1000000`);
+      else if (q.ca === '5m') whereClauses.push(`e.CA_EUR >= 5000000`);
+      else if (q.ca === '20m') whereClauses.push(`e.CA_EUR >= 20000000`);
+      else if (q.ca === '50m') whereClauses.push(`e.CA_EUR >= 50000000`);
+    }
+
+    return { whereSql: whereClauses.join(' AND '), binds };
+  }
+
+  // 3. CONTACTS SEARCH & FILTER ENDPOINT (Paginated Real-Time SQL Query)
+  if (pathname === '/api/contacts') {
+    let cn;
+    try {
+      cn = await getDb();
+      const q = parsedUrl.query;
+      const page = Math.max(1, parseInt(q.page) || 1);
+      const pageSize = Math.min(200, Math.max(10, parseInt(q.pageSize) || 50));
+      const offset = (page - 1) * pageSize;
+
+      const { whereSql, binds } = buildContactFilters(q);
+
+      // Total count query
+      const countSql = `
+        SELECT COUNT(*) AS CNT
+        FROM PROSPECTS.CONTACTS c
+        LEFT JOIN PROSPECTS.V_ENTREPRISES_CONSOLIDEES e ON c.ENTREPRISE_ID = e.ID
+        WHERE ${whereSql}
+      `;
+      const countRes = await cn.execute(countSql, binds, { outFormat: oracledb.OUT_FORMAT_OBJECT });
+      const totalRows = countRes.rows[0].CNT;
+
+      // Data query with consolidated enterprise details
+      const dataSql = `
+        SELECT 
+          c.ID, c.PRENOM, c.NOM, c.FONCTION, c.EMAIL, c.TELEPHONE, c.LINKEDIN_URL, c.SOURCE AS CONTACT_SOURCE,
+          e.ID AS ENTREPRISE_ID, e.RAISON_SOCIALE, e.SIREN, e.CODE_NAF, e.SECTEUR, 
+          COALESCE(e.VILLE, c.LOCALISATION) AS VILLE, 
+          e.CODE_POSTAL,
+          e.DEPARTEMENT,
+          e.EFFECTIF_ESTIME, e.CA_EUR, e.FORME_JURIDIQUE, e.SITE_WEB, e.ADRESSE, e.TELEPHONE AS ENT_PHONE
+        FROM PROSPECTS.CONTACTS c
+        LEFT JOIN PROSPECTS.V_ENTREPRISES_CONSOLIDEES e ON c.ENTREPRISE_ID = e.ID
+        WHERE ${whereSql}
+        ORDER BY 
+          (CASE WHEN c.EMAIL IS NOT NULL THEN 0 WHEN c.TELEPHONE IS NOT NULL THEN 1 ELSE 2 END),
+          NVL(e.RAISON_SOCIALE, c.NOM)
+        OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY
+      `;
+
+      const dataRes = await cn.execute(dataSql, { ...binds, offset, limit: pageSize }, { outFormat: oracledb.OUT_FORMAT_OBJECT });
+
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        total: totalRows,
+        page,
+        pageSize,
+        totalPages: Math.ceil(totalRows / pageSize),
+        rows: dataRes.rows
+      }));
+    } catch (err) {
+      console.error('Error in /api/contacts:', err);
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: err.message }));
+    } finally {
+      if (cn) try { await cn.close(); } catch(e){}
+    }
+    return;
+  }
+
+  // Helper to sanitize field values for CSV export (strip bracket arrays, nulls, etc.)
+  function cleanField(val) {
+    if (val === null || val === undefined) return '';
+    let str = String(val).trim();
+    if (str.startsWith('["') && str.endsWith('"]')) {
+      try {
+        const arr = JSON.parse(str);
+        if (Array.isArray(arr)) return arr.join(', ');
+      } catch(e) {}
+      str = str.replace(/[\[\]"']/g, '').trim();
+    } else if (str.startsWith('["')) {
+      str = str.replace(/[\[\]"']/g, '').trim();
+    }
+    return str;
+  }
+
+  // 4. EXPORT CSV STREAM DIRECTLY FROM ORACLE (FULL DATA FOR OUTBOUND CAMPAIGNS)
+  if (pathname === '/api/export') {
+    let cn;
+    try {
+      cn = await getDb();
+      const q = parsedUrl.query;
+      const { whereSql, binds } = buildContactFilters(q);
+
+      const sql = `
+        SELECT 
+          c.PRENOM, c.NOM, c.FONCTION, c.EMAIL, 
+          COALESCE(c.TELEPHONE, e.TELEPHONE) AS TELEPHONE, 
+          c.LINKEDIN_URL,
+          e.RAISON_SOCIALE, e.SIREN, e.CODE_NAF, e.SECTEUR, e.EFFECTIF_ESTIME, e.CA_EUR,
+          COALESCE(e.VILLE, c.LOCALISATION) AS VILLE, 
+          e.CODE_POSTAL,
+          e.DEPARTEMENT,
+          e.ADRESSE, e.SITE_WEB, e.FORME_JURIDIQUE
+        FROM PROSPECTS.CONTACTS c
+        LEFT JOIN PROSPECTS.V_ENTREPRISES_CONSOLIDEES e ON c.ENTREPRISE_ID = e.ID
+        WHERE ${whereSql}
+        ORDER BY (CASE WHEN c.EMAIL IS NOT NULL THEN 0 ELSE 1 END), NVL(e.RAISON_SOCIALE, c.NOM)
+        FETCH FIRST 25000 ROWS ONLY
+      `;
+
+      const result = await cn.execute(sql, binds, { outFormat: oracledb.OUT_FORMAT_OBJECT });
+
+      res.writeHead(200, {
+        'Content-Type': 'text/csv; charset=utf-8',
+        'Content-Disposition': `attachment; filename="contact_paca_oracle_full_export_${Date.now()}.csv"`
+      });
+
+      // UTF-8 BOM for Microsoft Excel compatibility
+      res.write('\uFEFF');
+      
+      // Complete CSV Headers for Outbound Campaign
+      const headers = [
+        "Prénom", "Nom", "Fonction", "Email Professionnel", "Téléphone", "LinkedIn",
+        "Entreprise", "SIREN", "Code NAF", "Secteur", "Effectif", "Chiffre d'Affaires (EUR)",
+        "Ville", "Code Postal", "Département", "Adresse", "Site Web", "Forme Juridique"
+      ];
+      res.write(headers.map(escapeCsv).join(';') + '\r\n');
+
+      for (const row of result.rows) {
+        let prenom = cleanField(row.PRENOM);
+        let nom = cleanField(row.NOM);
+        let fonction = cleanField(row.FONCTION);
+
+        // Sanitize synthetic DRH department records for clean mail merges
+        if (nom.toUpperCase() === 'RESSOURCES HUMAINES' && (prenom.toUpperCase().startsWith('DIRECTION') || !prenom)) {
+          prenom = 'Service';
+          nom = 'Ressources Humaines';
+          fonction = fonction || 'Direction des Ressources Humaines';
+        }
+
+        const line = [
+          prenom,
+          nom,
+          fonction,
+          cleanField(row.EMAIL),
+          cleanField(row.TELEPHONE),
+          cleanField(row.LINKEDIN_URL),
+          cleanField(row.RAISON_SOCIALE),
+          cleanField(row.SIREN),
+          cleanField(row.CODE_NAF),
+          cleanField(row.SECTEUR),
+          cleanField(row.EFFECTIF_ESTIME),
+          row.CA_EUR && row.CA_EUR > 0 ? String(row.CA_EUR) : '',
+          cleanField(row.VILLE),
+          cleanField(row.CODE_POSTAL),
+          cleanField(row.DEPARTEMENT),
+          cleanField(row.ADRESSE),
+          cleanField(row.SITE_WEB),
+          cleanField(row.FORME_JURIDIQUE)
+        ];
+        res.write(line.map(escapeCsv).join(';') + '\r\n');
+      }
+      res.end();
+    } catch (err) {
+      console.error('Error in /api/export:', err);
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: err.message }));
+    } finally {
+      if (cn) try { await cn.close(); } catch(e){}
+    }
+    return;
+  }
+
+  // =========================================================================
+  // STATIC FILES (index.html, logos, CSS - NO LOCAL DATA FILES)
+  // =========================================================================
+  let filePath = path.join(PUBLIC_DIR, pathname === '/' ? 'index.html' : pathname);
+
+  if (!filePath.startsWith(PUBLIC_DIR)) {
+    res.writeHead(403);
+    res.end('Accès interdit');
+    return;
+  }
+
+  fs.stat(filePath, (err, stats) => {
+    if (err || !stats.isFile()) {
+      filePath = path.join(PUBLIC_DIR, 'index.html');
+    }
+
+    const ext = path.extname(filePath).toLowerCase();
+    const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+    const headers = { 'Content-Type': contentType };
+
+    if (ext === '.html') {
+      headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
+    } else {
+      headers['Cache-Control'] = 'public, max-age=86400';
+    }
+
+    res.writeHead(200, headers);
+    fs.createReadStream(filePath).pipe(res);
+  });
 });
 
-
-/*
- * « Aujourd'hui » — la page d'entree.
- *
- * Un CRM est une file de travail, pas un referentiel. Afficher 85 494 lignes
- * demande a l'utilisateur de decider quoi faire ; trois listes courtes le lui
- * disent. L'ordre n'est pas esthetique : ce qui est en retard passe avant ce
- * qui est du, et une reponse non traitee passe avant tout le reste.
- */
-app.get('/api/aujourdhui', auth, async (req, res, next) => {
-  try {
-    const prop = req.query.proprietaire || null;
-    const mien = prop ? `AND PROPRIETAIRE = :prop` : '';
-    const b = prop ? { prop } : {};
-    const file = (cond, n = 40) => `SELECT * FROM (${crm.SQL_PIPELINE})
-      WHERE ${cond} ${mien} ORDER BY ACTION_LE NULLS LAST, LAST_NAME
-      FETCH FIRST ${n} ROWS ONLY`;
-
-    const [reponses, retard, dues] = await Promise.all([
-      // Une reponse qui attend est le seul evenement qui coute vraiment cher :
-      // elle est en tete, et sans condition de date.
-      q(file(`STATUT = 'a_repondu' AND OPT_OUT = 0`), b),
-      q(file(`ACTION_LE < TRUNC(SYSDATE) AND STATUT <> 'a_repondu'`), b),
-      q(file(`ACTION_LE = TRUNC(SYSDATE) AND STATUT <> 'a_repondu'`), b),
-    ]);
-    res.json({ reponses: reponses.rows, retard: retard.rows, dues: dues.rows });
-  } catch (e) { next(e); }
+// Boot server & Oracle Pool
+initOraclePool().then(() => {
+  server.listen(PORT, () => {
+    console.log(`[CONTACT PACA] Server listening on port ${PORT}`);
+    console.log(`[SECURITY] Token protection active: ${ACCESS_TOKEN}`);
+    console.log(`[DATABASE] Live connection to Oracle ATP 23ai active`);
+  });
 });
-
-/*
- * La fiche d'une personne : son etat, sa maison, et sa frise.
- *
- * La frise repond a la question qu'on se pose avant de decrocher — que s'est-il
- * deja passe. Elle vaut mieux qu'un « dernier contact » sans contenu.
- */
-app.get('/api/personne/:person_key', auth, async (req, res, next) => {
-  try {
-    const k = req.params.person_key;
-    const p = await q(`SELECT * FROM (${crm.SQL_PIPELINE}) WHERE PERSON_KEY = :k`, { k });
-    if (!p.rows.length) return res.status(404).json({ erreur: 'personne inconnue' });
-    const fiche = p.rows[0];
-
-    const [frise, org, voisins] = await Promise.all([
-      q(crm.SQL_FRISE, { k }),
-      fiche.ORG_KEY
-        ? q(`SELECT * FROM V_ORGANISATIONS WHERE ORG_KEY = :o`, { o: fiche.ORG_KEY })
-        : Promise.resolve({ rows: [] }),
-      // Les autres personnes de la meme maison : c'est ce qui evite d'ecrire
-      // deux fois au meme fonds sans le savoir.
-      fiche.ORG_KEY
-        ? q(`SELECT PERSON_KEY, FIRST_NAME, LAST_NAME, TITLE, EMAIL, STATUT
-               FROM (${crm.SQL_PIPELINE})
-              WHERE ORG_KEY = :o AND PERSON_KEY <> :k
-                AND (EMAIL IS NOT NULL OR LINKEDIN_URL IS NOT NULL)
-              ORDER BY LAST_NAME FETCH FIRST 12 ROWS ONLY`, { o: fiche.ORG_KEY, k })
-        : Promise.resolve({ rows: [] }),
-    ]);
-    res.json({ fiche, frise: frise.rows, organisation: org.rows[0] || null, voisins: voisins.rows });
-  } catch (e) { next(e); }
-});
-
-/*
- * Saisie d'une interaction — POST /api/journal.
- *
- * Le nom evite la collision avec /api/interactions, qui journalise les appels
- * d'entreprises depuis l'onglet Appels et attend un entreprise_id. Express sert
- * la premiere route declaree : la collision passait silencieusement, et la
- * saisie repondait « entreprise_id requis ».
- *
- * Reservee a ce qu'aucune machine ne voit : l'appel, la rencontre, la note.
- * Les envois, ouvertures, clics, reponses et rebonds sont ingeres — les
- * ressaisir a la main ferait deux verites.
- */
-app.post('/api/journal', auth, async (req, res, next) => {
-  try {
-    const { person_key, canal, type, resume, quand, auteur } = req.body || {};
-    if (!person_key) return res.status(400).json({ erreur: 'person_key requis' });
-    if (!crm.CANAUX.includes(canal)) return res.status(400).json({ erreur: `canal inconnu : ${canal}` });
-    if (!crm.TYPES_INTER.includes(type)) return res.status(400).json({ erreur: `type inconnu : ${type}` });
-
-    const p = await q(`SELECT ORG_KEY FROM V_PERSONNES WHERE PERSON_KEY = :k`, { k: person_key });
-    if (!p.rows.length) return res.status(404).json({ erreur: 'personne inconnue' });
-
-    // SOURCE_REF horodate cote base : deux saisies identiques a la meme seconde
-    // resteraient distinctes, et l'unicite ne bloque que les rejeux d'ingestion.
-    await q(`INSERT INTO INTERACTION
-               (PERSON_KEY, ORG_KEY, QUAND, CANAL, TYPE, SENS, RESUME, ORIGINE, SOURCE_REF, AUTEUR)
-             VALUES (:k, :org, NVL(TO_TIMESTAMP(:quand,'YYYY-MM-DD"T"HH24:MI'), SYSTIMESTAMP),
-                     :canal, :type, 'sortant', :resume, 'saisie',
-                     'saisie:' || :k || ':' || TO_CHAR(SYSTIMESTAMP,'YYYYMMDDHH24MISSFF3'), :auteur)`,
-            { k: person_key, org: p.rows[0].ORG_KEY, quand: quand || null,
-              canal, type, resume: resume || null, auteur: auteur || null });
-
-    // Une interaction saisie fait avancer l'etat : sans cela il faudrait le
-    // resaisir, et personne ne le ferait.
-    await q(`MERGE INTO CONTACT_STATE c USING (SELECT :k PERSON_KEY FROM DUAL) s
-               ON (c.PERSON_KEY = s.PERSON_KEY)
-             WHEN MATCHED THEN UPDATE SET DERNIER_CONTACT_LE = SYSTIMESTAMP,
-                    DERNIER_CANAL = :canal, UPDATED_AT = SYSTIMESTAMP
-             WHEN NOT MATCHED THEN INSERT (PERSON_KEY, STATUT, DERNIER_CONTACT_LE,
-                    DERNIER_CANAL, ORIGINE_ETAT)
-               VALUES (:k, 'contacte', SYSTIMESTAMP, :canal, 'saisie')`,
-            { k: person_key, canal });
-
-    const f = await q(crm.SQL_FRISE, { k: person_key });
-    res.json({ ok: true, frise: f.rows });
-  } catch (e) { next(e); }
-});
-
-/* Les campagnes, avec ce qu'elles ont reellement produit. */
-app.get('/api/campagnes', auth, async (_req, res, next) => {
-  try {
-    const r = await q(`
-      SELECT c.ID, c.NOM, c.MOTEUR, c.CANAL, c.DEBUT, c.CIBLES,
-             COUNT(DISTINCT i.PERSON_KEY) TOUCHEES,
-             COUNT(CASE WHEN i.TYPE = 'envoi' THEN 1 END) ENVOIS,
-             COUNT(CASE WHEN i.TYPE = 'ouverture' THEN 1 END) OUVERTURES,
-             COUNT(CASE WHEN i.TYPE = 'clic' THEN 1 END) CLICS,
-             COUNT(CASE WHEN i.TYPE = 'reponse' THEN 1 END) REPONSES,
-             COUNT(CASE WHEN i.TYPE = 'rebond' THEN 1 END) REBONDS
-        FROM CAMPAGNE c LEFT JOIN INTERACTION i ON i.CAMPAGNE_ID = c.ID
-       GROUP BY c.ID, c.NOM, c.MOTEUR, c.CANAL, c.DEBUT, c.CIBLES
-       ORDER BY c.DEBUT DESC NULLS LAST`);
-    res.json({ total: r.rows.length, rows: r.rows });
-  } catch (e) { next(e); }
-});
-
-/*
- * Les organisations, classees par ce qu'elles pesent en personnes joignables.
- *
- * Une maison ou l'on connait douze personnes ne se demarche pas comme une
- * maison ou l'on en connait une.
- */
-app.get('/api/organisations', auth, async (req, res, next) => {
-  try {
-    const w = [], b = { off: Number(req.query.page || 0) * 60 };
-    if (req.query.q) { w.push(`UPPER(o.NOM) LIKE :q`); b.q = `%${String(req.query.q).toUpperCase()}%`; }
-    if (req.query.source) { w.push(`o.SOURCE = :src`); b.src = req.query.source; }
-    const where = w.length ? 'WHERE ' + w.join(' AND ') : '';
-    // La requete est pilotee par les personnes joignables, pas par les 74 663
-    // organisations : compter les personnes maison par maison en sous-requete
-    // correlee prenait plus de deux minutes. Agreger d'abord les 3 879
-    // joignables, puis joindre, ramene la meme reponse a quelques dizaines de ms.
-    const base = `
-      WITH pers AS (
-        SELECT ORG_KEY, COUNT(*) JOIGNABLES
-          FROM V_PERSONNES
-         WHERE ORG_KEY IS NOT NULL AND (EMAIL IS NOT NULL OR LINKEDIN_URL IS NOT NULL)
-         GROUP BY ORG_KEY),
-      inter AS (
-        SELECT ORG_KEY, COUNT(*) N FROM INTERACTION WHERE ORG_KEY IS NOT NULL GROUP BY ORG_KEY)
-      SELECT o.ORG_KEY, o.NOM, o.SOURCE, o.TYPE, o.VILLE, o.PAYS, o.SITE_WEB, o.CA_EUR,
-             p.JOIGNABLES, NVL(i.N, 0) INTERACTIONS
-        FROM pers p
-        JOIN V_ORGANISATIONS o ON o.ORG_KEY = p.ORG_KEY
-        LEFT JOIN inter i ON i.ORG_KEY = o.ORG_KEY
-      ${where}`;
-    const r = await q(`SELECT * FROM (${base})
-                       ORDER BY JOIGNABLES DESC, NOM
-                       OFFSET :off ROWS FETCH NEXT 60 ROWS ONLY`, b);
-    const c = await q(`SELECT COUNT(*) N FROM (${base})`,
-                      Object.fromEntries(Object.entries(b).filter(([k]) => k !== 'off')));
-    res.json({ total: c.rows[0].N, rows: r.rows });
-  } catch (e) { next(e); }
-});
-
-app.get('/api/entreprises/:id', auth, async (req, res, next) => {
-  try {
-    const e = await q(`SELECT * FROM ENTREPRISES WHERE ID = :id`, { id: Number(req.params.id) });
-    if (!e.rows.length) return res.status(404).json({ erreur: 'inconnue' });
-    const row = e.rows[0];
-    // Rattachement des contacts : lien explicite, sinon rapprochement par nom d'entreprise.
-    const c = await q(`SELECT ID, PRENOM, NOM, FONCTION, INTITULE_POSTE, LOCALISATION,
-                              EMAIL, TELEPHONE, LINKEDIN_URL, SOURCE, ANNEE_SOURCE, PURGE_LE, OPPOSITION
-                       FROM CONTACTS
-                       WHERE ENTREPRISE_ID = :id
-                          OR (ENTREPRISE_ID IS NULL AND UPPER(NVL(INTITULE_POSTE,' ')) LIKE :nom)
-                       ORDER BY NOM`,
-                      { id: row.ID, nom: `%${String(row.RAISON_SOCIALE).toUpperCase()}%` });
-    const i = await q(`SELECT ID, DATE_INTER, CANAL, RESUME, PROCHAINE_ETAPE, RELANCE_LE
-                       FROM INTERACTIONS WHERE ENTREPRISE_ID = :id ORDER BY DATE_INTER DESC`,
-                      { id: row.ID });
-    res.json({ entreprise: row, contacts: c.rows, interactions: i.rows });
-  } catch (e) { next(e); }
-});
-
-app.patch('/api/entreprises/:id', auth, async (req, res, next) => {
-  try {
-    const { statut, priorite, notes } = req.body || {};
-    await q(`UPDATE ENTREPRISES SET
-               STATUT   = NVL(:statut, STATUT),
-               PRIORITE = NVL(:priorite, PRIORITE),
-               NOTES    = NVL(:notes, NOTES),
-               UPDATED_AT = SYSTIMESTAMP
-             WHERE ID = :id`,
-            { statut: statut || null, priorite: priorite ?? null, notes: notes || null, id: Number(req.params.id) });
-    res.json({ ok: true });
-  } catch (e) { next(e); }
-});
-
-// ---------- page ----------
-app.get('/', auth, (_req, res) => {
-  res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  res.send(fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8'));
-});
-// Assets (logo…) : derrière le même jeton — le cookie posé à l'ouverture de la page suffit.
-// index:false pour que la racine reste servie par la route ci-dessus.
-app.use(auth, express.static(path.join(__dirname, 'public'), { index: false, maxAge: '1h' }));
-app.get('/healthz', (_req, res) => res.send('ok'));
-
-app.use((e, _req, res, _next) => {
-  console.error(e);
-  res.status(500).json({ erreur: String(e.message || e) });
-});
-
-const port = process.env.PORT || 3000;
-app.listen(port, () => console.log('arx-prospects écoute sur', port));

@@ -1486,6 +1486,11 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
           Arx Consulting
         </a>
+
+        <!-- Live Ingestion & Scaling Monitor -->
+        <a href="monitor.html" class="nav-partner-link" style="background: rgba(0, 113, 227, 0.15); color: #58a6ff; border: 1px solid rgba(0, 113, 227, 0.3); padding: 0.35rem 0.75rem; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 0.4rem;" title="Live Ingestion & Scraper Scale Monitor">
+          <span>📊</span> Live Monitor
+        </a>
       </div>
 
       <div class="nav-right">
@@ -2243,6 +2248,17 @@
         const phoneVal = c.TELEPHONE || c.ENT_PHONE || '';
         const deptCode = c.DEPARTEMENT ? String(c.DEPARTEMENT).padStart(2, '0') : '';
 
+        let companyDisplayName = c.RAISON_SOCIALE;
+        if (!companyDisplayName || companyDisplayName === 'Entreprise PACA') {
+          if (fullName.toLowerCase().includes('ressources humaines')) {
+            const extracted = fullName.replace(/^Direction\s+(?:des\s+)?Ressources\s+Humaines\s*/i, '').trim();
+            if (extracted && extracted.length > 2) companyDisplayName = extracted;
+          }
+        }
+        if (!companyDisplayName) {
+          companyDisplayName = c.VILLE ? `Entreprise (${c.VILLE})` : 'Entreprise Région Sud';
+        }
+
         tr.innerHTML = `
           <td style="text-align: center;">
             <input type="checkbox" class="apple-checkbox" ${isSelected ? 'checked' : ''} onchange="toggleSelectContact('${id}', this.checked)">
@@ -2258,7 +2274,7 @@
           </td>
           <td>
             <div class="company-cell">
-              <span class="company-name">${escapeHtml(c.RAISON_SOCIALE || 'Entreprise PACA')}</span>
+              <span class="company-name">${escapeHtml(companyDisplayName)}</span>
               <span class="company-meta">${c.SIREN ? 'SIREN ' + c.SIREN : ''} ${c.FORME_JURIDIQUE ? '• ' + c.FORME_JURIDIQUE : ''}</span>
             </div>
           </td>
